@@ -27,7 +27,7 @@ public class App {
              //Create an input stream for the tar archive
              TarArchiveInputStream tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(fileInputStream))) {
 
-            //RandomAccessFile documentIndexFile = new RandomAccessFile(DOCUMENT_INDEX_PATH, "rw")) {
+            RandomAccessFile documentIndexFile = new RandomAccessFile(DOCUMENT_INDEX_PATH, "rw")) {
 
 
             //Get the first file from the stream, that is only one
@@ -111,13 +111,13 @@ public class App {
                                 docParsed.setDocId(numberOfDocuments);
 
                                 //System.out.println("[INDEXER] Doc: "+DocParsed.docId + " read with " + DocParsed.documentLength + "terms");
-                                //invertedIndexBuilder.insertDocument(docParsed);
+                                invertedIndexBuilder.insertDocument(docParsed);
 
                                 //Insert the document index row in the document index file. It's the building of the document
                                 // index. The document index will be read from file in the future, the important is to build it
                                 // and store it inside a file.
                                 DocInfo docInfo = new DocInfo(docParsed.getDocNo(), docParsed.getDocumentLength());
-                                //docInfo.writeToDisk(documentIndexFile, numberOfDocuments);
+                                docInfo.writeToDisk(documentIndexFile, numberOfDocuments);
                             }
                         }
 
