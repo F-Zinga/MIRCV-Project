@@ -1,4 +1,4 @@
-package indexing;
+package unipi.mircv.indexing;
 
 public class Term {
 

@@ -1,4 +1,4 @@
-package indexing;
+package unipi.mircv.indexing;
 
 public class DocInfo {
 
@@ -7,11 +7,11 @@ public class DocInfo {
     private String url;
     private float pr_score;
 
-    public DocInfo(String docNo, int docLen, String url, float pr_score) {
+
+
+    public DocInfo(String docNo, int docLen) {
         this.docNo = docNo;
         this.docLen = docLen;
-        this.url = url;
-        this.pr_score = pr_score;
     }
 
     public String getDocNo() {

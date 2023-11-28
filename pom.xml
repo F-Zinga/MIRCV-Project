@@ -25,15 +25,31 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
-  </dependencies>
-
-  <!-- https://mvnrepository.com/artifact/org.apache/apache -->
-  <dependency>
+      <dependency>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-compress</artifactId>
+          <version>1.19</version>
+      </dependency>
+    <!-- https://mvnrepository.com/artifact/org.apache/apache -->
+    <dependency>
       <groupId>org.apache</groupId>
       <artifactId>apache</artifactId>
       <version>23</version>
       <type>pom</type>
-  </dependency>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.opennlp</groupId>
+      <artifactId>opennlp-tools</artifactId>
+      <version>2.3.0</version>
+    </dependency>
+  </dependencies>
+
+
 
 
   <build>
@@ -80,5 +96,15 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>8</source>
+          <target>8</target>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>
