@@ -2,16 +2,16 @@ package unipi.mircv.indexing;
 
 public class Posting {
 
-    private int docID;
+    private long docID;
     private int termFrequency;
 
 
-    public Posting(int docID, int termFrequency) {
+    public Posting(long docID, int termFrequency) {
         this.docID = docID;
         this.termFrequency = termFrequency;
     }
 
-    public int getDocID() {
+    public long getDocID() {
         return docID;
     }
 
@@ -26,6 +26,8 @@ public class Posting {
     public void setTermFrequency(int termFrequency) {
         this.termFrequency = termFrequency;
     }
+
+    public void updateTermFrequency() { termFrequency++; }
 
     @Override
     public String toString() {

@@ -9,11 +9,14 @@ import unipi.mircv.indexing.Parser;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
+import unipi.mircv.indexing.Parameters;
+
+
 public class App {
 
     public static void main(String[] args) throws IOException {
         Parser p = new Parser();
-        //String[] output = p.processDocument("ciao come stai!!! \t tonellotto is a good prof.!!! ?");
+        //String[] output = p.processDocument("ciao come stai!!! \t Italian pasta is the best.!!! ?");
         //System.out.println(output[1].toString());
 
 
@@ -27,7 +30,7 @@ public class App {
              //Create an input stream for the tar archive
              TarArchiveInputStream tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(fileInputStream))) {
 
-            RandomAccessFile documentIndexFile = new RandomAccessFile(DOCUMENT_INDEX_PATH, "rw")) {
+            RandomAccessFile documentIndexFile = new RandomAccessFile(Parameters.DOCINDEX_PATH, "rw");
 
 
             //Get the first file from the stream, that is only one

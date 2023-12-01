@@ -30,7 +30,7 @@ public class DocumentIndex extends HashMap<Long, DocInfo> {
             int offset = 0;
 
             //Array of bytes in which put the docno
-            byte[] docnoBytes = new byte[DocInfo.DOCNO_LENGTH];
+            byte[] docnoBytes = new byte[Parameters.DOCNO_BYTE];
 
             long docid;
 
@@ -46,7 +46,7 @@ public class DocumentIndex extends HashMap<Long, DocInfo> {
                 docid = documentIndexFile.readLong();
 
                 //Read the first DOCUMENT_INDEX_DOCNO_LENGTH bytes containing the docno
-                documentIndexFile.readFully(docnoBytes, 0, DocInfo.DOCNO_LENGTH);
+                documentIndexFile.readFully(docnoBytes, 0, Parameters.DOCNO_BYTE);
 
                 //Convert the bytes to a string and trim it
                 docno = new String(docnoBytes, Charset.defaultCharset()).trim();
@@ -58,7 +58,7 @@ public class DocumentIndex extends HashMap<Long, DocInfo> {
                 this.put(docid, new DocInfo(docno,docLength));
 
                 //Increment the offset
-                offset += DocInfo.DOCUMENT_INDEX_ENTRY_LENGTH;
+                offset += Parameters.DOCUMENT_INDEX_ENTRY_BYTE;
             }
 
             System.out.println("[DOCUMENT INDEX LOADER] Document index loaded");
