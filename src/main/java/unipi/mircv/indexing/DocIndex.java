@@ -4,7 +4,7 @@ import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 
-public class DocumentIndex extends HashMap<Long, DocInfo> {
+public class DocIndex extends HashMap<Long, DocInfo> {
 
     //Path to the document index file
     //TODO create folder Files or similar and change path accordingly
@@ -13,7 +13,7 @@ public class DocumentIndex extends HashMap<Long, DocInfo> {
     /**
      * Construct that calls the HashMap constructor
      */
-    public DocumentIndex(){
+    public DocIndex(){
         super();
     }
 

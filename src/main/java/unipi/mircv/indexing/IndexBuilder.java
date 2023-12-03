@@ -214,8 +214,8 @@ public class IndexBuilder {
                 });
 
                 //Set the docId offset, the frequency offset, the posting list length of the term in the lexicon
-                lexicon.get(term).setOffset(offsetDocId);
-                lexicon.get(term).setDocFreq(offsetFrequency);
+                lexicon.get(term).setOffsetDocId(offsetDocId);
+                lexicon.get(term).setOffsetFrequency(offsetFrequency);
                 lexicon.get(term).setTermFreq(postingList.size());
             });
         }catch (IOException e) {

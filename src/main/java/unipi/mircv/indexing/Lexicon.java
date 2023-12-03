@@ -20,10 +20,8 @@ public class Lexicon extends HashMap<String,Term> {
             super();
         }
 
-        /**
-         * Load the lexicon in memory.
-         */
-        public void loadLexicon() {
+
+    public void loadLexicon() {
             System.out.println("[LEXICON LOADER] Lexicon loading...");
             try {
                 //Start the stream from the lexicon file
@@ -48,7 +46,7 @@ public class Lexicon extends HashMap<String,Term> {
                         this.put(Term.getTerm(), Term);
 
                         //Increment the offset
-                        offset += Term.TERM_INFO_LENGTH;
+                        offset += Parameters.TERM_INFO_LENGTH;
                     }
                 }
 
@@ -67,7 +65,7 @@ public class Lexicon extends HashMap<String,Term> {
          */
         private Term readNextTerm(int offset) {
             //Array of bytes in which put the term
-            byte[] termBytes = new byte[Term.TERM_LENGTH];
+            byte[] termBytes = new byte[Parameters.TERM_BYTES];
 
             //String containing the term
             String term;
@@ -80,7 +78,7 @@ public class Lexicon extends HashMap<String,Term> {
                 lexiconFile.seek(offset);
 
                 //Read the first 48 containing the term
-                lexiconFile.readFully(termBytes, 0, Term.TERM_LENGTH);
+                lexiconFile.readFully(termBytes, 0, Parameters.TERM_BYTES);
 
                 //Convert the bytes to a string and trim it
                 term = new String(termBytes, Charset.defaultCharset()).trim();
@@ -108,5 +106,4 @@ public class Lexicon extends HashMap<String,Term> {
             }
         }
 
-    }
 }
