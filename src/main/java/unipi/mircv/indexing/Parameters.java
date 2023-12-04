@@ -14,7 +14,8 @@ public interface Parameters {
     //long + string[48] + int
      int DOCUMENT_INDEX_ENTRY_BYTE = DOCID_BYTE + DOCNO_BYTE + DOCLEN_BYTE;
 
-    //
+
+     //
      String DOCINDEX_PATH = "resources/utility/<da aggiungere nome file>";
 
     //Length in bytes of the term field
@@ -26,7 +27,8 @@ public interface Parameters {
     //Length in bytes of the frequency length field
      int OFFSET_FREQUENCIES_BYTES = 8;
 
-    // in Term class
+
+     // in Term class
      int DOCID_BYTES = 4;
 
      int FREQUENCY_BYTES = 4;
@@ -35,26 +37,40 @@ public interface Parameters {
      int POSTING_LIST_BYTES = 4;
      int IDF_BYTES = 8;
 
-     int OFFSET_SKIPBLOCKS_BYTES = 8;
-     int NUMBER_OF_SKIPBLOCKS_BYTES = 4;
+     int OFFSET_BLOCKS_BYTES = 8;
+     int N_BLOCKS_BYTES = 4;
 
      int MAXSCORE_BYTES = 4;
 
-     int TERM_INFO_LENGTH = TERM_BYTES + OFFSET_DOCIDS_BYTES + OFFSET_SKIPBLOCKS_BYTES+
-            NUMBER_OF_SKIPBLOCKS_BYTES + OFFSET_FREQUENCIES_BYTES + DOCID_BYTE+
+     int TERM_INFO_LENGTH = TERM_BYTES + OFFSET_DOCIDS_BYTES + OFFSET_BLOCKS_BYTES+
+            N_BLOCKS_BYTES + OFFSET_FREQUENCIES_BYTES + DOCID_BYTE+
             FREQUENCY_BYTES + POSTING_LIST_BYTES + IDF_BYTES + MAXSCORE_BYTES + MAXSCORE_BYTES;
 
 
-    // in Block class
+
+     // in Block class
      int OFFSET_LENGTH = 8;
 
-     int SKIP_BLOCK_DIMENSION_LENGTH = 4;
+     int BLOCK_DIMENSION_LENGTH = 4;
 
      int MAX_DOC_ID_LENGTH = 8;
 
     //Length in byte of each skip block (32)
-     int SKIP_BLOCK_LENGTH = 2*OFFSET_LENGTH + 2*SKIP_BLOCK_DIMENSION_LENGTH + MAX_DOC_ID_LENGTH;
+     int BLOCK_LENGTH = 2*OFFSET_LENGTH + 2*BLOCK_DIMENSION_LENGTH + MAX_DOC_ID_LENGTH;
 
 
+     // Statistics
+    double K1 = 1.6;
+    double B = 0.75;
+
+
+    // merger
+    String II_DOCID_BLOCK_PATH = "inverted-index/src/main/resources/tmp/invertedIndexDocIds";
+    String II_FREQ_BLOCK_PATH = "inverted-index/src/main/resources/tmp/invertedIndexFrequencies";
+    String LEXICON_BLOCK_PATH = "inverted-index/src/main/resources/tmp/lexiconBlock";
+    String LEXICON_PATH = "Files/lexicon.txt";
+    String II_DOCID_PATH = "Files/docids.txt";
+    String II_FREQ_PATH = "Files/frequencies.txt";
+    String BLOCKS_PATH = "Files/skipblocks.txt";
 
 }

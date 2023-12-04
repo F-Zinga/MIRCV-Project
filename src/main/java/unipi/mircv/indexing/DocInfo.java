@@ -54,7 +54,35 @@ public class DocInfo {
             throw new RuntimeException(e);
         }
     }
-        public static String fillspace(String text, int length) {
+    public static String fillspace(String text, int length) {
             return String.format("%" + length + "." + length + "s", text);
+    }
+
+    /**
+     * Read from the document index the document index entry related to the given doc id
+     * @param documentIndexFile random access file containing the document index
+     * @param docId document id of which we want to retrieve the entry
+     * @return the document index entry associated to the doc id
+     */
+    public static int getDocLenFromFile(RandomAccessFile documentIndexFile, long docId){
+
+        //Accumulator for the current offset in the file
+        long offset = (docId - 1)* Parameters.DOCUMENT_INDEX_ENTRY_BYTE + Parameters.DOCID_BYTE + Parameters.DOCNO_BYTE;
+
+        try {
+            //Move to the correct offset
+            documentIndexFile.seek(offset);
+
+            //Read the length of the document, 4 bytes starting from the offset
+            return documentIndexFile.readInt();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+
+    }
+
+
+
+
 }

@@ -2,19 +2,16 @@ package unipi.mircv;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import unipi.mircv.indexing.DocInfo;
-import unipi.mircv.indexing.DocParsed;
-import unipi.mircv.indexing.Parser;
+import unipi.mircv.indexing.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-
-import unipi.mircv.indexing.Parameters;
 
 
 public class App {
 
     public static void main(String[] args) throws IOException {
+
         Parser p = new Parser();
         //String[] output = p.processDocument("ciao come stai!!! \t Italian pasta is the best.!!! ?");
         //System.out.println(output[1].toString());
@@ -114,7 +111,7 @@ public class App {
                                 docParsed.setDocId(numberOfDocuments);
 
                                 //System.out.println("[INDEXER] Doc: "+DocParsed.docId + " read with " + DocParsed.documentLength + "terms");
-                                invertedIndexBuilder.insertDocument(docParsed);
+                                IndexBuilder.insertDocument(docParsed);
 
                                 //Insert the document index row in the document index file. It's the building of the document
                                 // index. The document index will be read from file in the future, the important is to build it

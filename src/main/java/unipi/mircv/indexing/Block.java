@@ -91,9 +91,9 @@ public class Block {
      */
     public void writeToFile(RandomAccessFile skipBlocksFile){
         byte[] startDocIdOffset = ByteBuffer.allocate(Parameters.OFFSET_LENGTH).putLong(this.docIDOffset).array();
-        byte[] skipBlockDocIdLength = ByteBuffer.allocate(Parameters.SKIP_BLOCK_DIMENSION_LENGTH).putInt(this.docIDSize).array();
+        byte[] skipBlockDocIdLength = ByteBuffer.allocate(Parameters.BLOCK_DIMENSION_LENGTH).putInt(this.docIDSize).array();
         byte[] startFreqOffset = ByteBuffer.allocate(Parameters.OFFSET_LENGTH).putLong(this.frqOffset).array();
-        byte[] skipBlockFreqLength = ByteBuffer.allocate(Parameters.SKIP_BLOCK_DIMENSION_LENGTH).putInt(this.frqSize).array();
+        byte[] skipBlockFreqLength = ByteBuffer.allocate(Parameters.BLOCK_DIMENSION_LENGTH).putInt(this.frqSize).array();
         byte[] maxDocId = ByteBuffer.allocate(Parameters.MAX_DOC_ID_LENGTH).putLong(this.maxDocID).array();
         try {
             skipBlocksFile.write(startDocIdOffset);

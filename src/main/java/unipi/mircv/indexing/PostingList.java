@@ -200,7 +200,7 @@ public class PostingList extends ArrayList<Posting> {
 
             randomAccessFileDocIds.readFully(docidsByte, 0, length);
 
-            return Zipper.variableByteDecodeLong(docidsByte);
+            return Compressor.variableByteDecodeLong(docidsByte);
 
         } catch (IOException e) {
             System.err.println("[ReadPostingListDocIds] Exception during seek");
@@ -227,7 +227,7 @@ public class PostingList extends ArrayList<Posting> {
 
             randomAccessFileFreq.readFully(docidsByte, 0, length);
 
-            return Zipper.variableByteDecode(docidsByte);
+            return Compressor.variableByteDecode(docidsByte);
 
         } catch (IOException e) {
             System.err.println("[ReadPostingListDocIds] Exception during seek");

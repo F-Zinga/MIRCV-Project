@@ -1,46 +1,44 @@
 package unipi.mircv.indexing;
-import unipi.mircv.indexing.DocInfo;
-import unipi.mircv.indexing.Block;
-import unipi.mircv.beans.Statistics;
-import unipi.mircv.beans.Tuple;
+import org.javatuples.Pair;
+import unipi.mircv.indexing.Statistics;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static unipi.mircv.merger.IndexMerger.B;
-import static unipi.mircv.merger.IndexMerger.K1;
+import static unipi.mircv.indexing.Parameters.B;
+import static unipi.mircv.indexing.Parameters.K1;
 
 
 
-public class Zipper {
+public class Compressor {
 
 
     /**
      * Compute the number of splits of the given number needed to encode it using variable-length encoding.
      * It computes the base 128 logarithm of the number and add 1 to it, obtaining the number of groups of
      * 7 bits that composes the number's representation.
-     * @param number Number of which compute the splits.
+     * @param n Number of which compute the splits.
      * @return Returns the number of splits.
      */
-    public static int splitsLog128(long number){
-        return (int)(Math.floor(Math.log(number) / Math.log(128)) + 1);
+    public static int splitsLog128(long n){
+        return (int)(Math.floor(Math.log(n) / Math.log(128)) + 1);
     }
 
     /**
      * Compress the given number using the Variable Byte Encoding.
-     * @param number Number to be compressed
+     * @param n Number to be compressed
      * @return Array of bytes containing the code of the number
      */
-    public static byte[] variableByteEncodeNumber(long number){
+    public static byte[] variableByteEncodeNumber(long n){
 
         //If the number is 0, we return directly the code in VB of 0, otherwise the algorithm doesn't work
         //In particular the log doesn't exist at 0, log(x) exists for x > 0
-        if(number == 0){
+        if(n == 0){
             return new byte[]{(byte) 0x80};//In practice this case shouldn't happen, since a frequency is always > 0
         }
 
         //Retrieve the number of splits required to encode the number
-        int numberOfBytes = splitsLog128(number);
+        int numberOfBytes = splitsLog128(n);
 
         //Array to hold the encoded bytes
         byte[] bytes = new byte[numberOfBytes];
@@ -49,11 +47,11 @@ public class Zipper {
         for(int i = numberOfBytes - 1; i >= 0; i--){
 
             //Prepend of the reminder of the division by 128 (retrieve the 7 LSB)
-            byte b = (byte) (number % 128);
+            byte b = (byte) (n % 128);
             bytes[i] = b;
 
             //Shift right the number by 7 position
-            number /= 128;
+            n /= 128;
         }
 
         //Set the control bit of the last byte to 1, to indicate that it is the last byte
@@ -131,7 +129,10 @@ public class Zipper {
 
 
 
-    public static byte[] variableByteEncodeFreq(ArrayList<Integer> frequencies, ArrayList<Block> blocks, ArrayList<Long> docIds, Tuple<Double,Double> maxscores , RandomAccessFile documentIndex, Statistics statistics){
+    public static byte[] variableByteEncodeFreq(ArrayList<Integer> frequencies, ArrayList<Block> blocks,
+                                                ArrayList<Long> docIds, Pair<Double,Double> scores,
+                                                RandomAccessFile documentIndex, Statistics statistics)
+    {
 
         //Dimension of each skip block
         int blocksLength = (int) Math.floor(Math.sqrt(frequencies.size()));
@@ -167,7 +168,7 @@ public class Zipper {
             }
 
             //Compute the bm25 scoring for the current document
-            tf_currentBm25 = freq/ (K1 * ((1-B) + B * ( (double) DocInfo.getDocLenFromDisk(documentIndex, docIds.get(counter)) / statistics.getAvdl()) + freq));
+            tf_currentBm25 = freq/ (K1 * ((1-B) + B * ( (double) DocInfo.getDocLenFromFile(documentIndex, docIds.get(counter)) / statistics.getAvdl()) + freq));
 
             //If the current max score for bm25 is greater than the previous score, update it
             if(tf_currentBm25 > tf_maxScoreBm25){
@@ -205,8 +206,8 @@ public class Zipper {
         }
 
         //Set the max score parameters
-        maxscores.setFirst((double) maxFreq);
-        maxscores.setSecond(tf_maxScoreBm25);
+        scores = scores.setAt0((double) maxFreq);
+        scores = scores.setAt1(tf_maxScoreBm25);
 
         //Array used to convert the arrayList into a byte array
         byte[] result = new byte[bytes.size()];
