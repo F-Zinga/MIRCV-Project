@@ -15,9 +15,6 @@ public interface Parameters {
      int DOCUMENT_INDEX_ENTRY_BYTE = DOCID_BYTE + DOCNO_BYTE + DOCLEN_BYTE;
 
 
-     //
-     String DOCINDEX_PATH = "resources/utility/<da aggiungere nome file>";
-
     //Length in bytes of the term field
      int TERM_BYTES = 48;
 
@@ -65,12 +62,29 @@ public interface Parameters {
 
 
     // merger
-    String II_DOCID_BLOCK_PATH = "inverted-index/src/main/resources/tmp/invertedIndexDocIds";
-    String II_FREQ_BLOCK_PATH = "inverted-index/src/main/resources/tmp/invertedIndexFrequencies";
-    String LEXICON_BLOCK_PATH = "inverted-index/src/main/resources/tmp/lexiconBlock";
+    String II_DOCID_BLOCK_PATH = "Blocks/invertedIndexDocIds/";
+    String II_FREQ_BLOCK_PATH = "Blocks/invertedIndexFrequencies/";
+    String LEXICON_BLOCK_PATH = "Blocks/lexiconBlock/";
     String LEXICON_PATH = "Files/lexicon.txt";
     String II_DOCID_PATH = "Files/docids.txt";
     String II_FREQ_PATH = "Files/frequencies.txt";
     String BLOCKS_PATH = "Files/skipblocks.txt";
+
+
+    //Test
+    //Path of the dataset
+    String COLLECTION_PATH = "C://Users//kecco//Desktop//collection.tar.gz"; // "C:\Users\kecco\Desktop\collection.tar.gz"
+
+    String FILES_PATH = "Files/";
+    //Document index file path
+    String DOCUMENT_INDEX_PATH = "Files/document_index.txt";
+
+    String ARGS_ERROR = "Select one from the following arguments:\n" +
+            "-s : stemming and stopwords removal enabled\n" +
+            "-c : compression enabled\n" +
+            "-sc : both enabled";
+
+    //Percentage of memory used to define a threshold
+    static final double PERCENTAGE = 0.7;
 
 }

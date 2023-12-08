@@ -27,7 +27,7 @@ public class App {
              //Create an input stream for the tar archive
              TarArchiveInputStream tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(fileInputStream))) {
 
-            RandomAccessFile documentIndexFile = new RandomAccessFile(Parameters.DOCINDEX_PATH, "rw");
+            RandomAccessFile documentIndexFile = new RandomAccessFile(Parameters.II_DOCID_PATH, "rw");
 
 
             //Get the first file from the stream, that is only one
@@ -36,52 +36,52 @@ public class App {
             //If the file exist
             if(currentEntry != null) {
 
-                    //Read the uncompressed tar file specifying UTF-8 as encoding
-                    InputStreamReader inputStreamReader = new InputStreamReader(tarInput, StandardCharsets.UTF_8);
+                //Read the uncompressed tar file specifying UTF-8 as encoding
+                InputStreamReader inputStreamReader = new InputStreamReader(tarInput, StandardCharsets.UTF_8);
 
-                    //Create a BufferedReader in order to access one line of the file at a time
-                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                //Create a BufferedReader in order to access one line of the file at a time
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
-                    //Variable to keep the current line read from the buffer
-                    String line;
+                //Variable to keep the current line read from the buffer
+                String line;
 
-                    //Instantiate the inverted index builder for the current block
-                    //InvertedIndexBuilder invertedIndexBuilder = new InvertedIndexBuilder();
+                //Instantiate the inverted index builder for the current block
+                //InvertedIndexBuilder invertedIndexBuilder = new InvertedIndexBuilder();
 
-                    //Counter to keep the number of documents read in total
-                    int numberOfDocuments = 0;
+                //Counter to keep the number of documents read in total
+                int numberOfDocuments = 0;
 
-                    //variable to keep track of the average length of the document
-                    float avdl = 0;
+                //variable to keep track of the average length of the document
+                float avdl = 0;
 
-                    //Counter to keep the number of documents read for the current block
-                    int blockDocuments = 0;
+                //Counter to keep the number of documents read for the current block
+                int blockDocuments = 0;
 
-                    //String to keep the current document processed
-                    //DocParsed DocParsed;
+                //String to keep the current document processed
+                //DocParsed DocParsed;
 
-                    //Retrieve the time at the beginning of the computation
-                    long begin = System.nanoTime();
+                //Retrieve the time at the beginning of the computation
+                long begin = System.nanoTime();
 
-                    //Retrieve the initial free memory
-                    long initialMemory = Runtime.getRuntime().freeMemory();
+                //Retrieve the initial free memory
+                long initialMemory = Runtime.getRuntime().freeMemory();
 
-                    //Retrieve the total memory allocated for the execution of the current runtime
-                    long totalMemory = Runtime.getRuntime().totalMemory();
+                //Retrieve the total memory allocated for the execution of the current runtime
+                long totalMemory = Runtime.getRuntime().totalMemory();
 
-                    //Retrieve the memory used at the beginning of the computation
-                    long beforeUsedMem=Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory();
+                //Retrieve the memory used at the beginning of the computation
+                long beforeUsedMem=Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory();
 
-                    //Define the threshold of memory over which the index must be flushed to disk
-                    long THRESHOLD = (long) (totalMemory * 0.8);
+                //Define the threshold of memory over which the index must be flushed to disk
+                long THRESHOLD = (long) (totalMemory * 0.8);
 
-                    System.out.println("[INDEXER] Initial total memory allocated "+ totalMemory/(1024*1024)+"MB");
-                    System.out.println("[INDEXER] Initial free memory "+ initialMemory/(1024*1024)+"MB");
-                    System.out.println("[INDEXER] Initial memory used "+ beforeUsedMem/(1024*1024)+"MB");
-                    System.out.println("[INDEXER] Memory threshold: " + THRESHOLD/(1024*1024)+"MB -> " + 0.8 * 100 + "%");
-                    System.out.println("[INDEXER] Starting to fetch the documents...");
+                System.out.println("[INDEXER] Initial total memory allocated "+ totalMemory/(1024*1024)+"MB");
+                System.out.println("[INDEXER] Initial free memory "+ initialMemory/(1024*1024)+"MB");
+                System.out.println("[INDEXER] Initial memory used "+ beforeUsedMem/(1024*1024)+"MB");
+                System.out.println("[INDEXER] Memory threshold: " + THRESHOLD/(1024*1024)+"MB -> " + 0.8 * 100 + "%");
+                System.out.println("[INDEXER] Starting to fetch the documents...");
 
-                    //Iterate over the lines
+                //Iterate over the lines
                         /*
                         line = bufferedReader.readLine();
                         System.out.println("[EXAMPLE] First line of first document before parsing: " + line);
@@ -89,40 +89,40 @@ public class App {
                         System.out.println("[EXAMPLE] First word of first document after parsing: " + output[0].toString());
                         */
 
-                        while ((line = bufferedReader.readLine()) != null ) {
+                while ((line = bufferedReader.readLine()) != null ) {
 
-                            //Process the document using the stemming and stopwords removal
-                            DocParsed docParsed = Parser.processDocument(line);
-
-
-                            //If the parsing of the document was completed correctly, it'll be appended to the collection buffer
-                            if (docParsed != null && docParsed.getTerms().length != 0) {
-
-                                //updating the average number of documents
-                                avdl = avdl * (numberOfDocuments) / (numberOfDocuments + 1) + ((float) docParsed.getTerms().length) / (numberOfDocuments + 1);
-
-                                //Increase the number of documents analyzed in total
-                                numberOfDocuments++;
-
-                                //Increase the number of documents analyzed in the current block
-                                blockDocuments++;
-
-                                //Set the docid of the current document
-                                docParsed.setDocId(numberOfDocuments);
-
-                                //System.out.println("[INDEXER] Doc: "+DocParsed.docId + " read with " + DocParsed.documentLength + "terms");
-                                IndexBuilder.insertDocument(docParsed);
-
-                                //Insert the document index row in the document index file. It's the building of the document
-                                // index. The document index will be read from file in the future, the important is to build it
-                                // and store it inside a file.
-                                DocInfo docInfo = new DocInfo(docParsed.getDocNo(), docParsed.getDocumentLength());
-                                docInfo.writeToDisk(documentIndexFile, numberOfDocuments);
-                            }
-                        }
+                    //Process the document using the stemming and stopwords removal
+                    DocParsed docParsed = Parser.processDocument(line);
 
 
-                    //Check if the memory used is above the threshold defined
+                    //If the parsing of the document was completed correctly, it'll be appended to the collection buffer
+                    if (docParsed != null && docParsed.getTerms().length != 0) {
+
+                        //updating the average number of documents
+                        avdl = avdl * (numberOfDocuments) / (numberOfDocuments + 1) + ((float) docParsed.getTerms().length) / (numberOfDocuments + 1);
+
+                        //Increase the number of documents analyzed in total
+                        numberOfDocuments++;
+
+                        //Increase the number of documents analyzed in the current block
+                        blockDocuments++;
+
+                        //Set the docid of the current document
+                        docParsed.setDocId(numberOfDocuments);
+
+                        //System.out.println("[INDEXER] Doc: "+DocParsed.docId + " read with " + DocParsed.documentLength + "terms");
+                        //IndexBuilder.insertDocument(docParsed);
+
+                        //Insert the document index row in the document index file. It's the building of the document
+                        // index. The document index will be read from file in the future, the important is to build it
+                        // and store it inside a file.
+                        DocInfo docInfo = new DocInfo(docParsed.getDocNo(), docParsed.getDocumentLength());
+                        docInfo.writeFile(documentIndexFile, numberOfDocuments);
+                    }
+                }
+
+
+                //Check if the memory used is above the threshold defined
                         /*
                             if(!isMemoryAvailable(THRESHOLD)){
                                 System.out.println("[INDEXER] Flushing " + blockDocuments + " documents to disk...");
