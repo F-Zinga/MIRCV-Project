@@ -169,7 +169,7 @@ public class MaxScore {
             //Clear the support variables for the next iteration
             score = 0;
         }
-        //prova
+
         //Print the time used to score the documents, so to generate an answer for the query
         System.out.println("\n[SCORE DOCUMENT] Total scoring time: " + (System.currentTimeMillis() - begin) + "ms");
 

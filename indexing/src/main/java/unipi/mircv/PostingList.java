@@ -176,7 +176,7 @@ public class PostingList extends ArrayList<Posting> {
 
         //Update the current information
         this.docId = result.getDocID();
-        this.frequency = result.getTermFrequency();
+        this.freq = result.getTermFrequency();
 
         //Return the next
         return result;
