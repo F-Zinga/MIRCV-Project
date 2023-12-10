@@ -11,7 +11,7 @@ public class PostingList extends ArrayList<Posting> {
     private long docId;
 
     //Current frequency
-    private int frequency;
+    private int freq;
 
     //If we've reached the end of the posting list
     private boolean endPosting;
@@ -443,5 +443,26 @@ public class PostingList extends ArrayList<Posting> {
 
         //Return the list
         return list;
+    }
+
+    /**
+     * Returns true if the iteration has more elements.
+     * (In other words, returns true if next would return an element rather than throwing an exception.)
+     * @return true if the iteration has more elements.
+     */
+    public boolean hasNext() {
+        return iterator.hasNext();
+    }
+
+    public Term getTermInfo() {
+        return termInfo;
+    }
+
+    public int getFreq() {
+        return freq;
+    }
+
+    public void setFreq(int freq) {
+        this.freq = freq;
     }
 }
