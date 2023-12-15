@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.FileUtils;
 
-public class Test {
+public class MainIndexing {
 
     //Counter to keep the number of blocks read
     static int blockNumber = 1;
@@ -20,9 +20,9 @@ public class Test {
      * Build an inverted index for the collection in the given path; it uses the SPIMI algorithm and build different
      * blocks containing each one a partial inverted index and the respective lexicon.
      * @param path Path of the archive containing the collection, must be a tar.gz archive
-     * @param stopwordsRemovalAndStemming true to apply the stopwords removal and stemming procedure, false otherwise
+     * @param stopStemming true to apply the stopwords removal and stemming procedure, false otherwise
      */
-    private static void parseCollection(String path, Boolean stopwordsRemovalAndStemming, Boolean debug) {
+    private static void parseCollection(String path, Boolean stopStemming, Boolean debug) {
 
         //Path of the collection to be read
         File file = new File(path);
@@ -91,7 +91,7 @@ public class Test {
                 while ((line = bufferedReader.readLine()) != null ) {
 
                     //Process the document using the stemming and stopwords removal
-                    parsedDocument = Parser.processDocument(line);
+                    parsedDocument = Parser.processDocument(line,stopStemming);
 
                     //If the parsing of the document was completed correctly, it'll be appended to the collection buffer
                     if (parsedDocument!= null && parsedDocument.getTerms().length != 0) {

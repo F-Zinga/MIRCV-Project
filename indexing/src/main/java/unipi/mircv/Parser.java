@@ -26,7 +26,7 @@ public class Parser {
      * @param line String containing a document of the collection in the format: [doc_id]\t[text]\n
      * @return Document tokenized in the format: [doc_id]\t[token1 token2 ... tokenN]\n
      */
-    public static DocParsed processDocument(String line){
+    public static DocParsed processDocument(String line,boolean stopStemming){
         //Utility variables to keep the current docno and text
         String docno;
         String text;
@@ -54,13 +54,13 @@ public class Parser {
         String[] splittedText = removePunctuation(text).split("\\s+");
 
 
-        //if(stopwordsRemovalAndStemming) {
+        if(stopStemming) {
             //Remove stop words
         splittedText = removeStopWords(splittedText, stopWords);
 
             //Stemming
         splittedText = getStems(splittedText);
-        //}
+        }
 
 
         DocParsed doc = new DocParsed(docno, splittedText);

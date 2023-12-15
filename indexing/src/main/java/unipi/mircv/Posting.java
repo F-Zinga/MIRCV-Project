@@ -19,7 +19,7 @@ public class Posting {
         return termFrequency;
     }
 
-    public void setDocID(int docID) {
+    public void setDocID(long docID) {
         this.docID = docID;
     }
 

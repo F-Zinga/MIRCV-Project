@@ -1,14 +1,22 @@
 package unipi.mircv;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 
 public class Settings {
     final static String PATH = "Files/settings.txt";
 
     private boolean compressed;
     private boolean stemmingAndStopWords;
+
+    private boolean debug;
+
+    public boolean getDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
 
     public boolean isCompressed() {
         return compressed;
@@ -18,7 +26,7 @@ public class Settings {
         this.compressed = compressed;
     }
 
-    public boolean isStemmingAndStopWords() {
+    public boolean getStemmingAndStopWords() {
         return stemmingAndStopWords;
     }
 
@@ -59,4 +67,41 @@ public class Settings {
             throw new RuntimeException(e);
         }
     }
+
+    public boolean loadConfiguration() {
+        try {
+            //creates a new file instance
+            File file = new File(PATH);
+
+            //reads the file
+            FileReader fr = new FileReader(file);
+
+            //creates a buffering character input stream
+            BufferedReader br = new BufferedReader(fr);
+
+            String line;
+
+            if ((line = br.readLine()) != null) {
+                stemmingAndStopWords = Boolean.parseBoolean(line);
+            }
+            if ((line = br.readLine()) != null) {
+                compressed = Boolean.parseBoolean(line);
+            }
+
+            /*
+            if((line = br.readLine()) != null){
+                debug = Boolean.parseBoolean(line);
+            }
+             */
+
+            fr.close();
+
+        } catch (IOException e) {
+            System.err.println("No indexing configuration found. Try to first create a new index, then start again the"+
+                    " query processor.");
+            return false;
+        }
+        return true;
+    }
+
 }

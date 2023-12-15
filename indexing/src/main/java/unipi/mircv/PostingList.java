@@ -48,6 +48,9 @@ public class PostingList extends ArrayList<Posting> {
 
     private Settings settings;
 
+    //If we've reached the end of the posting list
+    private boolean noMorePostings;
+
     public boolean getEndPosting() {
         return endPosting;
     }
@@ -61,7 +64,33 @@ public class PostingList extends ArrayList<Posting> {
         // TODO check this
         this.currentBlock = blocksIterator.next();
     }
+    public boolean getNoMorePostings() {
+        return noMorePostings;
+    }
 
+    public long getDocId() {
+        return docId;
+    }
+    /**
+     * Clear the array list
+     */
+    public void closeList(){
+        this.clear();
+        try {
+            randomAccessFileDocIds.close();
+            randomAccessFileFrequencies.close();
+            randomAccessFileBlocks.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public void setDocId(long docId) {
+        this.docId = docId;
+    }
+
+    public void setNoMorePostings(boolean noMorePostings) {
+        this.noMorePostings = noMorePostings;
+    }
     /**
      * Loads the posting list of the given term in memory, this list uses the skipping mechanism.
      * @param termInfo Lexicon entry of the term, used to retrieve the offsets and the lengths of the posting list

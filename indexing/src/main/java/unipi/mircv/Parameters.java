@@ -73,7 +73,7 @@ public interface Parameters {
 
     //Test
     //Path of the dataset
-    String COLLECTION_PATH = "C://Users//kecco//Desktop//collection.tar.gz"; // "C:\Users\kecco\Desktop\collection.tar.gz"
+    String COLLECTION_PATH = "C://Users//kecco//Desktop//collection.tar.gz";
 
     String FILES_PATH = "Files/";
     //Document index file path

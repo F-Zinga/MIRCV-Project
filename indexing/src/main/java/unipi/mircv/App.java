@@ -14,7 +14,7 @@ public class App {
         Parser p = new Parser();
         //String[] output = p.processDocument("ciao come stai!!! \t Italian pasta is the best.!!! ?");
         //System.out.println(output[1].toString());
-
+        boolean stopStemming = true;
 
 
         // String path = "C:/Users/danny/Desktop/collection.tar.gz";
@@ -91,7 +91,7 @@ public class App {
                 while ((line = bufferedReader.readLine()) != null ) {
 
                     //Process the document using the stemming and stopwords removal
-                    DocParsed docParsed = Parser.processDocument(line);
+                    DocParsed docParsed = Parser.processDocument(line,stopStemming);
 
 
                     //If the parsing of the document was completed correctly, it'll be appended to the collection buffer
