@@ -6,8 +6,8 @@ import java.nio.ByteBuffer;
 
 public class Term {
 
-    private int docFreq;
-    private int termFreq;
+    //private int docFreq;
+    //private int termFreq;
     private String term;
     private long offsetDocId;
     private long offsetFrequency;
@@ -15,12 +15,9 @@ public class Term {
     private int numberOfSkipBlocks;
     private double idf;
     private int docIdsBytesLength;
-
     private int frequenciesBytesLength;
     private int postingListLength;
-
     private int tfidfTermUpperBound;
-
     private int bm25TermUpperBound;
 
     public Term(String term, long offsetDocId, long offsetFrequency, double idf, int docIdsBytesLength, int frequenciesBytesLength, int postingListLength, long offsetSkipBlock, int numberOfSkipBlocks, int tfidfTermUpperBound, int bm25TermUpperBound) {
@@ -45,31 +42,10 @@ public class Term {
     }
 
     public Term() {
-        this.docFreq = 0;
-        this.termFreq = 0;
-    }
 
-    public String toString() {
-        return "docFreq: " + docFreq + " termFreq: " + termFreq;
-    }
-
-    public int getDocFreq() {
-        return docFreq;
-    }
-
-    public int getTermFreq() {
-        return termFreq;
     }
 
     public String getTerm() { return term; }
-
-    public void setDocFreq(int docFreq) {
-        this.docFreq = docFreq;
-    }
-
-    public void setTermFreq(int termFreq) {
-        this.termFreq = termFreq;
-    }
 
     public static String fillspace(String text, int length) {
         return String.format("%" + length + "." + length + "s", text);
@@ -116,7 +92,7 @@ public class Term {
         byte[] term = ByteBuffer.allocate(Parameters.TERM_BYTES).put(tmp.getBytes()).array();
         byte[] offsetDocId = ByteBuffer.allocate(Parameters.OFFSET_DOCIDS_BYTES).putLong(termInfo.getOffsetDocId()).array();
         byte[] offsetFrequency = ByteBuffer.allocate(Parameters.OFFSET_FREQUENCIES_BYTES).putLong(termInfo.getOffsetFrequency()).array();
-        byte[] bytesDocId = ByteBuffer.allocate(Parameters.DOCID_BYTES).putInt(termInfo.getDocIdsBytesLength()).array();
+        byte[] bytesDocId = ByteBuffer.allocate(Parameters.TERM_DOCID_BYTES).putInt(termInfo.getDocIdsBytesLength()).array();
         byte[] bytesFrequency = ByteBuffer.allocate(Parameters.FREQUENCY_BYTES).putInt(termInfo.getFrequenciesBytesLength()).array();
         byte[] postingListLength = ByteBuffer.allocate(Parameters.POSTING_LIST_BYTES).putInt(termInfo.getPostingListLength()).array();
         byte[] idf = ByteBuffer.allocate(Parameters.IDF_BYTES).putDouble(termInfo.getIdf()).array();
@@ -222,6 +198,9 @@ public class Term {
 
     public void setIdf(double idf) {
         this.idf = idf;
+    }
+
+    public void setTermFreq(int size) {
     }
 }
 

@@ -7,9 +7,6 @@ import java.util.HashMap;
 
 public class Lexicon extends HashMap<String,Term> {
 
-        //Path of the lexicon file
-        private final static String LEXICON_PATH = "/utility/lexicon.txt";
-
         //Object to open the stream from the lexicon file
         private RandomAccessFile lexiconFile;
 
@@ -25,28 +22,36 @@ public class Lexicon extends HashMap<String,Term> {
             System.out.println("[LEXICON LOADER] Lexicon loading...");
             try {
                 //Start the stream from the lexicon file
-                lexiconFile = new RandomAccessFile(LEXICON_PATH, "r");
+                lexiconFile = new RandomAccessFile(Parameters.LEXICON_PATH, "r");
 
                 //Accumulator for the current offset in the file
                 int offset = 0;
 
                 //Accumulator for the current Term reading
-                Term Term;
+                Term term;
 
+
+                System.out.print("Lexicon lenght in byte: " + lexiconFile.length());
                 //While we're not at the end of the file
                 while (offset < lexiconFile.length()) {
 
                     //Read the next Term from the file starting at the current offset
-                    Term = readNextTerm(offset);
+                    term = readNextTerm(offset);
 
                     //If the Term is not null (no problem encountered, or we aren't at the end of the file)
-                    if (Term!= null){
+                    if (term!= null){
+
+                        System.out.println("Offset: " + offset);
 
                         //Insert the Term into the HashMap
-                        this.put(Term.getTerm(), Term);
+                        this.put(term.getTerm(), term);
 
                         //Increment the offset
                         offset += Parameters.TERM_INFO_LENGTH;
+                    }
+                    else{
+                        System.out.println("NULL TERM");
+
                     }
                 }
 

@@ -26,7 +26,7 @@ public interface Parameters {
 
 
      // in Term class
-     int DOCID_BYTES = 4;
+     int TERM_DOCID_BYTES = 4;
 
      int FREQUENCY_BYTES = 4;
 
@@ -40,7 +40,7 @@ public interface Parameters {
      int MAXSCORE_BYTES = 4;
 
      int TERM_INFO_LENGTH = TERM_BYTES + OFFSET_DOCIDS_BYTES + OFFSET_BLOCKS_BYTES+
-            N_BLOCKS_BYTES + OFFSET_FREQUENCIES_BYTES + DOCID_BYTE+
+            N_BLOCKS_BYTES + OFFSET_FREQUENCIES_BYTES + TERM_DOCID_BYTES+
             FREQUENCY_BYTES + POSTING_LIST_BYTES + IDF_BYTES + MAXSCORE_BYTES + MAXSCORE_BYTES;
 
 

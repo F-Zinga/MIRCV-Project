@@ -216,7 +216,7 @@ public class IndexBuilder {
                 //Set the docId offset, the frequency offset, the posting list length of the term in the lexicon
                 lexicon.get(term).setOffsetDocId(offsetDocId);
                 lexicon.get(term).setOffsetFrequency(offsetFrequency);
-                lexicon.get(term).setTermFreq(postingList.size());
+                lexicon.get(term).setPostingListLength(postingList.size());
             });
         }catch (IOException e) {
             System.err.println("Exception during file creation of block");
