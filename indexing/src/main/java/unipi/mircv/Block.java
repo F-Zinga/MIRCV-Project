@@ -54,8 +54,9 @@ public class Block {
         return frqOffset;
     }
 
-    public void setFrqOffset(long frqOffset) {
+    public void setFrqInfo(long frqOffset,int frqSize) {
         this.frqOffset = frqOffset;
+        this.frqSize = frqSize;
     }
 
 

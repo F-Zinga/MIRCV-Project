@@ -48,24 +48,14 @@ public class PostingList extends ArrayList<Posting> {
 
     private Settings settings;
 
-    //If we've reached the end of the posting list
-    private boolean noMorePostings;
-
-    public boolean getEndPosting() {
-        return endPosting;
-    }
-
-    public void setEndPosting() {
-        this.endPosting = true;
-    }
 
     // TODO nextSkipBlock
     public void setCurrentBlock(){
         // TODO check this
-        this.currentBlock = blocksIterator.next();
+        currentBlock = blocksIterator.next();
     }
-    public boolean getNoMorePostings() {
-        return noMorePostings;
+    public boolean getEndPosting() {
+        return endPosting;
     }
 
     public long getDocId() {
@@ -88,8 +78,8 @@ public class PostingList extends ArrayList<Posting> {
         this.docId = docId;
     }
 
-    public void setNoMorePostings(boolean noMorePostings) {
-        this.noMorePostings = noMorePostings;
+    public void setEndPosting() {
+        this.endPosting = true;
     }
     /**
      * Loads the posting list of the given term in memory, this list uses the skipping mechanism.
@@ -99,6 +89,11 @@ public class PostingList extends ArrayList<Posting> {
 
         //Set the terminfo of the posting list
         this.termInfo = termInfo;
+        System.out.println(termInfo.toString());
+
+        //Load the configuration used to build the inverted index
+        settings = new Settings();
+        settings.loadSettings();
 
         //Open the stream with the posting list random access files
         try {
@@ -110,8 +105,8 @@ public class PostingList extends ArrayList<Posting> {
         }
 
 
-        //Load the skip blocks list of the current term's posting list
-        //Skip blocks of the posting list
+        //Load the blocks list of the current term's posting list
+        //Blocks of the posting list
         ArrayList<Block> skipBlocks = getPostingListBlock(
                 randomAccessFileBlocks,
                 termInfo.getOffsetSkipBlock(),
@@ -455,13 +450,19 @@ public class PostingList extends ArrayList<Posting> {
         for(int i = 0; i < length; i ++) {
             try {
 
+                long first = randomAccessFileSkipBlocks.readLong();
+                int second = randomAccessFileSkipBlocks.readInt();
+                long third = randomAccessFileSkipBlocks.readLong();
+                int fourth = randomAccessFileSkipBlocks.readInt();
+                long fifth = randomAccessFileSkipBlocks.readLong();
+
                 //Read the next skip block from the file and add it to the result list
                 list.add(new Block(
-                        randomAccessFileSkipBlocks.readLong(), //Docids offset
-                        randomAccessFileSkipBlocks.readInt(),  //Docids length
-                        randomAccessFileSkipBlocks.readLong(), //Frequencies offset
-                        randomAccessFileSkipBlocks.readInt(),  //Frequencies length
-                        randomAccessFileSkipBlocks.readLong()) //Max docid in the skip block
+                        first, //Docids offset
+                        second,  //Docids length
+                        third, //Frequencies offset
+                        fourth,  //Frequencies length
+                        fifth) //Max docid in the skip block
                 );
 
             } catch (IOException e) {

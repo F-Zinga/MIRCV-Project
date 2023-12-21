@@ -40,7 +40,7 @@ public class DocIndex extends HashMap<Long, DocInfo> {
 
             //System.out.println(documentIndexFile.length());
             //While we're not at the end of the file
-            while (offset < documentIndexFile.length()) {
+            while (offset < (documentIndexFile.length())) {
 
                 //Read the docid from the first 8 bytes starting from the offset
                 docid = documentIndexFile.readLong();

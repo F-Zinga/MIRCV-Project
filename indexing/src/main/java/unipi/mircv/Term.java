@@ -6,6 +6,23 @@ import java.nio.ByteBuffer;
 
 public class Term {
 
+    @Override
+    public String toString() {
+        return "Term{" +
+                "term='" + term + '\'' +
+                ", offsetDocId=" + offsetDocId +
+                ", offsetFrequency=" + offsetFrequency +
+                ", offsetSkipBlock=" + offsetSkipBlock +
+                ", numberOfSkipBlocks=" + numberOfSkipBlocks +
+                ", idf=" + idf +
+                ", docIdsBytesLength=" + docIdsBytesLength +
+                ", frequenciesBytesLength=" + frequenciesBytesLength +
+                ", postingListLength=" + postingListLength +
+                ", tfidfTermUpperBound=" + tfidfTermUpperBound +
+                ", bm25TermUpperBound=" + bm25TermUpperBound +
+                '}';
+    }
+
     //private int docFreq;
     //private int termFreq;
     private String term;

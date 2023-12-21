@@ -68,7 +68,7 @@ public class Settings {
         }
     }
 
-    public boolean loadConfiguration() {
+    public boolean loadSettings() {
         try {
             //creates a new file instance
             File file = new File(PATH);

@@ -248,7 +248,7 @@ public class MaxScore {
         for(int i = 0; i < postingLists.length; i++){
 
             //Skip the i-th posting list if the list don't contain more postings, we've reached the end of the list
-            if(postingLists[i].getNoMorePostings()){
+            if(postingLists[i].getEndPosting()){
                 continue;
             }
 
@@ -483,7 +483,7 @@ public class MaxScore {
         for (PostingList postingList : postingLists) {
 
             //If at least one posting is available return false
-            if (!postingList.getNoMorePostings()) {
+            if (!postingList.getEndPosting()) {
                 return false;
             }
         }
@@ -503,7 +503,7 @@ public class MaxScore {
         for (PostingList postingList : postingLists) {
 
             //If at least one posting is ended return true
-            if (postingList.getNoMorePostings()) {
+            if (postingList.getEndPosting()) {
                 return true;
             }
         }

@@ -23,11 +23,10 @@ public class MainQueries {
             Settings settings = new Settings();
 
             //If no configuration is found, then no inverted index is present. The program exits.
-            if(!settings.loadConfiguration())
+            if(!settings.loadSettings())
                 return;
 
             System.out.println("[QUERY PROCESSOR] Building inverted index configuration:");
-            System.out.println(settings);
 
             System.out.println("[QUERY PROCESSOR] Loading the lexicon in memory...");
             lexicon = new Lexicon();
@@ -98,6 +97,8 @@ public class MainQueries {
                     }else {
                         result = MaxScore.scoreCollectionConjunctive(postingLists,documentIndex, bm25scoring, settings.getDebug());
                     }
+
+                    System.out.println(documentIndex.get(result.get(0).getValue0()));
 
                     //Print the results in a formatted way
                     System.out.println("\n#\tDOCNO\t\tSCORE");

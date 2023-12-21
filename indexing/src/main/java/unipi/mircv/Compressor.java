@@ -193,8 +193,7 @@ public class Compressor {
                 if(blocksIterator.hasNext()){
 
                     //Set the starting offset of the skip block and the length of the encoded frequencies
-                    blocksIterator.next().setFrqOffset(offsetSkipBlocks);
-                    blocksIterator.next().setFrqSize(blockSize);
+                    blocksIterator.next().setFrqInfo(offsetSkipBlocks,blockSize);
                 }
                 //Set the starting offset for the next skip block
                 offsetSkipBlocks += blockSize;

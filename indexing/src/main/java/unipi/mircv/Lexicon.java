@@ -33,15 +33,15 @@ public class Lexicon extends HashMap<String,Term> {
 
                 System.out.print("Lexicon lenght in byte: " + lexiconFile.length());
                 //While we're not at the end of the file
-                while (offset < lexiconFile.length()) {
+                //TODO
+                while (offset < (lexiconFile.length()))
+                {
 
                     //Read the next Term from the file starting at the current offset
                     term = readNextTerm(offset);
 
                     //If the Term is not null (no problem encountered, or we aren't at the end of the file)
                     if (term!= null){
-
-                        System.out.println("Offset: " + offset);
 
                         //Insert the Term into the HashMap
                         this.put(term.getTerm(), term);

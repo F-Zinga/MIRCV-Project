@@ -15,7 +15,7 @@ import java.util.Arrays;
 public class MainEvaluation{
 
     //Path to the input file containing the queries
-    static final String QUERY_PATH = "Dataset/queries.tsv.gz";
+    static final String QUERY_PATH = "Resources/queries.tsv.gz";
 
     //Path to the output file containing the results of the queries
     static final String RESULTS_PATH = "Files/queries_results";
@@ -33,7 +33,7 @@ public class MainEvaluation{
         Settings settings = new Settings();
 
         //If no configuration is found, then no inverted index is present. The program exits.
-        if(!settings.loadConfiguration())
+        if(!settings.loadSettings())
             return;
 
         System.out.println("[QUERY PROCESSOR] Building inverted index configuration:");
