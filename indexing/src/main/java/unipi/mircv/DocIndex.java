@@ -6,8 +6,6 @@ import java.util.HashMap;
 
 public class DocIndex extends HashMap<Long, DocInfo> {
 
-    //Path to the document index file
-    //TODO create folder Files or similar and change path accordingly
     public final static String DOCUMENT_INDEX_PATH = "Files/document_index.txt";
 
     /**

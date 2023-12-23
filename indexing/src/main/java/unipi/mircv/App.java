@@ -26,7 +26,7 @@ public class App {
              //Create an input stream for the tar archive
              TarArchiveInputStream tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(fileInputStream))) {
 
-            RandomAccessFile documentIndexFile = new RandomAccessFile(Parameters.II_DOCID_PATH, "rw");
+            RandomAccessFile documentIndexFile = new RandomAccessFile(Parameters.DOCID_PATH, "rw");
 
 
             //Get the first file from the stream, that is only one

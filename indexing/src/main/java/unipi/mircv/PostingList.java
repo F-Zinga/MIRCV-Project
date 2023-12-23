@@ -22,15 +22,6 @@ public class PostingList extends ArrayList<Posting> {
     //Iterator to iterate over the skip blocks
     private Iterator<Block> blocksIterator;
 
-    //Path of docids file
-    private final static String DOCIDS_PATH = "Files/docids.txt";
-
-    //Path of frequencies' file
-    private final static String FREQUENCIES_PATH = "Files/frequencies.txt";
-
-    //Path of skip blocks' file
-    private final static String SKIP_BLOCKS_PATH = "Files/skipblocks.txt";
-
     //TermInfo of the term, used to retrieve the idf
     private Term termInfo;
 
@@ -49,9 +40,8 @@ public class PostingList extends ArrayList<Posting> {
     private Settings settings;
 
 
-    // TODO nextSkipBlock
     public void setCurrentBlock(){
-        // TODO check this
+
         currentBlock = blocksIterator.next();
     }
     public boolean getEndPosting() {
@@ -97,9 +87,9 @@ public class PostingList extends ArrayList<Posting> {
 
         //Open the stream with the posting list random access files
         try {
-            randomAccessFileDocIds = new RandomAccessFile(DOCIDS_PATH, "r");
-            randomAccessFileFrequencies = new RandomAccessFile(FREQUENCIES_PATH, "r");
-            randomAccessFileBlocks = new RandomAccessFile(SKIP_BLOCKS_PATH,"r");
+            randomAccessFileDocIds = new RandomAccessFile(Parameters.DOCID_PATH, "r");
+            randomAccessFileFrequencies = new RandomAccessFile(Parameters.FREQ_PATH, "r");
+            randomAccessFileBlocks = new RandomAccessFile(Parameters.BLOCKS_PATH,"r");
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -130,8 +120,6 @@ public class PostingList extends ArrayList<Posting> {
         //Retrieve the docids and the frequencies
         ArrayList<Long> docids;
         ArrayList<Integer> frequencies;
-
-        // TODO flag to enable compression
 
         //If the compression is enabled, then read the posting lists files with the compression
         if(settings.isCompressed()) {
@@ -165,13 +153,12 @@ public class PostingList extends ArrayList<Posting> {
         //Update the iterator for the current posting list
         iterator = this.iterator();
 
-        // TODO debug
-        /*
+
         if(settings.getDebug()){
             System.out.println("------------------");
             System.out.println("[DEBUG] Partial posting list: " + this);
         }
-         */
+
     }
 
     /**

@@ -13,7 +13,6 @@ public class MaxScore {
     static final double K1 = 1.5;
     static final double B = 0.75;
 
-    // TODO CHECK 20
     //Length of the final ranking
     static final int BEST_K_VALUE = 20;
 
@@ -49,11 +48,10 @@ public class MaxScore {
         for(int i = 0; i < orderedPostingLists.size(); i++){
             essential.add(i);
             postingLists[i] = orderedPostingLists.get(i);
-            /*
             if(debug){
                 System.out.println("[DEBUG] Lexicon entry:\n" + postingLists[i].getTermInfo());
             }
-            */
+
         }
 
 
@@ -83,6 +81,7 @@ public class MaxScore {
 
             //check if some docs can enter the top K ranking
             if(!foundEssential(minDocidTuple.getValue1(), essential)){
+
                 for(Integer index : minDocidTuple.getValue1()){
                     postingLists[index].next();
                 }

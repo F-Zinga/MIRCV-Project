@@ -33,7 +33,7 @@ public class Lexicon extends HashMap<String,Term> {
 
                 System.out.print("Lexicon lenght in byte: " + lexiconFile.length());
                 //While we're not at the end of the file
-                //TODO
+
                 while (offset < (lexiconFile.length()))
                 {
 

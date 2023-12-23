@@ -129,7 +129,7 @@ public class Compressor {
 
 
 
-    public static byte[] variableByteEncodeFreq(ArrayList<Integer> frequencies, ArrayList<Block> blocks,
+    public static Pair<byte[],Pair<Double,Double>> variableByteEncodeFreq(ArrayList<Integer> frequencies, ArrayList<Block> blocks,
                                                 ArrayList<Long> docIds, Pair<Double,Double> scores,
                                                 RandomAccessFile documentIndex, Statistics statistics)
     {
@@ -216,12 +216,12 @@ public class Compressor {
             result[i] = bytes.get(i);
         }
 
+        Pair<byte[],Pair<Double,Double>> tuple = Pair.with(result,scores);
+
         //Return the array of bytes
-        return result;
+        return tuple;
     }
 
-
-    // TODO merge functions
 
     /**
      * Decode the given array of bytes that contains a Variable Byte Encoding of a list of integers, returning the

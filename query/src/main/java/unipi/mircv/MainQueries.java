@@ -86,7 +86,7 @@ public class MainQueries {
                         postingLists[i].openList(lexicon.get(queryTerms[i]));
 
                         //Debug
-                        //System.out.println(queryTerms[i] + ": " + postingLists[i].size());
+                        System.out.println(queryTerms[i] + ": " + postingLists[i].size());
                     }
 
                     ArrayList<Pair<Long, Double>> result;
@@ -98,7 +98,6 @@ public class MainQueries {
                         result = MaxScore.scoreCollectionConjunctive(postingLists,documentIndex, bm25scoring, settings.getDebug());
                     }
 
-                    System.out.println(documentIndex.get(result.get(0).getValue0()));
 
                     //Print the results in a formatted way
                     System.out.println("\n#\tDOCNO\t\tSCORE");

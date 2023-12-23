@@ -87,9 +87,9 @@ public class Merger {
             //Create a stream for each random access files of each block, the stream is opened as read only
             for (int i = 0; i < num_blocks; i++) {
                 //noinspection resource
-                randomAccessFileDocIds[i] = new RandomAccessFile(Parameters.II_DOCID_BLOCK_PATH+(i+1)+".txt", "r");
+                randomAccessFileDocIds[i] = new RandomAccessFile(Parameters.DOCID_BLOCK_PATH +(i+1)+".txt", "r");
                 //noinspection resource
-                randomAccessFilesFrequencies[i] = new RandomAccessFile(Parameters.II_FREQ_BLOCK_PATH+(i+1)+".txt", "r");
+                randomAccessFilesFrequencies[i] = new RandomAccessFile(Parameters.FREQ_BLOCK_PATH +(i+1)+".txt", "r");
                 //noinspection resource
                 randomAccessFilesLexicon[i] = new RandomAccessFile(Parameters.LEXICON_BLOCK_PATH+(i+1)+".txt", "r");
                 if(debug){
@@ -99,8 +99,8 @@ public class Merger {
 
             //Create a stream for the lexicon file, the docids file and the frequencies file, the stream is opened as write only
             lexiconFile = new RandomAccessFile(Parameters.LEXICON_PATH, "rw");
-            docIdsFile = new RandomAccessFile(Parameters.II_DOCID_PATH, "rw");
-            frequenciesFile = new RandomAccessFile(Parameters.II_FREQ_PATH, "rw");
+            docIdsFile = new RandomAccessFile(Parameters.DOCID_PATH, "rw");
+            frequenciesFile = new RandomAccessFile(Parameters.FREQ_PATH, "rw");
             blocksFile = new RandomAccessFile(Parameters.BLOCKS_PATH, "rw");
             documentIndex = new RandomAccessFile(DocIndex.DOCUMENT_INDEX_PATH, "r");
 
@@ -217,7 +217,9 @@ public class Merger {
                 docIdsCompressed = Compressor.variableByteEncodeDocId(docIds, blocks);
 
                 //Compress the list of frequencies using VBE and update the frequencies information in the skip blocks
-                frequenciesCompressed = Compressor.variableByteEncodeFreq(frequencies, blocks, docIds, maxscore, documentIndex, statistics);
+                Pair<byte[],Pair<Double,Double>> tuple = Compressor.variableByteEncodeFreq(frequencies, blocks, docIds, maxscore, documentIndex, statistics);
+                frequenciesCompressed = tuple.getValue0();
+                maxscore = tuple.getValue1();
 
                 //Write the docIds and frequencies of the current term in the respective files
                 try {
@@ -230,13 +232,10 @@ public class Merger {
 
                 //Compute idf
                 double idf = Math.log(statistics.getNDocs()/ (double)docIds.size())/Math.log(2);
-
                 //Compute the tfidf term upper bound
                 int tfidfTermUpperBound = (int) Math.ceil((1 + Math.log(maxscore.getValue0()) / Math.log(2))*idf);
-
                 //Compute the bm25 term upper bound
                 int bm25TermUpperBound = (int) Math.ceil(maxscore.getValue1()*idf);
-
 
                 lexiconEntry = new Term(
                         minTerm,                     //Term
@@ -335,13 +334,10 @@ public class Merger {
 
                 //Compute idf
                 double idf = Math.log(statistics.getNDocs()/ (double)docIds.size())/Math.log(2);
-
                 //Compute the tfidf term upper bound
                 int tfidfTermUpperBound = (int) Math.ceil((1 + Math.log(maxFreq) / Math.log(2))*idf);
-
                 //Compute the bm25 term upper bound
                 int bm25TermUpperBound = (int) Math.ceil(tf_maxScoreBm25*idf);
-
 
                 //Instantiate a new TermInfo object with the current term information, here we use the information in
                 //the docids and frequencies objects
@@ -487,10 +483,10 @@ public class Merger {
     private static boolean deleteBlocks(int numberOfBlocks) {
         File file;
         for (int i = 0; i < numberOfBlocks; i++) {
-            file = new File(Parameters.II_DOCID_BLOCK_PATH+(i+1)+".txt");
+            file = new File(Parameters.DOCID_BLOCK_PATH +(i+1)+".txt");
             if(!file.delete())
                 return false;
-            file = new File(Parameters.II_FREQ_BLOCK_PATH+(i+1)+".txt");
+            file = new File(Parameters.FREQ_BLOCK_PATH +(i+1)+".txt");
             if(!file.delete())
                 return false;
             file = new File(Parameters.LEXICON_BLOCK_PATH+(i+1)+".txt");

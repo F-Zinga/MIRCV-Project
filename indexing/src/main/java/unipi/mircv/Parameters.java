@@ -62,13 +62,13 @@ public interface Parameters {
 
 
     // merger
-    String II_DOCID_BLOCK_PATH = "Blocks/invertedIndexDocIds/";
-    String II_FREQ_BLOCK_PATH = "Blocks/invertedIndexFrequencies/";
+    String DOCID_BLOCK_PATH = "Blocks/invertedIndexDocIds/";
+    String FREQ_BLOCK_PATH = "Blocks/invertedIndexFrequencies/";
     String LEXICON_BLOCK_PATH = "Blocks/lexiconBlock/";
     String LEXICON_PATH = "Files/lexicon.txt";
-    String II_DOCID_PATH = "Files/docids.txt";
-    String II_FREQ_PATH = "Files/frequencies.txt";
-    String BLOCKS_PATH = "Files/skipblocks.txt";
+    String DOCID_PATH = "Files/docids.txt";
+    String FREQ_PATH = "Files/frequencies.txt";
+    String BLOCKS_PATH = "Files/blocks.txt";
 
 
     //Test
@@ -85,6 +85,6 @@ public interface Parameters {
             "-sc : both enabled";
 
     //Percentage of memory used to define a threshold
-    static final double PERCENTAGE = 0.7;
+    static final double PERCENTAGE = 0.9;
 
 }

@@ -15,7 +15,7 @@ import java.util.Arrays;
 public class MainEvaluation{
 
     //Path to the input file containing the queries
-    static final String QUERY_PATH = "Resources/queries.tsv.gz";
+    static final String QUERY_PATH = "Resources/test2020-queries.tsv.gz";
 
     //Path to the output file containing the results of the queries
     static final String RESULTS_PATH = "Files/queries_results";
@@ -149,12 +149,12 @@ public class MainEvaluation{
             for( Pair<Long,String> tuple : queries ){
 
                 //Read the next query, add -1 to indicate that it is a query
-                String query = "-1\t" + tuple.getValue1();
+                String query = "--\t" + tuple.getValue1();
 
                 //Parse the query
                 String[] queryTerms = parseQuery(query, lexicon, settings.getStemmingAndStopWords());
 
-                System.out.println("Query: " + query + "\t" + "Terms: " + Arrays.toString(queryTerms));
+                //System.out.println("Query: " + query + "\t" + "Terms: " + Arrays.toString(queryTerms));
 
                 //If the query string is equal to null it means that the query contains all stopwords or all the terms
                 // were written in a bad way or not present in the lexicon.
@@ -166,7 +166,7 @@ public class MainEvaluation{
                 //Remove the duplicates
                 queryTerms = Arrays.stream(queryTerms).distinct().toArray(String[]::new);
 
-                System.out.println("Query: " + query + "\t" + "Terms: " + Arrays.toString(queryTerms));
+                //System.out.println("Query: " + query + "\t" + "Terms: " + Arrays.toString(queryTerms));
 
                 //Load the posting list of the terms of the query
                 PostingList[] postingLists = new PostingList[queryTerms.length];

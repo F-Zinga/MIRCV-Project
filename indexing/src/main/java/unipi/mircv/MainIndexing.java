@@ -88,6 +88,7 @@ public class MainIndexing {
                 System.out.println("[INDEXER] Starting to fetch the documents...");
 
                 //Iterate over the lines
+                //for(int i =0; i < 500000; i++){
                 while ((line = bufferedReader.readLine()) != null ) {
 
                     //Process the document using the stemming and stopwords removal
@@ -205,8 +206,8 @@ public class MainIndexing {
 
         //Write the inverted index's files into the block's files
         indexBuilder.writeInvertedIndexToFile(
-                Parameters.II_DOCID_BLOCK_PATH+blockNumber+".txt",
-                Parameters.II_FREQ_BLOCK_PATH +blockNumber+".txt");
+                Parameters.DOCID_BLOCK_PATH +blockNumber+".txt",
+                Parameters.FREQ_BLOCK_PATH +blockNumber+".txt");
 
         //Write the block's lexicon into the given file
         indexBuilder.writeLexiconToFile(Parameters.LEXICON_BLOCK_PATH+blockNumber+".txt");
@@ -242,8 +243,8 @@ public class MainIndexing {
 
     public static void main(String[] args){
 
-        boolean stemmingAndStopwordsRemoval = true;
-        boolean compressed = true;
+        boolean stemmingAndStopwordsRemoval = false;
+        boolean compressed = false;
         boolean debug = false;
 
         if(args.length >= 1){
