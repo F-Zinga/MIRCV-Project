@@ -15,7 +15,7 @@ import java.util.Arrays;
 public class MainEvaluation{
 
     //Path to the input file containing the queries
-    static final String QUERY_PATH = "Resources/test2020-queries.tsv.gz";
+    static final String QUERY_PATH = "Resources/queries/test2020-queries.tsv.gz";
 
     //Path to the output file containing the results of the queries
     static final String RESULTS_PATH = "Files/queries_results";

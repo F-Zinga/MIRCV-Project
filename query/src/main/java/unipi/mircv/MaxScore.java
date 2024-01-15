@@ -10,7 +10,7 @@ public class MaxScore {
 
     // TODO: CREATE parameter interface for query processor
     //Values used for the BM25 scoring
-    static final double K1 = 1.5;
+    static final double K1 = 1.6;
     static final double B = 0.75;
 
     //Length of the final ranking

@@ -118,9 +118,9 @@ public class Merger {
                 endOfBlock[i] = true;
             }
 
-            //TODO check 68
+
             //Update the offset to the offset of the next file to be read
-            offsets[i] += 68;
+            offsets[i] += 68;//term + offsetDocId + offsetFrequency + postingListLength
         }
 
         long j = 1;

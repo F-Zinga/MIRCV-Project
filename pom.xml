@@ -11,7 +11,7 @@
 
     <name>mircv_project</name>
   <!-- FIXME change it to the project's website -->
-  <url>http://www.example.com</url>
+  <url>https://www.example.com</url>
     <modules>
         <module>query</module>
       <module>indexing</module>

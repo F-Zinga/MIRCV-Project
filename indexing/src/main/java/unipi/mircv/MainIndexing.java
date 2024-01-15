@@ -244,7 +244,7 @@ public class MainIndexing {
     public static void main(String[] args){
 
         boolean stemmingAndStopwordsRemoval = false;
-        boolean compressed = false;
+        boolean compressed = true;
         boolean debug = false;
 
         if(args.length >= 1){
