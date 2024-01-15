@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
- * Main class for the query evaluation module, provide the methods to load a batch of queries used to generate a file
- * containing the results of the queries in a format that can be used to compute the metrics using the trec_eval tool.
+ * Main class for the query evaluation module. Provides methods to load queries from a file, generate query results,
+ *  * and evaluate them using the TREC_EVAL tool.
  */
 public class MainEvaluation{
 
@@ -20,19 +20,19 @@ public class MainEvaluation{
     //Path to the output file containing the results of the queries
     static final String RESULTS_PATH = "Files/queries_results";
 
-    //bm25scoring flag indicating if the scoring is bm25 (true) or tfidf (false)
+    // Flag indicating if the scoring is bm25 (true) or tfidf (false)
     static Boolean bm25scoring = true;
 
-    //flag indicating if the query is disjunctive (true) or conjunctive (false)
+    // Flag indicating if the query is disjunctive (true) or conjunctive (false)
     static Boolean queryType = true;
 
 
     public static void main( String[] args )
     {
-
+        // Load configuration settings
         Settings settings = new Settings();
 
-        //If no configuration is found, then no inverted index is present. The program exits.
+        //If configuration is not found, inverted index is not present; exits the program.
         if(!settings.loadSettings())
             return;
 
@@ -40,34 +40,36 @@ public class MainEvaluation{
         System.out.println(settings);
 
         System.out.println("[QUERY PROCESSOR] Loading the lexicon in memory...");
+        // Load the lexicon into memory
         Lexicon lexicon = new Lexicon();
         lexicon.loadLexicon();
 
         System.out.println("[QUERY PROCESSOR] Loading the document index in memory...");
+        // Load the document index into memory
         DocIndex docIndex = new DocIndex();
         docIndex.loadDocumentIndex();
 
-        //disj + bm25
+        // Evaluate disjunctive queries with BM25 scoring
         evaluateQueries(getQueries(), settings, docIndex, lexicon, 0);
 
-        //conj + bm25
+        // Evaluate conjunctive queries with BM25 scoring
         queryType = false;
         bm25scoring = true;
         evaluateQueries(getQueries(), settings, docIndex, lexicon, 1);
 
-        //conj + tfidf
+        // Evaluate conjunctive queries with TFIDF scoring
         queryType = false;
         bm25scoring = false;
         evaluateQueries(getQueries(), settings, docIndex, lexicon, 2);
 
-        //disj + tfidf
+        // Evaluate disjunctive queries with TFIDF scoring
         queryType = true;
         bm25scoring = false;
         evaluateQueries(getQueries(), settings, docIndex, lexicon, 3);
     }
 
     /**
-     * Read from a file a list of queries in the format of qid\tquery and return an array of tuple containing the
+     * Read  queries from a file in the format of qid\tquery and return an array of tuple containing the
      * qid and the query: (qid, query)
      * @return an ArrayList of tuple containing the qid and the query: (qid, query)
      */
@@ -76,13 +78,13 @@ public class MainEvaluation{
         //Path of the collection to be read
         File file = new File(QUERY_PATH);
 
-        //Try to open the collection provided
+        //Try to open the collection
         try (FileInputStream fileInputStream = new FileInputStream(file)){
 
             //Read the uncompressed tar file specifying UTF-8 as encoding
             InputStreamReader inputStreamReader = new InputStreamReader(new GzipCompressorInputStream(fileInputStream), StandardCharsets.UTF_8);
 
-            //Create a BufferedReader in order to access one line of the file at a time
+            //Create a BufferedReader to access one line of the file at a time
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
             //Variable to keep the current line read from the buffer
@@ -97,7 +99,7 @@ public class MainEvaluation{
                 //Split the line qid\tquery in qid query
                 String[] split = line.split("\t");
 
-                //Add it to the results array
+                //Add it to the results array if both qid and query are present
                 if(split[0] != null && split[1] != null) {
                     results.add(new Pair<>(Long.parseLong(split[0]), split[1]));
                 }
@@ -154,10 +156,9 @@ public class MainEvaluation{
                 //Parse the query
                 String[] queryTerms = parseQuery(query, lexicon, settings.getStemmingAndStopWords());
 
-                //System.out.println("Query: " + query + "\t" + "Terms: " + Arrays.toString(queryTerms));
 
                 //If the query string is equal to null it means that the query contains all stopwords or all the terms
-                // were written in a bad way or not present in the lexicon.
+                // are not present in the lexicon.
                 if(queryTerms == null || queryTerms.length == 0) {
                     System.out.println("You're query is too vague, try to reformulate it.");
                     continue;
@@ -166,7 +167,6 @@ public class MainEvaluation{
                 //Remove the duplicates
                 queryTerms = Arrays.stream(queryTerms).distinct().toArray(String[]::new);
 
-                //System.out.println("Query: " + query + "\t" + "Terms: " + Arrays.toString(queryTerms));
 
                 //Load the posting list of the terms of the query
                 PostingList[] postingLists = new PostingList[queryTerms.length];
@@ -182,7 +182,7 @@ public class MainEvaluation{
 
                 }
 
-                //Array to hold the results of the query
+                //Array containing the results of the query
                 ArrayList<Pair<Long, Double>> result;
 
                 //Score the collection
@@ -237,8 +237,7 @@ public class MainEvaluation{
     }
 
     /**
-     * Parses the query and returns the list of terms containing the query, the parsing process must be the same as the
-     * one used during the indexing phase.
+     * Parses the input query string and retrieves the list of terms after applying the same parsing process used during the indexing phase.
      * @param query the query string to parse
      * @param stopwordsRemovalAndStemming if true remove the stopwords and applies the stemming procedure.
      * @return the array of terms after the parsing of the query
@@ -253,7 +252,7 @@ public class MainEvaluation{
         //Parse the query using the same configuration of the indexer
         DocParsed parsedDocument = Parser.processDocument(query, stopwordsRemovalAndStemming);
 
-        //If no terms are returned by the parser then return null
+        //Return null if no terms are returned by the parser
         if(parsedDocument == null){
             return null;
         }
