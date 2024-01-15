@@ -7,12 +7,16 @@ public class Statistics {
         private int nDocs;
         private int avdl;
 
+        private long time;
+
+
     @Override
     public String toString() {
         return "Statistics{" +
                 "nBlocks=" + nBlocks +
                 ", nDocs=" + nDocs +
                 ", avdl=" + avdl +
+                ", time=" + time +
                 '}';
     }
 
@@ -38,6 +42,9 @@ public class Statistics {
                 if ((line = br.readLine())!= null) {
                     avdl = Integer.parseInt(line);
                 }
+                if ((line = br.readLine())!= null) {
+                    time = Long.parseLong(line);
+                }
                 fr.close();
 
             } catch (IOException e) {
@@ -51,7 +58,7 @@ public class Statistics {
          * @param nBlocks Number of blocks written
          * @param nDocs Number of documents parsed in total
          */
-        public static void writeStats(int nBlocks, int nDocs, float avdl){
+        public static void writeStats(int nBlocks, int nDocs, float avdl, long time){
 
             //Object used to build the lexicon line into a string
             StringBuilder stringBuilder = new StringBuilder();
@@ -66,7 +73,9 @@ public class Statistics {
                 stringBuilder
                         .append(nBlocks).append("\n")
                         .append(nDocs).append("\n")
-                        .append(Math.round(avdl)).append("\n");
+                        .append(Math.round(avdl)).append("\n")
+                        .append(time).append("\n");
+
 
                 //Write the string in the file
                 bufferedWriter.write(stringBuilder.toString());
@@ -86,5 +95,7 @@ public class Statistics {
         public int getNDocs() { return nDocs; }
 
         public int getAvdl() { return  avdl; }
+
+        public long getTime() { return time; }
 
 }
