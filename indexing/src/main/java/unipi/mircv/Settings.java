@@ -2,13 +2,19 @@ package unipi.mircv;
 
 import java.io.*;
 
+/**
+ * Represents the configuration settings for the inverted index, such as stemming and stopwords removal, compression,
+ * and debug mode.
+ */
+
 public class Settings {
     final static String PATH = "Files/settings.txt";
 
-    private boolean compressed;
-    private boolean stemmingAndStopWords;
+    private boolean compressed; // Indicates whether compression was enabled during indexing
+    private boolean stemmingAndStopWords; // Indicates whether stemming and stopwords removal were enabled during indexing
 
-    private boolean debug;
+    private boolean debug; // Indicates whether debug mode is enabled
+
 
     public boolean getDebug() {
         return debug;
@@ -35,8 +41,8 @@ public class Settings {
     }
 
     /**
-     * Write the configuration of the inverted index, in particular if the stemming and stopwords removal were enabled
-     * and the same for compression.
+     * Writes the configuration of the inverted index, specifying whether stemming and stopwords removal, compression,
+     * and debug mode were enabled.
      * @param stemmingAndStopwordsRemoval true if the stemming and stopwords removal were enabled during the indexing.
      * @param compressed true if the compression was enabled during the indexing.
      */
@@ -49,9 +55,10 @@ public class Settings {
         BufferedWriter bufferedWriter;
 
         try {
+            // Initializes the buffered writer with a FileWriter set to append mode
             bufferedWriter = new BufferedWriter(new FileWriter(PATH,false));
 
-            //build the string
+            //build the string containing the settings
             stringBuilder
                     .append(stemmingAndStopwordsRemoval).append("\n")
                     .append(compressed).append("\n")
@@ -68,6 +75,11 @@ public class Settings {
         }
     }
 
+    /**
+     * Loads the settings from the configuration file, including whether stemming and stopwords removal, compression,
+     * and debug mode were enabled during indexing.
+     * @return True if the settings were successfully loaded, false otherwise.
+     */
     public boolean loadSettings() {
         try {
             //creates a new file instance
@@ -81,9 +93,11 @@ public class Settings {
 
             String line;
 
+            // Reads and sets the status of stemming and stopwords removal
             if ((line = br.readLine()) != null) {
                 stemmingAndStopWords = Boolean.parseBoolean(line);
             }
+            // Reads and sets the status of compression
             if ((line = br.readLine()) != null) {
                 compressed = Boolean.parseBoolean(line);
             }

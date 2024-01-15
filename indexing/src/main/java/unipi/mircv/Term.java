@@ -4,8 +4,16 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
+/**
+ * Represents a term within an inverted index, encapsulating metadata and offsets related to the term's postings.
+ */
+
 public class Term {
 
+    /**
+     * Converts the Term instance to a human-readable string.
+     * @return A string representation of the Term.
+     */
     @Override
     public String toString() {
         return "Term{" +
@@ -37,6 +45,20 @@ public class Term {
     private int tfidfTermUpperBound;
     private int bm25TermUpperBound;
 
+    /**
+     * Constructs a Term instance with detailed information about the term.
+     * @param term The actual term.
+     * @param offsetDocId The offset where the document IDs for the term begin.
+     * @param offsetFrequency The offset where term frequencies begin.
+     * @param idf The Inverse Document Frequency (IDF) of the term.
+     * @param docIdsBytesLength The length of bytes occupied by document IDs.
+     * @param frequenciesBytesLength The length of bytes occupied by term frequencies.
+     * @param postingListLength The length of the posting list.
+     * @param offsetSkipBlock The offset where skip blocks begin.
+     * @param numberOfSkipBlocks The number of skip blocks.
+     * @param tfidfTermUpperBound The upper bound for TF-IDF scores related to the term.
+     * @param bm25TermUpperBound The upper bound for BM25 scores related to the term.
+     */
     public Term(String term, long offsetDocId, long offsetFrequency, double idf, int docIdsBytesLength, int frequenciesBytesLength, int postingListLength, long offsetSkipBlock, int numberOfSkipBlocks, int tfidfTermUpperBound, int bm25TermUpperBound) {
         this.term = term;
         this.offsetDocId = offsetDocId;
@@ -51,6 +73,13 @@ public class Term {
         this.bm25TermUpperBound = bm25TermUpperBound;
     }
 
+    /**
+     * Constructs a basic Term instance with minimal information.
+     * @param term The actual term.
+     * @param offsetDocId The offset where the document IDs for the term begin.
+     * @param offsetFrequency The offset where term frequencies begin.
+     * @param postingListLength The length of the posting list.
+     */
     public Term(String term, long offsetDocId, long offsetFrequency, int postingListLength) {
         this.term = term;
         this.offsetDocId = offsetDocId;
@@ -58,18 +87,31 @@ public class Term {
         this.postingListLength = postingListLength;
     }
 
+    /**
+     * Default constructor for creating an empty Term instance.
+     */
     public Term() {
 
     }
 
+    /**
+     * Retrieves the actual term.
+     * @return The term.
+     */
     public String getTerm() { return term; }
 
+    /**
+     * Static method to fill space for a given text to a specified length.
+     * @param text The text to be formatted.
+     * @param length The desired length.
+     * @return The formatted text with added spaces.
+     */
     public static String fillspace(String text, int length) {
         return String.format("%" + length + "." + length + "s", text);
     }
 
     /**
-     * Write the term info to a file. This method is used during the building of the partial blocks.
+     * Writes term information to a file during the construction of partial blocks.
      * @param lexiconFile Is the random access file on which the term info is written.
      * @param key Term to be written.
      * @param term Information of the term to be written.
@@ -79,13 +121,14 @@ public class Term {
         //Fill with whitespaces to keep the length standard
         String tmp = fillspace(key, Parameters.TERM_BYTES);
 
-
+        // Convert term information to byte arrays
         byte[] t = ByteBuffer.allocate(Parameters.TERM_BYTES).put(tmp.getBytes()).array();
         byte[] offsetDocId = ByteBuffer.allocate(Parameters.OFFSET_DOCIDS_BYTES).putLong(term.getOffsetDocId()).array();
         byte[] offsetFrequency = ByteBuffer.allocate(Parameters.OFFSET_FREQUENCIES_BYTES).putLong(term.getOffsetFrequency()).array();
         byte[] postingListLength = ByteBuffer.allocate(Parameters.POSTING_LIST_BYTES).putInt(term.getPostingListLength()).array();
 
         try {
+            // Write term information to the file
             lexiconFile.write(t);
             lexiconFile.write(offsetDocId);
             lexiconFile.write(offsetFrequency);
@@ -97,8 +140,7 @@ public class Term {
     }
 
     /**
-     * Write the term info to a file. This method is used during the merge of the partial blocks, here we have
-     * all the information directly inside the termInfo object.
+     * Writes term information to a file during the merge of partial blocks. All information is directly within the termInfo object.
      * @param lexiconFile Is the random access file on which the term info is written.
      * @param termInfo Information of the term to be written.
      */
@@ -106,6 +148,7 @@ public class Term {
         //Fill with whitespaces to keep the length standard
         String tmp = fillspace(termInfo.getTerm(), Parameters.TERM_BYTES);
 
+        // Convert termInfo properties to byte arrays
         byte[] term = ByteBuffer.allocate(Parameters.TERM_BYTES).put(tmp.getBytes()).array();
         byte[] offsetDocId = ByteBuffer.allocate(Parameters.OFFSET_DOCIDS_BYTES).putLong(termInfo.getOffsetDocId()).array();
         byte[] offsetFrequency = ByteBuffer.allocate(Parameters.OFFSET_FREQUENCIES_BYTES).putLong(termInfo.getOffsetFrequency()).array();
@@ -119,6 +162,7 @@ public class Term {
         byte[] bm25TermUpperBound = ByteBuffer.allocate(Parameters.MAXSCORE_BYTES).putInt(termInfo.getBm25TermUpperBound()).array();
 
         try {
+            // Write termInfo properties to the file
             lexiconFile.write(term);
             lexiconFile.write(offsetDocId);
             lexiconFile.write(offsetFrequency);
