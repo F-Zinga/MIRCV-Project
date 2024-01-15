@@ -5,17 +5,17 @@ import java.util.PriorityQueue;
 
 
 /**
- * This class is an extension of the PriorityQueue class. It has as element Tuples consisting in a (docId, score) pair,
- * where the score is used to determine the priority of the docId in such a way that the docId will be ordered in a
- * decreasing order of score. It handles also the threshold score used for pruning purposes (MaxScore).
+ This class extends the PriorityQueue class and is designed to manage pairs (docId, score),
+ * where the score determines the priority of the docId. The elements are ordered in decreasing order of score.
+ * It also handles a threshold score used for pruning purposes (MaxScore).
  */
 
 public class DocsRanked extends PriorityQueue<Pair<Long, Double>> {
 
-        //Threshold to enter among the top K documents
+        //Threshold to begin one of the top K documents
         private double threshold;
 
-        //Top K documents
+        // Number of top K elements
         private final int K;
 
         /**
@@ -34,6 +34,7 @@ public class DocsRanked extends PriorityQueue<Pair<Long, Double>> {
         }
 
     /**
+        * Adds the specified element to the queue.
          * @param longDoubleTuple element to be added to the list
          * @return the boolean result of the add operation
          */
@@ -42,13 +43,13 @@ public class DocsRanked extends PriorityQueue<Pair<Long, Double>> {
 
             boolean result = super.add(longDoubleTuple);
 
-            //if the list has at least K elements, the threshold must be updated
+            //update the threshold, if the list has at least K elements
             if(result && this.size() >= K){
 
                 Iterator<Pair<Long, Double>> iterator = iterator();
                 int counter = 0;
 
-                //traverse, in descending order, the list until the K-1th element is reached
+                //traverse in descending order the list until the K-1th element
                 while(iterator.hasNext()){
                     iterator.next();
                     counter++;
@@ -65,6 +66,7 @@ public class DocsRanked extends PriorityQueue<Pair<Long, Double>> {
         }
 
         /**
+         * Returns the current threshold
          * @return return the current threshold
          */
         public double getThreshold() {

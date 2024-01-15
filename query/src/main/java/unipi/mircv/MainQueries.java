@@ -5,36 +5,45 @@ import org.javatuples.Pair;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+/**
+ * The main class for processing queries. It interacts with the user to enter queries,
+ * change settings, and execute queries using an inverted index.
+ */
 
 public class MainQueries {
 
+        // The lexicon for storing and retrieving terms during query processing
         private static Lexicon lexicon = new Lexicon();
 
-        //Flag to indicate if the scoring function is bm25 (true) or TFIDF (false)
+        // Flag indicating whether the scoring function is BM25 (true) or TFIDF (false)
         private static boolean bm25scoring = false;
 
-        //Flag to indicate if the queryType is disjunctive (true) or conjunctive (false)
+        // Flag indicating whether the query type is disjunctive (true) or conjunctive (false)
         private static boolean queryType = true;
 
 
         public static void main( String[] args )
         {
 
+            // Load configuration settings
             Settings settings = new Settings();
 
-            //If no configuration is found, then no inverted index is present. The program exits.
+            //If the configuration is not found, inverted index is not present; exit the program
             if(!settings.loadSettings())
                 return;
 
+            // Build inverted index configuration
             System.out.println("[QUERY PROCESSOR] Building inverted index configuration:");
 
             System.out.println("[QUERY PROCESSOR] Loading the lexicon in memory...");
+            // Load lexicon into memory
             lexicon = new Lexicon();
             lexicon.loadLexicon();
             if(settings.getDebug()){
                 System.out.println("[DEBUG] Lexicon size: " + lexicon.size());
             }
 
+            // Load document index into memory
             System.out.println("[QUERY PROCESSOR] Loading the document index in memory...");
             DocIndex documentIndex = new DocIndex();
             documentIndex.loadDocumentIndex();
@@ -44,17 +53,17 @@ public class MainQueries {
 
             System.out.println("[QUERY PROCESSOR] Data structures loaded in memory.");
 
-            //Flag to indicate if the stopwords removal and stemming are enabled, this must be retrieved from the configuration
+            //Flag indicating if the stopwords removal and stemming are enabled, retrieved from the configuration
             boolean stopwordsRemovalAndStemming = settings.getStemmingAndStopWords();
 
             //Set the initial parameters for the query processor
             setQueryProcessorParameters(settings);
 
-            //Wait for a new command, the while is used to prevent malformed inputs
+            //Wait for a new command
             //This must be modified in order to have also the possibility to change the query parameters
             while (true) {
 
-                //Get a command from the command line
+                //Get a command from the user
                 int command = getCommand();
 
                 //Check the command
@@ -67,13 +76,13 @@ public class MainQueries {
                     String[] queryTerms = parseQuery(query, stopwordsRemovalAndStemming);
 
                     //If the query string is equal to null it means that the query contains all stopwords or all the terms
-                    // were written in a bad way or not present in the lexicon.
+                    // not present in the lexicon.
                     if(queryTerms == null || queryTerms.length == 0) {
                         System.out.println("You're query is too vague, try to reformulate it.");
                         continue;
                     }
 
-                    //Load the posting list of the terms of the query
+                    //Load the posting list of the terms in the query
                     PostingList[] postingLists = new PostingList[queryTerms.length];
 
                     //For each term in the query terms array
@@ -89,6 +98,7 @@ public class MainQueries {
                         System.out.println(queryTerms[i] + ": " + postingLists[i].size());
                     }
 
+                    // Execute the query and score the collection
                     ArrayList<Pair<Long, Double>> result;
 
                     //Score the collection
@@ -99,7 +109,7 @@ public class MainQueries {
                     }
 
 
-                    //Print the results in a formatted way
+                    //Print the results
                     System.out.println("\n#\tDOCNO\t\tSCORE");
                     for(int i = 0; i < result.size(); i++){
                         System.out.println((i+1) +
@@ -117,7 +127,7 @@ public class MainQueries {
 
                 } else if(command == 1) { //Change settings command
 
-                    //Request the new query processor settings then change it
+                    // Change query processor settings
                     changeSettings(settings);
                     System.out.println("Settings changed!");
 
@@ -126,14 +136,13 @@ public class MainQueries {
                     System.out.println("See you next query!");
                     return;
                 }
-                //DEFAULT BEHAVIOUR: start the loop again
             }
 
         }
 
 
         /**
-         * Method used to take a query in input from the user.
+         * Retrieves a query from the user.
          * @return The input query.
          */
         private static String getQuery(){
@@ -143,14 +152,13 @@ public class MainQueries {
 
             System.out.println("Enter a query:");
 
-            //Read the query, the -1 at the beginning is used to signal that the string is a query, used during the parsing
-            return "-1\t" + scanner.nextLine();
+            return "-1\t" + scanner.nextLine(); // -1 indicates a query during parsing
         }
 
 
         /**
-         * Method used to get the command from the user.
-         * @return 0 if the command is to enter a new query, 1 to change the settings, exit to stop the program.
+         * Retrieves a command from the user.
+         * @return 0 for a new query, 1 to change settings, 2 to exit.
          */
         private static int getCommand(){
             do {
@@ -182,22 +190,21 @@ public class MainQueries {
         }
 
         /**
-         * Method used to change the settings of the query processor, it can be used to change the scoring function.
+         * Changes the settings of the query processor
          */
         private static void changeSettings(Settings settings){
             setQueryProcessorParameters(settings);
         }
 
         /**
-         * Parses the query and returns the list of terms containing the query, the parsing process must be the same as the
-         * one used during the indexing phase.
-         * @param query the query string to parse
-         * @param stopStemming if true remove the stopwords and applies the stemming procedure.
+         * Parses the query and returns the list of terms, applying stemming and stopwords removal if specified.
+         * @param query The input query string
+         * @param stopStemming If true, removes stopwords and applies stemming.
          * @return the array of terms after the parsing of the query
          */
         public static String[] parseQuery(String query, boolean stopStemming) {
 
-            //Array of terms to build the result
+            //Array of terms to obtain the result
             ArrayList<String> results = new ArrayList<>();
 
             //Parse the query using the same configuration of the indexer
@@ -220,13 +227,14 @@ public class MainQueries {
         }
 
         /**
-         * updates the query parameters for what regards the scoring metric (tfidf/bm25) and the type of query (conjunctive/disjunctive)
+         * Sets the query processor parameters, including scoring function, query type, and debug mode
          */
         private static void setQueryProcessorParameters(Settings settings){
             //Scanner to read from the standard input stream
             Scanner scanner = new Scanner(System.in);
             boolean correctParameters = false;
 
+            // Set scoring function
             while (!correctParameters) {
                 System.out.println("\nSet the query processor parameters:");
                 System.out.println("Scoring function:\n0 -> TFIDF\n1 -> BM25");
@@ -235,7 +243,7 @@ public class MainQueries {
 
                 if (scanner.hasNext()) {
                     result = scanner.nextLine();
-                    //If 0 => bm25scoring is false, otherwise is true, so we'll use the bm25 scoring function
+                    //If 0 => bm25scoring is false, otherwise is true
                     switch (result) {
                         case "0":
                             bm25scoring = false;
@@ -253,6 +261,7 @@ public class MainQueries {
             }
 
             correctParameters = false;
+            // Set query type
             while (!correctParameters) {
                 System.out.println("Query type:\n0 -> Disjunctive\n1 -> Conjunctive");
 
@@ -260,7 +269,7 @@ public class MainQueries {
 
                 if (scanner.hasNext()) {
                     result = scanner.nextLine();
-                    //If 0 => disjunctive, 1 => conjunction, queryType is true with disjunctive and false with conjunctive queries
+                    //If 0 (true) => disjunctive, 1 (false) => conjunction
                     switch (result) {
                         case "0":
                             queryType = true;
