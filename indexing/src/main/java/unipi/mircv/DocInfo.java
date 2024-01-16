@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
-import unipi.mircv.Parameters;
-
+/**
+ * Represents information about a document, including its document number, length, URL, and PageRank score.
+ */
 public class DocInfo {
 
     private String docNo;
@@ -14,7 +15,12 @@ public class DocInfo {
     private float pr_score;
 
 
-
+    /**
+     * Constructor for creating a DocInfo instance with document number and length.
+     *
+     * @param docNo  Document number
+     * @param docLen Document length
+     */
     public DocInfo(String docNo, int docLen) {
         this.docNo = docNo;
         this.docLen = docLen;
@@ -36,9 +42,15 @@ public class DocInfo {
         return pr_score;
     }
 
+    /**
+     * Writes the document information to a random access file.
+     *
+     * @param randomAccessFile Random access file to write the information
+     * @param docId            Document ID to associate with the entry
+     */
     public void writeFile(RandomAccessFile randomAccessFile, int docId) {
 
-        //Fill with whitespaces to keep the length standard
+        //Fill with whitespaces to mantain the length standard
         String tmp = fillspace(this.docNo, Parameters.DOCNO_BYTE);
 
         //Instantiating the ByteBuffer to write to the file
@@ -54,15 +66,25 @@ public class DocInfo {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Fills the given text with whitespaces to achieve the specified length.
+     *
+     * @param text   Text to fill
+     * @param length Desired length
+     * @return Filled text
+     */
     public static String fillspace(String text, int length) {
             return String.format("%" + length + "." + length + "s", text);
     }
 
+
     /**
-     * Read from the document index the document index entry related to the given doc id
-     * @param documentIndexFile random access file containing the document index
-     * @param docId document id of which we want to retrieve the entry
-     * @return the document index entry associated to the doc id
+     * Reads from the document index the document length associated with the given document ID.
+     *
+     * @param documentIndexFile Random access file containing the document index
+     * @param docId             Document ID for which to retrieve the entry
+     * @return Document length associated with the document ID
      */
     public static int getDocLenFromFile(RandomAccessFile documentIndexFile, long docId){
 

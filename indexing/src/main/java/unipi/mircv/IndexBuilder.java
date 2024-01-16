@@ -1,42 +1,46 @@
 package unipi.mircv;
 
-import unipi.mircv.DocParsed;
-import unipi.mircv.Posting;
-import unipi.mircv.Term;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
- * Represent a component that gives the methods to build the lexicon and the inverted index for each block.
+ * Represents a component responsible for building the lexicon and inverted index for each block.
  */
 public class IndexBuilder {
 
     //The lexicon has a String as a key and an array of integers as value, the value is composed by:
     // value[0] -> TermId
     // value[1] -> offset in the posting list
+
+    // The lexicon maps a term (String) to a corresponding Term object.
     HashMap<String, Term> lexicon;
+    // The inverted index maps a term to a list of Postings (document IDs and frequencies).
     HashMap<String, ArrayList<Posting>> invertedIndex;
 
     /**
-     * Constructor of the class.
-     * Instantiate the HashMap for the lexicon and the inverted index, used for the fast lookup that requires O(1);
-     * Set the first termID to 1, the term id for each block carries also the information about the position of a term
-     * in the inverted index.
+     * Constructor for the IndexBuilder the class.
+     * Initializes the lexicon and inverted index HashMaps for efficient term lookup (O(1)).
+     * Sets the initial term ID to 1, where the term ID also represents the position of the term
+     * in the inverted index for each block.
      */
+
     public IndexBuilder() {
         lexicon = new HashMap<>();
         invertedIndex = new HashMap<>();
     }
 
     /**
-     * Insert the document's tokens inside the lexicon and the inverted index, it's an implementation of SPIMI
-     * @param docParsed Contains the id of the document, its length and the list of tokens
+     * Insert the document's tokens inside the lexicon and the inverted index (SPIMI)
+     * @param docParsed Contains the doc id, the doc length and the list of tokens
      */
     public void insertDocument(DocParsed docParsed) {
 
@@ -47,8 +51,8 @@ public class IndexBuilder {
                     //If the term is already present in the lexicon
                     if(lexicon.containsKey(term)){
 
-                        //Retrieve the posting list of the term accessing the first element of the array of int that is
-                        // the value of the termID in the lexicon
+                        //Retrieve the posting list of the term accessing the first element of the array
+                        // (the value of the termID in the lexicon)
                         ArrayList<Posting> termPostingList = invertedIndex.get(term);
 
                         //Flag to set if the doc id's posting is present in the posting list of the term
@@ -68,7 +72,7 @@ public class IndexBuilder {
                             }
                         }
 
-                        //If the posting of the document is not present in the posting list, it must be added
+                        //If the posting of the document is not present in the posting list, add it
                         if(!check){
 
                             //Posting added to the posting list of the term
@@ -78,7 +82,7 @@ public class IndexBuilder {
                     //If the term was not present in the lexicon
                     else{
                         //Insert a new element in the lexicon, in each block the currTermID corresponds to the id
-                        // associated to the term, but also to the position in the inverted index!
+                        // associated to the term, but also to the position in the inverted index
                         // To access the posting list of that term we can just retrieve the currTermId and access the
                         // array of posting lists
                         lexicon.put(term, new Term());
@@ -93,38 +97,37 @@ public class IndexBuilder {
 
                     }
                 });
-        //System.out.println("[DEBUG: INSERT DOCUMENT] " + (System.currentTimeMillis() - begin) + "ms");
     }
 
     /**
-     * Clear the instance of the lexicon, it must be used after the lexicon has been written in the disk.
+     * Clear the lexicon instance, after the lexicon has been written in the disk.
      */
     private void clearLexicon(){
         lexicon.clear();
     }
 
     /**
-     * Clear the instance of the inverted index, it must be used after the inverted index has been written in the disk.
+     * Clear the inverted index istance, after the inverted index has been written in the disk.
      */
     private void clearInvertedIndex(){
         invertedIndex.clear();
     }
 
     /**
-     * Clear the class instances in order to be used for a new block processing.
+     * Clear the class instances to use it for a new block processing.
      */
     public void clear(){
         clearLexicon();
         clearInvertedIndex();
 
-        //Call the garbage collector to thrash the data structures cleared above, if it is not done the memory will be
-        // over the threshold until the gc will be called automatically, causing the writes of a block at every document
-        // processed after the trespassing of the threshold.
+        // Calls the garbage collector to free memory occupied by cleared data structures; if it is not done
+        // the memory will be over the threshold until the gc will be called automatically.
+
         Runtime.getRuntime().gc();
     }
 
     /**
-     * Sort the lexicon with complexity O(nlog(n)) where n is the # of elements in the lexicon.
+     * Sort the lexicon with O(nlog(n)) where n is the number of elements in the lexicon.
      */
     public void sortLexicon(){
 
@@ -139,7 +142,7 @@ public class IndexBuilder {
 
     }
     /**
-     * Sort the inverted index with complexity O(nlog(n)) where n is the # of elements in the inverted index.
+     * Sort the inverted index with O(nlog(n)) where n is the number of elements in the inverted index.
      */
     public void sortInvertedIndex(){
 
@@ -169,17 +172,19 @@ public class IndexBuilder {
         }
     }
 
+
     /**
-     * Writes the current inverted index in the disk, the inverted index is written in two different files:
-     * The file containing the document ids of each posting list
-     * The file containing the frequencies of the terms in the documents
-     * Then update the information in the lexicon
-     * @param outputPathDocIds path of the file that will contain the document ids
-     * @param outputPathFrequencies path of the file that will contain the frequencies
+     * Writes the current inverted index to disk. The inverted index is written to two separate files:
+     * One containing the document IDs of each posting list,
+     * and the other containing the frequencies of the terms in the documents.
+     * Updates the information in the lexicon accordingly.
+     *
+     * @param outputPathDocIds      Path of the file that will contain the document IDs.
+     * @param outputPathFrequencies Path of the file that will contain the frequencies.
      */
     public void writeInvertedIndexToFile(String outputPathDocIds, String outputPathFrequencies){
 
-        //Create resources with try-catch with resources
+        //Create resources with try-catch
         try (RandomAccessFile docIdBlock = new RandomAccessFile(outputPathDocIds, "rw");
              RandomAccessFile frequencyBlock = new RandomAccessFile(outputPathFrequencies, "rw"))
         {
@@ -191,12 +196,12 @@ public class IndexBuilder {
             //for each element of the inverted index
             invertedIndex.forEach((term, postingList) -> {
 
-                //Set the current offsets to be written in the lexicon
+                //Set the current offsets in the lexicon
                 int offsetDocId = atomicOffsetDocId.get();
                 int offsetFrequency = atomicOffsetFrequency.get();
 
                 postingList.forEach(posting -> {
-                    //Create the buffers for each element to be written
+                    //Create the buffers for each element
                     byte[] postingDocId = ByteBuffer.allocate(8).putLong(posting.getDocID()).array();
                     byte[] postingFreq = ByteBuffer.allocate(4).putInt(posting.getTermFrequency()).array();
 

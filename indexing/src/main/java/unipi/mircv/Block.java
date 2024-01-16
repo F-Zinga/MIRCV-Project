@@ -4,17 +4,15 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
-// skip block
+// Represents a skip block used during the merging process
 public class Block {
 
-    private long docIDOffset;
-    private int docIDSize;
-    private long frqOffset;
-    private int frqSize;
-    //maximum doc id in the block represented by this skipBlock.
-    private long maxDocID;
+    private long docIDOffset; // Offset in the document IDs file where the skip block starts
+    private int docIDSize; // Size of the skip block in the document IDs file
+    private long frqOffset; // Offset in the frequencies file where the skip block starts
+    private int frqSize; // Size of the skip block in the frequencies file
+    private long maxDocID; //maximum doc id in the block represented by this skipBlock.
 
-    //private int nPostings;
 
     public long getDocIDOffset() {
         return docIDOffset;
@@ -59,6 +57,14 @@ public class Block {
         this.frqSize = frqSize;
     }
 
+    /**
+     * Constructor for creating a Block with detailed information.
+     * @param docIDOffset The offset in the document IDs file.
+     * @param docIDSize The size of the skip block in the document IDs file.
+     * @param frqOffset The offset in the frequencies file.
+     * @param frqSize The size of the skip block in the frequencies file.
+     * @param maxDocID The maximum document ID in the block.
+     */
 
     public Block(long docIDOffset, int docIDSize, long frqOffset, int frqSize, long maxDocID) {
         this.docIDOffset = docIDOffset;
@@ -68,6 +74,12 @@ public class Block {
         this.maxDocID = maxDocID;
     }
 
+    /**
+     * Constructor for creating a Block with minimal information.
+     * @param docIDOffset The offset in the document IDs file.
+     * @param docIDSize The size of the skip block in the document IDs file.
+     * @param maxDocID The maximum document ID in the block.
+     */
     public Block(long docIDOffset, int docIDSize, long maxDocID) {
         this.docIDOffset = docIDOffset;
         this.docIDSize = docIDSize;
@@ -86,9 +98,9 @@ public class Block {
     }
 
     /**
-     * Write the term info to a file. This method is used during the merge of the partial blocks, here we have
-     * all the information directly inside the termInfo object.
-     * @param skipBlocksFile Is the random access file on which the term info is written.
+     * Write the skip block information to a file. This method is used during the merge of partial blocks,
+     * where all the information is available directly within the Block object.
+     * @param skipBlocksFile The random access file where the skip block information is written.
      */
     public void writeToFile(RandomAccessFile skipBlocksFile){
         byte[] startDocIdOffset = ByteBuffer.allocate(Parameters.OFFSET_LENGTH).putLong(this.docIDOffset).array();

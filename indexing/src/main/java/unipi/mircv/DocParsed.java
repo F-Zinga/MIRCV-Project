@@ -2,21 +2,38 @@ package unipi.mircv;
 
 import java.util.Arrays;
 
+/**
+ * Represents a parsed document with essential information.
+ */
 public class DocParsed {
 
-    long docId;
-    int documentLength;
+    long docId; // Document ID assigned during parsing
+    int documentLength; // Length of the document in terms
 
-    String docNo;
-    String[] terms;
+    String docNo; // Document number
+    String[] terms; // Array containing the terms extracted from the document
 
 
+    /**
+     * Constructor for creating a DocParsed instance with document number and terms.
+     * Automatically sets the document length based on the number of terms.
+     *
+     * @param docNo Document number
+     * @param terms Array of terms extracted from the document
+     */
     public DocParsed(String docNo, String[] terms){
         this.docNo = docNo;
         this.terms = terms;
         documentLength = terms.length;
     }
 
+    /**
+     * Constructor for creating a DocParsed instance with document ID, terms, and document number.
+     *
+     * @param docId           Document ID assigned during parsing
+     * @param terms           Array of terms extracted from the document
+     * @param docNo           Document number
+     */
     public DocParsed(int docId, String[] terms, String docNo) {
         this.docId = docId;
         this.documentLength = terms.length;
@@ -28,6 +45,11 @@ public class DocParsed {
         this.docId = docId;
     }
 
+    /**
+     * Returns a string representation of the DocParsed object.
+     *
+     * @return String representation of the object
+     */
     @Override
     public String toString() {
         return "DocParsed{" +
