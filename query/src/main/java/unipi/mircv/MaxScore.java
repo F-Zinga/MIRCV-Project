@@ -43,7 +43,7 @@ public class MaxScore {
         // Ordered posting lists based on term upper bounds
         ArrayList<PostingList> orderedPostingLists = new ArrayList<>();
 
-        //Retrieve the time at the beginning of the computation
+        // Record the start time for performance measurement
         long begin = System.currentTimeMillis();
 
         //Move the iterators of each posting list to the first position
@@ -318,7 +318,7 @@ public class MaxScore {
 
         ArrayList<PostingList> orderedPostingLists = new ArrayList<>();
 
-        //Retrieve the time at the beginning of the computation
+        // Record the start time for performance measurement
         long begin = System.currentTimeMillis();
 
         //Move the iterators of each posting list to the first position

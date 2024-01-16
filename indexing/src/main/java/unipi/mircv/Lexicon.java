@@ -5,19 +5,25 @@ import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 
+/**
+ * Represents the lexicon of terms used in the inverted index. Extends HashMap to provide a mapping from terms to their corresponding Term objects.
+ */
 public class Lexicon extends HashMap<String,Term> {
 
         //Object to open the stream from the lexicon file
         private RandomAccessFile lexiconFile;
 
-        /**
-         * Constructor, it uses the HashMap constructor.
-         */
+    /**
+     * Constructor for the Lexicon class, utilizing the HashMap constructor.
+     */
     public Lexicon() {
             super();
         }
 
 
+    /**
+     * Loads the lexicon from the specified lexicon file.
+     */
     public void loadLexicon() {
             System.out.println("[LEXICON LOADER] Lexicon loading...");
             try {
@@ -32,15 +38,14 @@ public class Lexicon extends HashMap<String,Term> {
 
 
                 System.out.print("Lexicon lenght in byte: " + lexiconFile.length());
-                //While we're not at the end of the file
-
+                //While we are not at the end of the file
                 while (offset < (lexiconFile.length()))
                 {
 
                     //Read the next Term from the file starting at the current offset
                     term = readNextTerm(offset);
 
-                    //If the Term is not null (no problem encountered, or we aren't at the end of the file)
+                    //If the Term is not null (no problem encountered, or we are no at the end of the file)
                     if (term!= null){
 
                         //Insert the Term into the HashMap
@@ -69,7 +74,7 @@ public class Lexicon extends HashMap<String,Term> {
          * @return The next term from the lexicon file.
          */
         private Term readNextTerm(int offset) {
-            //Array of bytes in which put the term
+            //Array of bytes to store the term
             byte[] termBytes = new byte[Parameters.TERM_BYTES];
 
             //String containing the term
@@ -98,15 +103,14 @@ public class Lexicon extends HashMap<String,Term> {
                         lexiconFile.readInt(),  //Length of the term's posting list
                         lexiconFile.readLong(), //Offset of the skipBlocks in the skipBlocks file
                         lexiconFile.readInt(),  //Number of skipBlocks
-                        lexiconFile.readInt(), //TFIDF term upper bound
-                        lexiconFile.readInt()  //BM25 term lower bound
+                        lexiconFile.readInt(), //term upper bound (TFIDF)
+                        lexiconFile.readInt()  //term lower bound (BM25)
                 );
 
 
                 return Term;
 
             } catch (IOException e) {
-                //System.err.println("[ReadNextTerm] EOF reached while reading the next lexicon entry");
                 return null;
             }
         }

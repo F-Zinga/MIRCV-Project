@@ -9,82 +9,87 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+/**
+ * The Merger class facilitates the merging of inverted index and lexicon blocks into a single file.
+ */
 public class Merger {
 
     /**
-     * This method merges the inverted index and the lexicon blocks into one single file.
-     * @param compress If true, the inverted index and the lexicon blocks will be compressed using VBE, otherwise
-     *                 they will be written without compression.
+     * This method performs the merging of lexicon blocks and inverted index blocks into a single file.
+     *
+     * @param compress If true, the inverted index and lexicon blocks will be compressed using VBE; otherwise, they will be written without compression.
+     * @param debug    If true, debug information will be printed during the process.
      */
     public static void merge(boolean compress, boolean debug) {
 
         System.out.println("[MERGER] Merging lexicon blocks and inverted index blocks...");
 
-        //Retrieve the time at the beginning of the computation
+        // Record the start time for performance measurement
         long start = System.nanoTime();
 
-        //Retrieve the blocks statistics
+        //Retrieve blocks statistics
         Statistics statistics = readStatistics();
 
         int num_blocks = statistics.getNBlocks();
 
-        //Arrays of random access files, for docIds, frequencies and lexicon blocks
+        //Initialize arrays of random access files, for docIds, frequencies and lexicon blocks
         RandomAccessFile[] randomAccessFileDocIds = new RandomAccessFile[num_blocks];
         RandomAccessFile[] randomAccessFilesFrequencies = new RandomAccessFile[num_blocks];
         RandomAccessFile[] randomAccessFilesLexicon = new RandomAccessFile[num_blocks];
 
-        //Files for the final result
+        //Files for saving the final result
         RandomAccessFile lexiconFile;
         RandomAccessFile docIdsFile;
         RandomAccessFile frequenciesFile;
         RandomAccessFile blocksFile;
         RandomAccessFile documentIndex;
 
-        //Accumulators to hold the current offset, starting from which the next list of postings will be written
+
+        // Accumulators to hold the current offset for the next list of postings
         long docIdsOffset = 0;
         long frequenciesOffset = 0;
         long blocksOffset = 0;
 
-        //Array of the current offset reached in each lexicon block
+        //Array to store the current offset reached in each lexicon block
         int[] offsets = new int[num_blocks];
 
-        //Array of boolean, each i-th entry is true, if the i-th block has reached the end of the lexicon block file
+        //Array of boolean, where the i-th entry is true, if the i-th block has reached the end of the lexicon block file
         boolean[] endOfBlock = new boolean[num_blocks];
 
-        //Set each offset equal to 0, the starting offset of each lexicon block
-        //Set each boolean equal to false, at the beginning no block has reached the end
+        //Initialize each offset to 0 and each boolean to false, for each lexicon block
+        //because at the beginning no block has reached the end
         for (int i = 0; i < num_blocks; i++) {
             offsets[i] = 0;
             endOfBlock[i] = false;
         }
 
-        //String to keep the min term among all the current terms in each lexicon block, it is used to determine the
+        //String to keep track of the min term among all the current terms in each lexicon block, it is used to determine the
         // term of which the posting lists must be merged
         String minTerm = null;
 
         //TermInfo to keep the term's information to be written in the lexicon file
         Term lexiconEntry;
 
-        //Used to store the information of the current term entry for each lexicon block file
+        //Used to store the term's info for each lexicon block file
         Term[] curTerm = new Term[num_blocks];
 
-        //Contains the list of all the blocks containing the current min term
+        // Linked list to contain blocks with the current minimum term
         LinkedList<Integer> blocksWithMinTerm = new LinkedList<>();
 
-        //Array to store the docIds and frequencies of the posting list of the current min term in the current block
+        //Array containing the docIds and frequencies of the posting list of the current min term in the current block
         ArrayList<Long> docIds = new ArrayList<>();
         ArrayList<Integer> frequencies = new ArrayList<>();
 
-        //Array to store the information about the blocks
+        //Array containing info about the blocks
         ArrayList<Block> blocks = new ArrayList<>();
 
-        //Arrays to store the compressed docIds and frequencies of the posting list of the current min term
+        //Arrays containing compressed docIds and frequencies of the posting list of the current min term
         byte[] docIdsCompressed;
         byte[] frequenciesCompressed;
 
 
         try {
-            //Create a stream for each random access files of each block, the stream is opened as read only
+            //Create a stream for each random access files of each block, the stream isread only
             for (int i = 0; i < num_blocks; i++) {
                 //noinspection resource
                 randomAccessFileDocIds[i] = new RandomAccessFile(Parameters.DOCID_BLOCK_PATH +(i+1)+".txt", "r");
@@ -97,7 +102,8 @@ public class Merger {
                 }
             }
 
-            //Create a stream for the lexicon file, the docids file and the frequencies file, the stream is opened as write only
+            //Create a stream for the lexicon file, the docids file, frequencies file, blocks file, and document index,
+            //opened in write-only and read-only modes, respectively
             lexiconFile = new RandomAccessFile(Parameters.LEXICON_PATH, "rw");
             docIdsFile = new RandomAccessFile(Parameters.DOCID_PATH, "rw");
             frequenciesFile = new RandomAccessFile(Parameters.FREQ_PATH, "rw");
@@ -106,18 +112,19 @@ public class Merger {
 
 
         } catch (FileNotFoundException e) {
+            // Handle the exception if the file is not found
             System.err.println("[MERGER] File not found: " + e.getMessage());
             throw new RuntimeException(e);
         }
 
-        //Read the first term of each lexicon block
+        //Read the first term of each lexicon block and update offsets
         for (int i = 0; i < curTerm.length; i++) {
             curTerm[i] = readNextTermInfo(randomAccessFilesLexicon[i],offsets[i]);
 
+            // Check if the end of the block is reached
             if(curTerm[i] == null) {
                 endOfBlock[i] = true;
             }
-
 
             //Update the offset to the offset of the next file to be read
             offsets[i] += 68;//term + offsetDocId + offsetFrequency + postingListLength
@@ -129,7 +136,7 @@ public class Merger {
 
             j++;
 
-            // every 25000 blocks prints info
+            // Print processing info every 25000 blocks
             if(j%25000 == 0){
                 System.out.println("[MERGER] Processing time: " + (System.nanoTime() - start)/1000000000+ "s. Processed " + j + " terms");
             }
@@ -137,12 +144,12 @@ public class Merger {
             //For each block read the next term
             for(int i = 0; i < num_blocks; i++) {
 
-                //Avoid to read from the block if the end of the block is reached
+                // Skip reading from the block if the end of the block is reached
                 if(endOfBlock[i]) {
                     continue;
                 }
 
-                //If the current term is the lexicographically smaller than the min term, then update the min term.
+                // Update minTerm if the current term is lexicographically smaller than the min term
                 if(minTerm == null || curTerm[i].getTerm().compareTo(minTerm) < 0) {
 
                     //If we've found another min term, then update the min term.
@@ -154,13 +161,13 @@ public class Merger {
                     //Add the current block to the list of blocks with the min term.
                     blocksWithMinTerm.add(i);
 
-                    //Else if the current term is equal to the min term, then add the current block to the list of blocks with the min term.
+                    //If the current term is equal to the min term, then add the current block to the list of blocks with the min term.
                 } else if (curTerm[i].getTerm().compareTo(minTerm) == 0) {
 
                     //Add the current block to the list of blocks with the min term.
                     blocksWithMinTerm.add(i);
                 }
-            }//At this point we have the current min term.
+            }//Now we have the current min term.
 
             //Check if we've reached the end of the merge.
             if(endOfAllFiles(endOfBlock, num_blocks)) {
@@ -168,8 +175,6 @@ public class Merger {
                 break;
             }
 
-            //System.out.println("----------- TERM: " + minTerm + " -----------");
-            //System.out.println(blocksWithMinTerm);
 
             //Merge the posting lists of the current min term in the blocks containing the term
             for (Integer integer : blocksWithMinTerm) {
@@ -177,14 +182,12 @@ public class Merger {
                 //Append the current term docIds to the docIds accumulator
                 docIds.addAll(PostingList.readPLDocId(randomAccessFileDocIds[integer], curTerm[integer].getOffsetDocId(), curTerm[integer].getPostingListLength()));
 
-                //System.out.println("Current docIds: " + docIds);
 
                 //Append the current term frequencies to the frequencies accumulator
                 frequencies.addAll(PostingList.readPlFreq(randomAccessFilesFrequencies[integer], curTerm[integer].getOffsetFrequency(), curTerm[integer].getPostingListLength()));
 
-                //System.out.println("Current term frequencies: " + frequencies);
 
-                //Read the lexicon entry from the current block and move the pointer of the file to the next term
+                //Read the lexicon entry from the current block and move the pointer to the next term
                 curTerm[integer] = readNextTermInfo(randomAccessFilesLexicon[integer], offsets[integer]);
 
                 //Check if the end of the block is reached or a problem during the reading occurred
@@ -203,14 +206,14 @@ public class Merger {
 
             }
 
-            //Maximum term frequency
+            // Initialize variables for maximum term frequency and maximum tf for bm25
             int maxFreq = 0;
 
-            //Maximum tf for bm25
             double tf_maxScoreBm25 = 0;
 
             if(compress){
 
+                // Initialize a Pair to store the maximum score for bm25
                 Pair<Double, Double> maxscore = Pair.with(0.0, 0.0);
 
                 //Compress the list of docIds using VBE and create the list of skip blocks for the list of docids
@@ -221,22 +224,23 @@ public class Merger {
                 frequenciesCompressed = tuple.getValue0();
                 maxscore = tuple.getValue1();
 
-                //Write the docIds and frequencies of the current term in the respective files
+                //Write the compressed docIds and frequencies of the current term to the respective files
                 try {
                     docIdsFile.write(docIdsCompressed);
                     frequenciesFile.write(frequenciesCompressed);
                 } catch (IOException e) {
+                    // Handle the exception if the file is not found
                     System.err.println("[MERGER] File not found: " + e.getMessage());
                     throw new RuntimeException(e);
                 }
 
-                //Compute idf
+                //Compute idf value
                 double idf = Math.log(statistics.getNDocs()/ (double)docIds.size())/Math.log(2);
-                //Compute the tfidf term upper bound
+                // Compute term upper bounds for tfidf and bm25
                 int tfidfTermUpperBound = (int) Math.ceil((1 + Math.log(maxscore.getValue0()) / Math.log(2))*idf);
-                //Compute the bm25 term upper bound
                 int bm25TermUpperBound = (int) Math.ceil(maxscore.getValue1()*idf);
 
+                // Create a Term object with the computed values
                 lexiconEntry = new Term(
                         minTerm,                     //Term
                         docIdsOffset,                //offset in the docids file in which the docids list starts
@@ -245,20 +249,22 @@ public class Merger {
                         docIdsCompressed.length,     //length in bytes of the compressed docids list
                         frequenciesCompressed.length,//length in bytes of the compressed frequencies list
                         docIds.size(),               //Length of the posting list of the current term
-                        blocksOffset,            //Offset of the SkipBlocks in the SkipBlocks file
-                        blocks.size(),           //number of SkipBlocks
-                        tfidfTermUpperBound,         //term upper bound for the tfidf
-                        bm25TermUpperBound           //term upper bound for the bm25
+                        blocksOffset,               //Offset of the SkipBlocks in the SkipBlocks file
+                        blocks.size(),              //number of SkipBlocks
+                        tfidfTermUpperBound,         //term upper bound (tfidf)
+                        bm25TermUpperBound           //term upper bound (bm25)
                 );
 
-                //For DEBUG
+                // For debugging purposes, print information about the current lexicon entry and the number of blocks created
                 if(debug && j%25000 == 0) {
                     System.out.println("[DEBUG] Current lexicon entry: " + lexiconEntry);
                     System.out.println("[DEBUG] Number of blocks created: " + blocks.size());
                 }
 
+                // Write the lexicon entry to the lexicon file
                 lexiconEntry.writeToFile(lexiconFile, lexiconEntry);
 
+                // Update offsets for docIds and frequencies
                 docIdsOffset += docIdsCompressed.length;
                 frequenciesOffset += frequenciesCompressed.length;
 
@@ -268,19 +274,19 @@ public class Merger {
                 //Write the docIds and frequencies of the current term in the respective files
                 try {
 
-                    //Dimension of each skip block
+                    //Size skip block
                     int blocksLength = (int) Math.floor(Math.sqrt(docIds.size()));
 
                     //Number of postings
                     int blocksElements = 0;
 
-                    //To store the bm25 score for the current doc id
+                    // Variable to store the bm25 score for the current doc id
                     double tf_currentBm25;
 
-                    //Write the docids and frequencies in their respective files and create the skip blocks
+                    // Iterate through docIds and frequencies, write to files, and create skip blocks
                     for(int i=0; i < docIds.size(); i++) {
 
-                        //Retrieve the maximum to compute the TFIDF term upper bound
+                        //Retrieve the maximum frequency to compute the TFIDF term upper bound
                         if(frequencies.get(i) > maxFreq){
                             maxFreq = frequencies.get(i);
                         }
@@ -290,27 +296,28 @@ public class Merger {
                                 ( (double) DocInfo.getDocLenFromFile(documentIndex, docIds.get(i)) /
                                         statistics.getAvdl()) + frequencies.get(i)));
 
+                        // Update the maximum tf for bm25
                         if(tf_currentBm25 > tf_maxScoreBm25){
                             tf_maxScoreBm25 = tf_currentBm25;
                         }
 
 
-                        //Write the docIds as a long to the end of the docIds file
+                        //Write the docIds (long) to the end of the docIds file
                         docIdsFile.writeLong(docIds.get(i));
 
-                        //Write the frequencies as an integer to the end of the frequencies file
+                        //Write the frequencies (integer) to the end of the frequencies file
                         frequenciesFile.writeInt(frequencies.get(i));
 
-                        //If we're at a skip position, we create a new skip block
+                        //We create a new skip block iIf we are at a skip position
                         if(((i+1)%blocksLength == 0) || ((i + 1) == docIds.size())){
 
-                            //if the size of the skip block is less than blocksLength then used the reminder,
-                            // to get the actual dimension of the skip block, since if we're at the end we can have less
-                            // than skipBlockLength postings
-                            // Since we don't have compression the lengths of docids and frequencies skip blocks are the same
+                            //if the size of the skip block is less than blocksLength, we use the reminder
+                            // to get the actual dimension of the skip block (if we are at the end we can have less
+                            // than skipBlockLength postings)
+                            // Since there is no compression the lengths of docids and frequencies skip blocks are the same
                             int currentSkipBlockSize = ((i + 1) % blocksLength == 0) ? blocksLength : ((i+1) % blocksLength);
 
-                            //Creation of the skip block
+                            //Create skip block
                             blocks.add(new Block(
                                     (long) blocksElements *Long.BYTES,
                                     currentSkipBlockSize,
@@ -319,8 +326,7 @@ public class Merger {
                                     docIds.get(i)
                             ));
 
-                            //Increment the number of elements seen until now, otherwise we're not able to obtain the first offset
-                            // equal to 0
+                            //Increment the number of elements in order to obtain the first offset equal to 0
                             blocksElements += currentSkipBlockSize;
                         }
 
@@ -328,19 +334,18 @@ public class Merger {
 
 
                 } catch (IOException e) {
+                    // Handle the exception if an error occurs while writing compressed data to file
                     System.err.println("[MERGER] File not found: " + e.getMessage());
                     throw new RuntimeException(e);
                 }
 
                 //Compute idf
                 double idf = Math.log(statistics.getNDocs()/ (double)docIds.size())/Math.log(2);
-                //Compute the tfidf term upper bound
+                // Compute term upper bounds for tfidf and bm25
                 int tfidfTermUpperBound = (int) Math.ceil((1 + Math.log(maxFreq) / Math.log(2))*idf);
-                //Compute the bm25 term upper bound
                 int bm25TermUpperBound = (int) Math.ceil(tf_maxScoreBm25*idf);
 
-                //Instantiate a new TermInfo object with the current term information, here we use the information in
-                //the docids and frequencies objects
+                // Create a Term object with the current computed values
                 lexiconEntry = new Term(
                         minTerm,                     //Term
                         docIdsOffset,                //offset in the docids file in which the docids list starts
@@ -349,26 +354,29 @@ public class Merger {
                         docIds.size(),               //length in number of long in the docids list
                         frequencies.size(),          //length number of integers in the frequencies list
                         docIds.size(),               //Length of the posting list of the current term
-                        blocksOffset,            //Offset of the SkipBlocks in the SkipBlocks file
-                        blocks.size(),           //number of SkipBlocks
-                        tfidfTermUpperBound,         //term upper bound for the tfidf
-                        bm25TermUpperBound           //term upper bound for the bm25
+                        blocksOffset,               //Offset of the SkipBlocks in the SkipBlocks file
+                        blocks.size(),               //number of SkipBlocks
+                        tfidfTermUpperBound,         //term upper bound (tfidf)
+                        bm25TermUpperBound           //term upper bound (bm25)
                 );
 
-                //For DEBUG
+                // For debugging purposes, print information about the current lexicon entry and the number of blocks created
                 if(debug && j%25000 == 0) {
                     System.out.println("[DEBUG] Current lexicon entry: " + lexiconEntry);
                     System.out.println("[DEBUG] Number of blocks created: " + blocks.size());
                 }
 
+                // Write the lexicon entry to the lexicon file
                 lexiconEntry.writeToFile(lexiconFile, lexiconEntry);
 
+                // Update offsets for docIds and frequencies
                 docIdsOffset += 8L*docIds.size();
                 frequenciesOffset += 4L*frequencies.size();
 
 
             }
 
+            // Write each skip block to the SkipBlocks file and update the blocks offset
             for(Block s : blocks){
                 s.writeToFile(blocksFile);
                 blocksOffset += Parameters.BLOCK_LENGTH;
@@ -378,14 +386,14 @@ public class Merger {
             docIds.clear();
             frequencies.clear();
             blocks.clear();
-            minTerm = null; //Otherwise it will be always the first min term found at the beginning of the merge
+            minTerm = null;  //Reset minTerm to null to avoid using it as the first min term found at the beginning of the merge
             blocksWithMinTerm.clear(); //Clear the list of blocks with the min term
         }
 
         System.out.println("[MERGER] Closing the streams of the files. Analyzed " + j + " terms");
 
         try {
-            //Close the streams of the files
+            // Close the file streams
             for (int i = 0; i < num_blocks; i++) {
                 randomAccessFileDocIds[i].close();
                 randomAccessFilesFrequencies[i].close();
@@ -397,10 +405,12 @@ public class Merger {
             frequenciesFile.close();
 
         } catch (RuntimeException | IOException e) {
+            //Handle the exception if any file stream cannot be closed
             System.err.println("[MERGER] File not found: " + e.getMessage());
             throw new RuntimeException(e);
         }
 
+        // Delete blocks if successful
         if(deleteBlocks(num_blocks)){
             System.out.println("[MERGER] Blocks deleted successfully");
         }
@@ -411,28 +421,29 @@ public class Merger {
 
 
     /**
-     * Reads the next lexicon entry from the given lexicon block file, starting from offset it will read the first 60
-     * bytes, then if resetOffset is true, it will reset the offset to the value present ate the beginning, otherwise it
-     * will keep the cursor as it is after the read of the entry.
+     * Reads the next lexicon entry from the provided lexicon block file, starting from the specified offset. It reads the first 60 bytes,
+     * and if resetOffset is true, it resets the offset to its initial value; otherwise, it maintains the cursor position after reading the entry.
+     *
      * @param randomAccessFileLexicon RandomAccessFile of the lexicon block file
-     * @param offset offset starting from where to read the lexicon entry
+     * @param offset Offset from where we read the lexicon entry
+     * @return Term object containing the term information
      */
     public static Term readNextTermInfo(RandomAccessFile randomAccessFileLexicon, int offset) {
 
-        //Array of bytes in which put the term
+        //Array of bytes to store the term
         byte[] termBytes = new byte[Parameters.TERM_BYTES];
 
-        //String containing the term
+        //String representation of the term
         String term;
 
-        //TermInfo containing the term information to be returned
+        //Term object containing the term information
         Term termInfo;
 
         try {
             //Set the file pointer to the start of the lexicon entry
             randomAccessFileLexicon.seek(offset);
 
-            //Read the first 48 containing the term
+            //Read the first 48 bytes that contain the term
             randomAccessFileLexicon.readFully(termBytes, 0, Parameters.TERM_BYTES);
 
             //Convert the bytes to a string and trim it
@@ -444,7 +455,7 @@ public class Merger {
             return termInfo;
 
         } catch (IOException e) {
-            //System.err.println("[ReadNextTermInfo] EOF reached while reading the next lexicon entry");
+            //Handle IOException (EOF reached while reading the next lexicon entry)
             return null;
         }
     }
@@ -452,23 +463,25 @@ public class Merger {
 
     /**
      * Return a statistics object containing the information about the blocks
+     *  @return Statistics object with block information
      */
     private static Statistics readStatistics(){
         return new Statistics();
     }
 
+
     /**
-     * Check if all the files have reached the end of the file, and if so return true, otherwise return false
-     * @param endOfBlocks array of boolean indicating if the files have reached the end of the file
-     * @param numberOfBlocks number of blocks, it is the length of the array
-     * @return true if all the files have reached the end of the file, and if so return true, otherwise return false
+     * Return true if all the files have reached the end and false otherwise.
+     * @param endOfBlocks Array of boolean values indicating whether each file has reached the end
+     * @param numberOfBlocks Number of blocks (length of the array)
+     * @return true if all files have reached the end, false otherwise
      */
     private static boolean endOfAllFiles(boolean[] endOfBlocks, int numberOfBlocks) {
 
-        //For each block check if it has reached the end of the file
+        //Check if each block check has reached the end of the file
         for(int i = 0; i < numberOfBlocks; i++) {
             if(!endOfBlocks[i])
-                //At least one file has not reached the end of the file
+                //At least one file not reached the end of the file
                 return false;
         }
         //All the files have reached the end of the file
@@ -476,8 +489,8 @@ public class Merger {
     }
 
     /**
-     * Delete the partial block of lexicon and inverted index
-     * @param numberOfBlocks number of partial blocks
+     * Delete the partial blocks of lexicon and inverted index
+     * @param numberOfBlocks number of partial blocks to delete
      * @return true if all the files are successfully deleted, false otherwise
      */
     private static boolean deleteBlocks(int numberOfBlocks) {
