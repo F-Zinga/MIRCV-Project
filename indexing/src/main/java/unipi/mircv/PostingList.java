@@ -6,14 +6,18 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+/**
+ * Represents a collection of postings in the inverted index, providing functionality to iterate through and manage
+ * posting lists with the use of skip blocks.
+ */
 public class PostingList extends ArrayList<Posting> {
 
-    private long docId;
+    private long docId; // Current document ID during iteration
 
-    //Current frequency
+    //Current term frequency
     private int freq;
 
-    //If we've reached the end of the posting list
+    //Flag indicating if the posting list iteration has reached the end
     private boolean endPosting;
 
     //Iterator to iterate over the posting list
@@ -22,28 +26,35 @@ public class PostingList extends ArrayList<Posting> {
     //Iterator to iterate over the skip blocks
     private Iterator<Block> blocksIterator;
 
-    //TermInfo of the term, used to retrieve the idf
+    //Info of the term to retrieve the idf
     private Term termInfo;
 
-    //Variable used to store the current skip block information
+    //Variable to store the current skip block information
     private Block currentBlock;
 
-    //Random access file used to read the docids
+    //Random access file to read the docids
     RandomAccessFile randomAccessFileDocIds;
 
-    //Random access file used to read the frequencies
+    //Random access file to read the frequencies
     RandomAccessFile randomAccessFileFrequencies;
 
-    //Random access file used to read the skip blocks
+    //Random access file to read the skip blocks
     RandomAccessFile randomAccessFileBlocks;
 
-    private Settings settings;
+    private Settings settings; // Settings for the inverted index configuration
 
-
+    /**
+     * Sets the current skip block to the next one in the iteration.
+     */
     public void setCurrentBlock(){
 
         currentBlock = blocksIterator.next();
     }
+
+    /**
+     * Checks if the posting list iteration has reached the end.
+     * @return true if the iteration has reached the end, false otherwise.
+     */
     public boolean getEndPosting() {
         return endPosting;
     }
@@ -51,8 +62,9 @@ public class PostingList extends ArrayList<Posting> {
     public long getDocId() {
         return docId;
     }
+
     /**
-     * Clear the array list
+     * Closes the posting list by clearing the array list and closing associated random access files.
      */
     public void closeList(){
         this.clear();
@@ -68,11 +80,15 @@ public class PostingList extends ArrayList<Posting> {
         this.docId = docId;
     }
 
+    /**
+     * Sets the flag indicating the end of the posting list iteration.
+     */
     public void setEndPosting() {
         this.endPosting = true;
     }
+
     /**
-     * Loads the posting list of the given term in memory, this list uses the skipping mechanism.
+     * Loads the posting list in memory, using the skipping mechanism.
      * @param termInfo Lexicon entry of the term, used to retrieve the offsets and the lengths of the posting list
      */
     public void openList(Term termInfo){
@@ -81,7 +97,7 @@ public class PostingList extends ArrayList<Posting> {
         this.termInfo = termInfo;
         System.out.println(termInfo.toString());
 
-        //Load the configuration used to build the inverted index
+        //Load the configuration to build the inverted index
         settings = new Settings();
         settings.loadSettings();
 
@@ -96,7 +112,6 @@ public class PostingList extends ArrayList<Posting> {
 
 
         //Load the blocks list of the current term's posting list
-        //Blocks of the posting list
         ArrayList<Block> skipBlocks = getPostingListBlock(
                 randomAccessFileBlocks,
                 termInfo.getOffsetSkipBlock(),
@@ -117,11 +132,11 @@ public class PostingList extends ArrayList<Posting> {
      * Loads the posting list of the current block
      */
     public void loadPostingList(){
-        //Retrieve the docids and the frequencies
+        //Retrieve docids and frequencies
         ArrayList<Long> docids;
         ArrayList<Integer> frequencies;
 
-        //If the compression is enabled, then read the posting lists files with the compression
+        //Read the posting lists files with the compression, if the compression is enabled
         if(settings.isCompressed()) {
 
             docids = readPlDocIdCompressed(randomAccessFileDocIds,
@@ -150,10 +165,10 @@ public class PostingList extends ArrayList<Posting> {
             this.add(new Posting(docids.get(i), frequencies.get(i)));
         }
 
-        //Update the iterator for the current posting list
+        //Update the iterator of the current posting list
         iterator = this.iterator();
 
-
+        //Debug information
         if(settings.getDebug()){
             System.out.println("------------------");
             System.out.println("[DEBUG] Partial posting list: " + this);
@@ -167,13 +182,10 @@ public class PostingList extends ArrayList<Posting> {
      */
     public Posting next(){
 
-        //System.out.println("This.docID: " + this.docId + "/" + currentSkipBlock.maxDocid);
         if(this.docId == currentBlock.getMaxDocID()){
-            //System.out.println("Last docId of the block");
             if(blocksIterator.hasNext()){
                 setCurrentBlock();
             }else {
-                //System.out.println("Posting list ended");
                 setEndPosting();
                 return null;
             }
@@ -194,8 +206,8 @@ public class PostingList extends ArrayList<Posting> {
     }
 
     /**
-     * Reads the posting list's ids from the given inverted index file, starting from offset it will read the number
-     * of docIds indicated by the given length parameter. It assumes that the file is compressed using VBE.
+     * Reads compressed docIDs from the inverted index file, starting from the given offset and reading the specified length.
+     *  Assumes the file is compressed using Variable Byte Encoding (VBE).
      * @param randomAccessFileDocIds RandomAccessFile of the docIds block file
      * @param offset offset starting from where to read the posting list
      * @param length length of the bytes of the encoded posting list
@@ -221,8 +233,8 @@ public class PostingList extends ArrayList<Posting> {
 
 
     /**
-     * Reads the posting list's frequencies from the given inverted index file, starting from offset it will read the number
-     * of docIds indicated by the given length parameter. It assumes that the file is compressed using VBE.
+     * Reads compressed frequencies from the inverted index file, starting from the given offset and reading the specified length.
+     * Assumes the file is compressed using Variable Byte Encoding (VBE).
      * @param randomAccessFileFreq RandomAccessFile of the frequencies file
      * @param offset offset starting from where to read the posting list
      * @param length length of the bytes of the encoded posting list
@@ -247,8 +259,7 @@ public class PostingList extends ArrayList<Posting> {
     }
 
     /**
-     * Reads the posting list's ids from the given inverted index file, starting from offset it will read the number
-     * of docIds indicated by the given length parameter.
+     * Reads docIDs from the inverted index file, starting from the given offset and reading the specified length.
      * @param randomAccessFileDocIds RandomAccessFile of the docIds block file
      * @param offset offset starting from where to read the posting list
      * @param length length of the posting list to be read
@@ -286,8 +297,8 @@ public class PostingList extends ArrayList<Posting> {
     }
 
     /**
-     * Reads the posting list's frequencies from the given inverted index file, starting from offset it will read the
-     * number of frequencies indicated by the given length parameter.
+     * Reads the frequencies of the posting list from the specified inverted index file, starting from the given offset
+     * and reading the specified length.
      * @param randomAccessFileFrequencies RandomAccessFile of the frequencies block file
      * @param offset offset starting from where to read the posting list
      * @param length length of the posting list to be read
@@ -328,23 +339,18 @@ public class PostingList extends ArrayList<Posting> {
 
 
     /**
-     * Search the next doc id of the current posting list, such that is greater or equal to the searched doc id.
-     * It exploits the skip blocks to traverse faster the posting list
+     * Searches for the next document ID in the current posting list, such that it is greater than or equal to the searched document ID.
+     * Exploits skip blocks to traverse the posting list more efficiently.
      * @param searchedDocId doc id to search
      * posting are present in the posting list
      */
     public void nextGEQ(long searchedDocId){
 
+        // If the current document ID matches the searched document ID, no further action is needed
         if(this.docId == searchedDocId){
             return;
         }
 
-        /*
-        if(settings.getDebug()){
-            System.out.println("[DEBUG] Max docId in current skipBlock < searched docId: " + currentBlock.getMaxDocID() +" < "+ searchedDocId);
-        }
-
-         */
 
         //Move to the next skip block until we find that the searched doc id can be contained in the
         // portion of the posting list described by the skip block
@@ -353,12 +359,6 @@ public class PostingList extends ArrayList<Posting> {
             //If it is possible to move to the next skip block, then move the iterator
             if(blocksIterator.hasNext()){
 
-                /*
-                //Debug
-                if(configuration.getDebug()){
-                    System.out.println("[DEBUG] Changing the skip block");
-                }
-                */
 
                 //Move the iterator to the next skip block
                 setCurrentBlock();
@@ -368,13 +368,6 @@ public class PostingList extends ArrayList<Posting> {
                 //All the skip blocks are traversed, the posting list doesn't contain a doc id GEQ than
                 // the one searched
 
-                /*
-                //Debug
-                if(configuration.getDebug()){
-                    System.out.println("[DEBUG] End of posting list");
-                }
-
-                 */
 
                 //Set the end of posting list flag
                 setEndPosting();
@@ -382,16 +375,10 @@ public class PostingList extends ArrayList<Posting> {
                 return;
             }
 
-            /*
-            if(configuration.getDebug()){
-                System.out.println("[DEBUG] Max docId in the new skipBlock < searched docId: " + currentBlock.getMaxDocID() +" < "+ searchedDocId);
-            }
-
-             */
         }
 
-        //load the posting lists related to the current skip block, once we've found a posting list portion
-        // that can contain the searched doc id
+        //When we found a posting list portion that contain the searched doc id,
+        //load the posting lists related to the current skip block
 
 
         //Helper variable to hold the posting during the traversing of the posting list
@@ -406,14 +393,15 @@ public class PostingList extends ArrayList<Posting> {
             }
         }
 
-        //No postings are GEQ in the current posting list, we've finished the traversing the whole posting list
+        //We finish the traversing of the whole posting list when no postings are GEQ in the
+        // current posting list,
         if(!blocksIterator.hasNext())
             setEndPosting();
     }
 
     /**
-     * Reads the posting list's skip blocks from the given file, starting from offset it will read the
-     * number of skip blocks indicated by the given length parameter.
+     * Reads the skip blocks of the posting list from the specified file, starting from the given offset and reading
+     * the specified number of skip blocks.
      * @param randomAccessFileSkipBlocks RandomAccessFile of the skip blocks' file
      * @param offset offset starting from where to read the skip blocks'
      * @param length number of skip blocks to read
@@ -463,8 +451,8 @@ public class PostingList extends ArrayList<Posting> {
     }
 
     /**
-     * Returns true if the iteration has more elements.
-     * (In other words, returns true if next would return an element rather than throwing an exception.)
+     * Checks if the iteration has more elements.
+     * (Returns true if the next call would return an element rather than throwing an exception.)
      * @return true if the iteration has more elements.
      */
     public boolean hasNext() {
