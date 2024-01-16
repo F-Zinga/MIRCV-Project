@@ -165,13 +165,13 @@ public class MainIndexing {
                     System.out.println("[INDEXER] Block "+blockNumber+" written to disk");
 
                     //Write the blocks statistics
-                    Statistics.writeStats(blockNumber, numberOfDocuments, avdl);
+                    Statistics.writeStats(blockNumber, numberOfDocuments, avdl, (System.nanoTime() - begin)/1000000000);
 
                     System.out.println("[INDEXER] Statistics of the blocks written to disk");
 
                 }else{
                     //Write the blocks statistics
-                    Statistics.writeStats(blockNumber-1, numberOfDocuments, avdl);
+                    Statistics.writeStats(blockNumber-1, numberOfDocuments, avdl, (System.nanoTime() - begin)/1000000000);
 
                     System.out.println("[INDEXER] Statistics of the blocks written to disk");
                 }
