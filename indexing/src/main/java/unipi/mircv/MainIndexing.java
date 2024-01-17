@@ -53,16 +53,16 @@ public class MainIndexing {
                 //Instantiate the inverted index builder for the current block
                 IndexBuilder indexBuilder = new IndexBuilder();
 
-                //Counter to keep track of the number of documents read in total
+                //Counter storing the total number of documents read
                 int numberOfDocuments = 0;
 
-                //variable to keep track of the average length of the document
+                //variable storing the average length of the document
                 float avdl = 0;
 
-                //Counter to keep track of the number of documents read for the current block
+                //Counter storing the number of documents read for the current block
                 int blockDocuments = 0;
 
-                //String to keep the current document processed
+                //String storing the current document processed
                 DocParsed parsedDocument;
 
                 //Record the start time for performance measurement
@@ -80,6 +80,7 @@ public class MainIndexing {
                 //Define the threshold of memory over which the index must be flushed to disk
                 long THRESHOLD = (long) (totalMemory * Parameters.PERCENTAGE);
 
+                // Output initial memory information
                 System.out.println("[INDEXER] Initial total memory allocated "+ totalMemory/(1024*1024)+"MB");
                 System.out.println("[INDEXER] Initial free memory "+ initialMemory/(1024*1024)+"MB");
                 System.out.println("[INDEXER] Initial memory used "+ beforeUsedMem/(1024*1024)+"MB");
@@ -92,7 +93,7 @@ public class MainIndexing {
                     //Use the stemming and stopwords removal
                     parsedDocument = Parser.processDocument(line,stopStemming);
 
-                    //If the parsing of the document was completed correctly, it'll be appended to the collection buffer
+                    //If the parsing of the document was completed correctly, appended it to the collection buffer
                     if (parsedDocument!= null && parsedDocument.getTerms().length != 0) {
 
                         //update the average number of documents
