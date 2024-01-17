@@ -95,7 +95,7 @@ public class PostingList extends ArrayList<Posting> {
 
         //Set the terminfo of the posting list
         this.termInfo = termInfo;
-        System.out.println(termInfo.toString());
+        //System.out.println(termInfo.toString());
 
         //Load the configuration to build the inverted index
         settings = new Settings();
