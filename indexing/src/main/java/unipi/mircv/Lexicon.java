@@ -25,7 +25,7 @@ public class Lexicon extends HashMap<String,Term> {
      * Loads the lexicon from the specified lexicon file.
      */
     public void loadLexicon() {
-            System.out.println("[LEXICON LOADER] Lexicon loading...");
+            System.out.println("*** loadLexicon... ***");
             try {
                 //Start the stream from the lexicon file
                 lexiconFile = new RandomAccessFile(Parameters.LEXICON_PATH, "r");
@@ -37,7 +37,7 @@ public class Lexicon extends HashMap<String,Term> {
                 Term term;
 
 
-                System.out.print("Lexicon lenght in byte: " + lexiconFile.length());
+                System.out.print("Lenght of lexicon (bytes): " + lexiconFile.length());
                 //While we are not at the end of the file
                 while (offset < (lexiconFile.length()))
                 {
@@ -55,15 +55,15 @@ public class Lexicon extends HashMap<String,Term> {
                         offset += Parameters.TERM_INFO_LENGTH;
                     }
                     else{
-                        System.out.println("NULL TERM");
+                        System.out.println(" *** NULL TERM ***");
 
                     }
                 }
 
-                System.out.println("[LEXICON LOADER] Lexicon loaded");
+                System.out.println(" ***loaded Lexicon ***");
 
             } catch (Exception e) {
-                System.out.println("[LEXICON LOADER] Error loading lexicon: " + e.getMessage());
+                System.out.println(" *** Error loading lexicon: " + e.getMessage());
                 e.printStackTrace();
             }
         }

@@ -122,7 +122,7 @@ public class Parser {
      * @return List of stop words
      */
     private static List<String> loadStopWords(){
-        System.out.println("[PARSER] Loading stop words...");
+        System.out.println(" *** loadStopWords... *** ");
         //If the stopwords removal and the stemming is requested, the stopwords are read from a file
         try {
             return Files.readAllLines(Paths.get(STOPWORDS_FILE));

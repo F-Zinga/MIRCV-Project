@@ -66,9 +66,6 @@ public class MaxScore {
         for(int i = 0; i < orderedPostingLists.size(); i++){
             essential.add(i);
             postingLists[i] = orderedPostingLists.get(i);
-            if(debug){
-                System.out.println("[DEBUG] Lexicon entry:\n" + postingLists[i].getTermInfo());
-            }
 
         }
 
@@ -92,11 +89,6 @@ public class MaxScore {
             //Retrieve the minimum document id and the list of posting lists containing it
             minDocidTuple = minDocID(postingLists);
 
-            if(debug) {
-                System.out.println("------------------");
-                System.out.println("[DEBUG] Min docID: " + minDocidTuple.getValue0());
-                System.out.println("[DEBUG] Blocks with minDocID: " + minDocidTuple.getValue1());
-            }
 
             //check if some docs can enter the top K ranking
             if(!foundEssential(minDocidTuple.getValue1(), essential)){
@@ -120,9 +112,6 @@ public class MaxScore {
                     //Add the partial score to the accumulated score
                     score += tf_BM25*postingLists[minDocidTuple.getValue1().get(index)].getTermInfo().getIdf();
 
-                    if(debug){
-                        System.out.println("[DEBUG] bm25 docID " + minDocidTuple.getValue0() + ": " + score);
-                    }
 
                     // Compute the new maximum score for the remaining posting lists
                     double newMaxScore = score;
@@ -132,9 +121,6 @@ public class MaxScore {
 
                     // If the new max score is below the current threshold, skip to the next iteration
                     if(newMaxScore < rankedDocs.getThreshold()){
-                        if(debug) {
-                            System.out.println("[DEBUG] New Max Score < rankedDocs.getThreshold: " + newMaxScore + "<" + rankedDocs.getThreshold() +  " docID " + minDocidTuple.getValue0() + " ruled out");
-                        }
                         for(int j = index; j < minDocidTuple.getValue1().size(); j++){
                             postingLists[minDocidTuple.getValue1().get(j)].next();
                         }
@@ -147,9 +133,6 @@ public class MaxScore {
                     //Add the partial score to the accumulated score
                     score += tf_tfidf*postingLists[minDocidTuple.getValue1().get(index)].getTermInfo().getIdf();
 
-                    if(debug){
-                        System.out.println("[DEBUG] tfidf docID " + minDocidTuple.getValue0() + ": " + score);
-                    }
 
                     // Calculate the new upper bound for the remaining posting lists
                     double newMaxScore = score;
@@ -159,10 +142,6 @@ public class MaxScore {
 
                     // Check if the new upper bound is below the current threshold, and if so, skip to the next document
                     if(newMaxScore < rankedDocs.getThreshold()){
-                        if(debug) {
-                            System.out.println("[DEBUG] New Max Score < rankedDocs.getThreshold: " + newMaxScore +
-                                    "<" + rankedDocs.getThreshold() +  " docID " + minDocidTuple.getValue0() + " ruled out");
-                        }
                         for(int j = index; j < minDocidTuple.getValue1().size(); j++){
                             postingLists[minDocidTuple.getValue1().get(j)].next();
                         }
@@ -184,9 +163,6 @@ public class MaxScore {
                 //update the non-essential and the essential posting lists
                 if(rankedDocs.getThreshold() > 0) {
                     updateEssentialPL(essential, orderedPostingLists, rankedDocs.getThreshold(), BM25);
-                    if(debug){
-                        System.out.println("[DEBUG] Threshold changed: " + old_threshold + " -> " + rankedDocs.getThreshold());
-                    }
                 }
             }
 
@@ -195,7 +171,7 @@ public class MaxScore {
         }
 
         //Print the time used to score the documents, so to generate an answer for the query
-        System.out.println("\n[SCORE DOCUMENT] Total scoring time: " + (System.currentTimeMillis() - begin) + "ms");
+        System.out.println("\n ***Total scoring time: ***" + (System.currentTimeMillis() - begin) + "ms");
 
         return getBestKDocuments(rankedDocs, BEST_K_VALUE);
     }
@@ -340,9 +316,6 @@ public class MaxScore {
         for(int i = 0; i < orderedPostingLists.size(); i++){
             essential.add(i);
             postingLists[i] = orderedPostingLists.get(i);
-            if(debug){
-                System.out.println("[DEBUG] Lexicon entry:\n" + postingLists[i].getTermInfo());
-            }
         }
 
         //Pair to store the current minimum document id and the list of posting lists containing it
@@ -362,10 +335,6 @@ public class MaxScore {
             //Retrieve the maximum document id and the list of posting lists containing it
             maxDocid = maxDocID(postingLists);
 
-            if(debug) {
-                System.out.println("--------------------------------");
-                System.out.println("[DEBUG] Searched DocId: " + maxDocid);
-            }
 
             //Perform the nextGEQ operation for each posting list
             for (PostingList postingList : postingLists) {
@@ -384,9 +353,8 @@ public class MaxScore {
                 for (PostingList postingList : postingLists) {
 
                     //Debug
-                    if(debug) {
-                        System.out.println(postingList);
-                    }
+                    //System.out.println(postingList);
+
                     if (BM25) {
 
                         //Compute the BM25's tf for the current posting
@@ -395,9 +363,6 @@ public class MaxScore {
                         //Add the partial score to the accumulated score
                         score += tf_BM25 * postingList.getTermInfo().getIdf();
 
-                        if(debug){
-                            System.out.println("[DEBUG] bm25 docID " + maxDocid + ": " + score);
-                        }
 
                         double newMaxScore = score;
                         for(int j = index + 1; j < postingLists.length; j++){
@@ -405,9 +370,6 @@ public class MaxScore {
                         }
 
                         if(newMaxScore < docsRanked.getThreshold()){
-                            if(debug) {
-                                System.out.println("[DEBUG] New Max Score < rankedDocs.getThreshold: " + newMaxScore + "<" + docsRanked.getThreshold() +  " docID " + maxDocid + " ruled out");
-                            }
                             for(int j = index; j < postingLists.length; j++){
                                 postingLists[j].next();
                             }
@@ -422,9 +384,6 @@ public class MaxScore {
                         //Add the partial score to the accumulated score
                         score += tf_tfidf * postingList.getTermInfo().getIdf();
 
-                        if(debug){
-                            System.out.println("[DEBUG] tfidf docID " + maxDocid + ": " + score);
-                        }
 
                         double newMaxScore = score;
                         for(int j = index + 1; j < postingLists.length; j++){
@@ -432,9 +391,6 @@ public class MaxScore {
                         }
 
                         if(newMaxScore < docsRanked.getThreshold()){
-                            if(debug) {
-                                System.out.println("[DEBUG] New Max Score < rankedDocs.getThreshold: " + newMaxScore + "<" + docsRanked.getThreshold() +  " docID " + maxDocid + " ruled out");
-                            }
                             for(int j = index; j < postingLists.length; j++){
                                 postingLists[j].next();
                             }
@@ -456,9 +412,6 @@ public class MaxScore {
                     //update the non-essential and the essential posting lists
                     if(docsRanked.getThreshold() > 0){
                         updateEssentialPL(essential, orderedPostingLists, docsRanked.getThreshold(), BM25);
-                        if(debug){
-                            System.out.println("[DEBUG] Threshold changed: " + old_threshold + " -> " + docsRanked.getThreshold());
-                        }
                     }
                 }
             }
@@ -467,7 +420,7 @@ public class MaxScore {
         }
 
         //print time used to score the documents, to generate an answer for the query
-        System.out.println("\n[SCORE DOCUMENT] Total scoring time: " + (System.currentTimeMillis() - begin) + "ms");
+        System.out.println("\n *** Total scoring time: ***" + (System.currentTimeMillis() - begin) + "ms");
 
         //return the top K documents
         return getBestKDocuments(docsRanked, BEST_K_VALUE);

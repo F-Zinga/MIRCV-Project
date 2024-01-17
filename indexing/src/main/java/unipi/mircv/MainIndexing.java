@@ -21,7 +21,7 @@ public class MainIndexing {
      * @param path            Path of the archive containing the collection (tar.gz archive)
      * @param stopStemming    true to apply stopwords removal and stemming, false otherwise
      */
-    private static void parseCollection(String path, Boolean stopStemming, Boolean debug) {
+    private static void parseCollection(String path, Boolean stopStemming) {
 
         //Path of the collection
         File file = new File(path);
@@ -81,11 +81,11 @@ public class MainIndexing {
                 long THRESHOLD = (long) (totalMemory * Parameters.PERCENTAGE);
 
                 // Output initial memory information
-                System.out.println("[INDEXER] Initial total memory allocated "+ totalMemory/(1024*1024)+"MB");
-                System.out.println("[INDEXER] Initial free memory "+ initialMemory/(1024*1024)+"MB");
-                System.out.println("[INDEXER] Initial memory used "+ beforeUsedMem/(1024*1024)+"MB");
-                System.out.println("[INDEXER] Memory threshold: " + THRESHOLD/(1024*1024)+"MB -> " + Parameters.PERCENTAGE * 100 + "%");
-                System.out.println("[INDEXER] Starting to fetch the documents...");
+                System.out.println(" *** Initial total memory allocated "+ totalMemory/(1024*1024)+"MB ***");
+                System.out.println(" *** Initial free memory "+ initialMemory/(1024*1024)+"MB ***");
+                System.out.println("*** Initial memory used "+ beforeUsedMem/(1024*1024)+"MB ***");
+                System.out.println(" *** Memory threshold: " + THRESHOLD/(1024*1024)+"MB -> " + Parameters.PERCENTAGE * 100 + "% ***");
+                System.out.println("*** Starting fetch the documents... ***");
 
                 //Iterate over the lines
                 while ((line = bufferedReader.readLine()) != null ) {
@@ -118,7 +118,7 @@ public class MainIndexing {
 
                         //Check if the memory used is above the threshold
                         if(!isMemoryAvailable(THRESHOLD)){
-                            System.out.println("[INDEXER] Flushing " + blockDocuments + " documents to disk...");
+                            System.out.println(" *** Flush " + blockDocuments + " documents to disk... ***");
 
                             //Sort the lexicon and the inverted index
                             indexBuilder.sortLexicon();
@@ -127,7 +127,7 @@ public class MainIndexing {
                             //Write the inverted index and the lexicon in the file
                             writeToFiles(indexBuilder, blockNumber);
 
-                            System.out.println("[INDEXER] Block "+blockNumber+" written to disk!");
+                            System.out.println("*** Block "+blockNumber+" written to disk! ***");
 
                             //Blocks' information
                             blockNumber++;
@@ -139,19 +139,16 @@ public class MainIndexing {
 
                         //Print checkpoint information
                         if(numberOfDocuments%50000 == 0){
-                            System.out.println("[INDEXER] " + numberOfDocuments+ " processed");
-                            System.out.println("[INDEXER] Processing time: " + (System.nanoTime() - begin)/1000000000+ "s");
-                            if(debug) {
-                                System.out.println("[DEBUG] Document index entry: " + docEntry);
-                                System.out.println("[DEBUG] Memory used: " + getMemoryUsed()*100 + "%");
-                            }
+                            System.out.println("*** " + numberOfDocuments+ " processed ***");
+                            System.out.println(" *** Processing time: " + (System.nanoTime() - begin)/1000000000+ "s ***");
+
                         }
                     }
                 }
                 if(blockDocuments > 0 ){
 
-                    System.out.println("[INDEXER] Last block reached");
-                    System.out.println("[INDEXER] Flushing " + blockDocuments + " documents to disk...");
+                    System.out.println(" *** Last block reached ***");
+                    System.out.println("*** Flush " + blockDocuments + " documents to disk... ***");
 
                     //Sort the lexicon and the inverted index
                     indexBuilder.sortLexicon();
@@ -160,21 +157,21 @@ public class MainIndexing {
                     //Write the inverted index and the lexicon to the file
                     writeToFiles(indexBuilder, blockNumber);
 
-                    System.out.println("[INDEXER] Block "+blockNumber+" written to disk");
+                    System.out.println("*** Block "+blockNumber+" written to disk ***");
 
                     //Write the blocks statistics
                     Statistics.writeStats(blockNumber, numberOfDocuments, avdl, (System.nanoTime() - begin)/1000000000);
 
-                    System.out.println("[INDEXER] Statistics of the blocks written to disk");
+                    System.out.println("*** Statistics of blocks written to disk ***");
 
                 }else{
                     //Write the blocks statistics
                     Statistics.writeStats(blockNumber-1, numberOfDocuments, avdl, (System.nanoTime() - begin)/1000000000);
 
-                    System.out.println("[INDEXER] Statistics of the blocks written to disk");
+                    System.out.println("*** Statistics of blocks written to disk ***");
                 }
 
-                System.out.println("[INDEXER] Total processing time: " + (System.nanoTime() - begin)/1000000000+ "s");
+                System.out.println("*** Total processing time: " + (System.nanoTime() - begin)/1000000000+ "s ***");
             }
 
         } catch (IOException e) {
@@ -189,7 +186,7 @@ public class MainIndexing {
         try {
             FileUtils.cleanDirectory(new File(Parameters.FILES_PATH));
         } catch (IOException e) {
-            System.out.println("Error deleting files inside Files folder");
+            System.out.println(" ***Error clearing files ***");
             throw new RuntimeException(e);
         }
     }
@@ -244,7 +241,6 @@ public class MainIndexing {
 
         boolean stemmingAndStopwordsRemoval = false;
         boolean compressed = true;
-        boolean debug = false;
 
         // Parse command line arguments
         if(args.length >= 1){
@@ -259,9 +255,6 @@ public class MainIndexing {
                     stemmingAndStopwordsRemoval = true;
                     compressed = true;
                     break;
-                case "-d":
-                    debug = true;
-                    break;
                 default:
                     System.err.println("Invalid command\n"+Parameters.ARGS_ERROR);
                     return;
@@ -269,39 +262,30 @@ public class MainIndexing {
         }
 
         // Additional configuration based on command line arguments
-        if(args.length == 2){
-            if(args[1].equals("-d") && !args[0].equals("-d")){
-                debug = true;
-            }
-            else{
-                System.err.println("Invalid command\n"+Parameters.ARGS_ERROR);
-            }
-        }
-        else if(args.length > 2){
+        if(args.length >= 1){
             System.err.println("Wrong number of arguments\n"+Parameters.ARGS_ERROR);
             return;
         }
 
         // Display the configuration information
-        System.out.println("[INDEXER] Configuration\n" +
+        System.out.println(" *** Configuration ***\n" +
                 "\tStemming and stopwords removal: " + stemmingAndStopwordsRemoval+"\n" +
-                "\tCompression: " + compressed + "\n" +
-                "\tDebug: " + debug);
+                "\tCompression: " + compressed + "\n" );
 
         // Clear existing files in the "Files" folder
         clearFiles();
 
         //Create the inverted index including the document index file and statistics file
-        parseCollection(Parameters.COLLECTION_PATH, stemmingAndStopwordsRemoval, debug);
+        parseCollection(Parameters.COLLECTION_PATH, stemmingAndStopwordsRemoval);
 
         //Merge the blocks to obtain the inverted index, compressed indicates if the compression is enabled
-        Merger.merge(compressed, debug);
+        Merger.merge(compressed);
 
         // Save the execution configuration
-        System.out.println("[INDEXER] Saving execution configuration...");
-        Settings.saveConfiguration(stemmingAndStopwordsRemoval, compressed, debug);
+        System.out.println(" *** Save configuration... ***");
+        Settings.saveConfiguration(stemmingAndStopwordsRemoval, compressed);
 
-        System.out.println("[INDEXER] Configuration saved");
+        System.out.println("*** Configuration saved ***");
 
     }
 

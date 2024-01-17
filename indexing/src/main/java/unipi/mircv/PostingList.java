@@ -168,11 +168,6 @@ public class PostingList extends ArrayList<Posting> {
         //Update the iterator of the current posting list
         iterator = this.iterator();
 
-        //Debug information
-        if(settings.getDebug()){
-            System.out.println("------------------");
-            System.out.println("[DEBUG] Partial posting list: " + this);
-        }
 
     }
 
@@ -226,7 +221,7 @@ public class PostingList extends ArrayList<Posting> {
             return Compressor.variableByteDecodeLong(docidsByte);
 
         } catch (IOException e) {
-            System.err.println("[ReadPostingListDocIds] Exception during seek");
+            System.err.println(" *** Exception during seek ***");
             throw new RuntimeException(e);
         }
     }
@@ -253,7 +248,7 @@ public class PostingList extends ArrayList<Posting> {
             return Compressor.variableByteDecode(docidsByte);
 
         } catch (IOException e) {
-            System.err.println("[ReadPostingListDocIds] Exception during seek");
+            System.err.println(" *** Exception during seek ***");
             throw new RuntimeException(e);
         }
     }
@@ -275,7 +270,7 @@ public class PostingList extends ArrayList<Posting> {
             randomAccessFileDocIds.seek(offset);
 
         } catch (IOException e) {
-            System.err.println("[ReadPostingListDocIds] Exception during seek");
+            System.err.println(" *** Exception during seek ***");
             throw new RuntimeException(e);
         }
 
@@ -287,7 +282,7 @@ public class PostingList extends ArrayList<Posting> {
                 list.add(randomAccessFileDocIds.readLong());
 
             } catch (IOException e) {
-                System.err.println("[ReadPostingListDocIds] Exception during read");
+                System.err.println("*** Exception during read ***");
                 throw new RuntimeException(e);
             }
         }
@@ -314,7 +309,7 @@ public class PostingList extends ArrayList<Posting> {
             randomAccessFileFrequencies.seek(offset);
 
         } catch (IOException e) {
-            System.err.println("[ReadPostingListFrequencies] Exception during seek");
+            System.err.println(" *** Exception during seek ***");
             throw new RuntimeException(e);
         }
 
@@ -326,7 +321,7 @@ public class PostingList extends ArrayList<Posting> {
                 list.add(randomAccessFileFrequencies.readInt());
 
             } catch (IOException e) {
-                System.err.println("[ReadPostingListFrequencies] Exception during read");
+                System.err.println(" *** Exception during read ***");
                 throw new RuntimeException(e);
             }
         }

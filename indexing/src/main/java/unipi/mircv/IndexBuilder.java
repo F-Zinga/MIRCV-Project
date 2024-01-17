@@ -224,7 +224,7 @@ public class IndexBuilder {
                 lexicon.get(term).setPostingListLength(postingList.size());
             });
         }catch (IOException e) {
-            System.err.println("Exception during file creation of block");
+            System.err.println(" *** Exception during creation of blocks ***");
             throw new RuntimeException(e);
         }
     }

@@ -33,25 +33,19 @@ public class MainQueries {
                 return;
 
             // Build inverted index configuration
-            System.out.println("[QUERY PROCESSOR] Building inverted index configuration:");
+            System.out.println(" *** loadSettings... ***");
 
-            System.out.println("[QUERY PROCESSOR] Loading the lexicon in memory...");
+            System.out.println(" *** loadLexicon... *** ");
             // Load lexicon into memory
             lexicon = new Lexicon();
             lexicon.loadLexicon();
-            if(settings.getDebug()){
-                System.out.println("[DEBUG] Lexicon size: " + lexicon.size());
-            }
 
             // Load document index into memory
-            System.out.println("[QUERY PROCESSOR] Loading the document index in memory...");
+            System.out.println(" *** loadDocumentIndex... *** ");
             DocIndex documentIndex = new DocIndex();
             documentIndex.loadDocumentIndex();
-            if(settings.getDebug()){
-                System.out.println("[DEBUG] Document index size: " + documentIndex.size());
-            }
 
-            System.out.println("[QUERY PROCESSOR] Data structures loaded in memory.");
+            System.out.println("*** DataStructure loaded! *** ");
 
             //Flag indicating if the stopwords removal and stemming are enabled, retrieved from the configuration
             boolean stopwordsRemovalAndStemming = settings.getStemmingAndStopWords();
@@ -67,7 +61,7 @@ public class MainQueries {
                 int command = getCommand();
 
                 //Check the command
-                if(command == 0) { //New query command
+                if(command == 0) {
 
                     //Read the next query
                     String query = getQuery();
@@ -78,7 +72,7 @@ public class MainQueries {
                     //If the query string is equal to null it means that the query contains all stopwords or all the terms
                     // not present in the lexicon.
                     if(queryTerms == null || queryTerms.length == 0) {
-                        System.out.println("You're query is too vague, try to reformulate it.");
+                        System.out.println("Please rewrite the query: it is too generic.");
                         continue;
                     }
 
@@ -133,7 +127,6 @@ public class MainQueries {
 
                 } else if (command == 2) { //Exit command
 
-                    System.out.println("See you next query!");
                     return;
                 }
             }
@@ -150,7 +143,7 @@ public class MainQueries {
             //Scanner to read from the standard input stream
             Scanner scanner = new Scanner(System.in);
 
-            System.out.println("Enter a query:");
+            System.out.println("Insert a query:");
 
             return "-1\t" + scanner.nextLine(); // -1 indicates a query during parsing
         }
@@ -167,7 +160,7 @@ public class MainQueries {
                 Scanner scanner = new Scanner(System.in);
 
                 System.out.println(
-                        "0 -> Enter a query\n" +
+                        "0 -> Insert a query\n" +
                                 "1 -> Change settings\n" +
                                 "2 -> Exit");
 
@@ -185,7 +178,7 @@ public class MainQueries {
                     }
                 }
 
-                System.out.println("Input not valid, enter one of the following commands: ");
+                System.out.println("Input not valid, choose one of the following: ");
             } while (true);
         }
 
@@ -257,7 +250,7 @@ public class MainQueries {
                 }
 
                 if(!correctParameters)
-                    System.out.println("Input not valid, enter one of the following commands: ");
+                    System.out.println("Input not valid, choose one of the following: ");
             }
 
             correctParameters = false;
@@ -283,32 +276,8 @@ public class MainQueries {
                 }
 
                 if(!correctParameters)
-                    System.out.println("Input not valid, enter one of the following commands: ");
+                    System.out.println("Input not valid, choose one of the following: ");
             }
 
-            correctParameters = false;
-            while (!correctParameters) {
-                System.out.println("Do you need debug mode?\n0 -> Yes\n1 -> No");
-
-                String result;
-
-                if (scanner.hasNext()) {
-                    result = scanner.nextLine();
-                    //If 0 => debug mode on, 1 => debug mode off
-                    switch (result) {
-                        case "0":
-                            settings.setDebug(true);
-                            correctParameters = true;
-                            break;
-                        case "1":
-                            settings.setDebug(false);
-                            correctParameters = true;
-                            break;
-                    }
-                }
-
-                if(!correctParameters)
-                    System.out.println("Input not valid, enter one of the following commands: ");
-            }
         }
 }

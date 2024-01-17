@@ -36,15 +36,15 @@ public class MainEvaluation{
         if(!settings.loadSettings())
             return;
 
-        System.out.println("[QUERY PROCESSOR] Building inverted index configuration:");
+        System.out.println(" *** loadSettings... *** ");
         System.out.println(settings);
 
-        System.out.println("[QUERY PROCESSOR] Loading the lexicon in memory...");
+        System.out.println(" *** loadLexicon... *** ");
         // Load the lexicon into memory
         Lexicon lexicon = new Lexicon();
         lexicon.loadLexicon();
 
-        System.out.println("[QUERY PROCESSOR] Loading the document index in memory...");
+        System.out.println(" *** loadDocumentIndex... *** ");
         // Load the document index into memory
         DocIndex docIndex = new DocIndex();
         docIndex.loadDocumentIndex();
@@ -131,16 +131,16 @@ public class MainEvaluation{
         try {
             String fileName = RESULTS_PATH;
             if(k == 0){
-                fileName+= "_disj_bm25.txt";
+                fileName+= "disj_bm25.txt";
             }
             else if(k == 1){
-                fileName+= "_conj_bm25.txt";
+                fileName+= "conj_bm25.txt";
             }
             else if(k == 2){
-                fileName+= "_conj_tfidf.txt";
+                fileName+= "conj_tfidf.txt";
             }
             else{
-                fileName+= "_disj_tfidf.txt";
+                fileName+= "disj_tfidf.txt";
             }
 
             bufferedWriter = new BufferedWriter(new FileWriter(fileName,false));
@@ -160,7 +160,7 @@ public class MainEvaluation{
                 //If the query string is equal to null it means that the query contains all stopwords or all the terms
                 // are not present in the lexicon.
                 if(queryTerms == null || queryTerms.length == 0) {
-                    System.out.println("You're query is too vague, try to reformulate it.");
+                    System.out.println(" Please rewrite the query: it is too generic.");
                     continue;
                 }
 

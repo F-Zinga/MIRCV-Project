@@ -46,7 +46,7 @@ public class Settings {
      * @param stemmingAndStopwordsRemoval true if the stemming and stopwords removal were enabled during the indexing.
      * @param compressed true if the compression was enabled during the indexing.
      */
-    public static void saveConfiguration(boolean stemmingAndStopwordsRemoval, boolean compressed, boolean debug){
+    public static void saveConfiguration(boolean stemmingAndStopwordsRemoval, boolean compressed){
 
         //Object used to build the lexicon line into a string
         StringBuilder stringBuilder = new StringBuilder();
@@ -61,8 +61,7 @@ public class Settings {
             //build the string containing the settings
             stringBuilder
                     .append(stemmingAndStopwordsRemoval).append("\n")
-                    .append(compressed).append("\n")
-                    .append(debug).append("\n");
+                    .append(compressed).append("\n");
 
             //Write the string in the file
             bufferedWriter.write(stringBuilder.toString());
@@ -111,8 +110,7 @@ public class Settings {
             fr.close();
 
         } catch (IOException e) {
-            System.err.println("No indexing configuration found. Try to first create a new index, then start again the"+
-                    " query processor.");
+            System.err.println("Configuration not found.");
             return false;
         }
         return true;

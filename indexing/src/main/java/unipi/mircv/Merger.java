@@ -18,11 +18,10 @@ public class Merger {
      * This method performs the merging of lexicon blocks and inverted index blocks into a single file.
      *
      * @param compress If true, the inverted index and lexicon blocks will be compressed using VBE; otherwise, they will be written without compression.
-     * @param debug    If true, debug information will be printed during the process.
      */
-    public static void merge(boolean compress, boolean debug) {
+    public static void merge(boolean compress) {
 
-        System.out.println("[MERGER] Merging lexicon blocks and inverted index blocks...");
+        System.out.println(" *** Merging lexicon blocks and inverted index blocks ... ***");
 
         // Record the start time for performance measurement
         long start = System.nanoTime();
@@ -97,9 +96,6 @@ public class Merger {
                 randomAccessFilesFrequencies[i] = new RandomAccessFile(Parameters.FREQ_BLOCK_PATH +(i+1)+".txt", "r");
                 //noinspection resource
                 randomAccessFilesLexicon[i] = new RandomAccessFile(Parameters.LEXICON_BLOCK_PATH+(i+1)+".txt", "r");
-                if(debug){
-                    System.out.println("[DEBUG] Block " + i + " opened");
-                }
             }
 
             //Create a stream for the lexicon file, the docids file, frequencies file, blocks file, and document index,
@@ -113,7 +109,7 @@ public class Merger {
 
         } catch (FileNotFoundException e) {
             // Handle the exception if the file is not found
-            System.err.println("[MERGER] File not found: " + e.getMessage());
+            System.err.println(" *** File not found : " + e.getMessage());
             throw new RuntimeException(e);
         }
 
@@ -138,7 +134,7 @@ public class Merger {
 
             // Print processing info every 25000 blocks
             if(j%25000 == 0){
-                System.out.println("[MERGER] Processing time: " + (System.nanoTime() - start)/1000000000+ "s. Processed " + j + " terms");
+                System.out.println(" *** Processing time: " + (System.nanoTime() - start)/1000000000+ "s. Processed " + j + " terms ***");
             }
 
             //For each block read the next term
@@ -171,7 +167,7 @@ public class Merger {
 
             //Check if we've reached the end of the merge.
             if(endOfAllFiles(endOfBlock, num_blocks)) {
-                System.out.println("END OF ALL FILES");
+                System.out.println("*** end of files ***");
                 break;
             }
 
@@ -192,9 +188,6 @@ public class Merger {
 
                 //Check if the end of the block is reached or a problem during the reading occurred
                 if(curTerm[integer] == null) {
-                    if(debug) {
-                        System.out.println("[DEBUG] Block " + integer + " has reached the end of the file");
-                    }
 
                     endOfBlock[integer] = true;
                     continue;
@@ -230,7 +223,7 @@ public class Merger {
                     frequenciesFile.write(frequenciesCompressed);
                 } catch (IOException e) {
                     // Handle the exception if the file is not found
-                    System.err.println("[MERGER] File not found: " + e.getMessage());
+                    System.err.println(" *** File not found: " + e.getMessage());
                     throw new RuntimeException(e);
                 }
 
@@ -255,11 +248,6 @@ public class Merger {
                         bm25TermUpperBound           //term upper bound (bm25)
                 );
 
-                // For debugging purposes, print information about the current lexicon entry and the number of blocks created
-                if(debug && j%25000 == 0) {
-                    System.out.println("[DEBUG] Current lexicon entry: " + lexiconEntry);
-                    System.out.println("[DEBUG] Number of blocks created: " + blocks.size());
-                }
 
                 // Write the lexicon entry to the lexicon file
                 lexiconEntry.writeToFile(lexiconFile, lexiconEntry);
@@ -335,7 +323,7 @@ public class Merger {
 
                 } catch (IOException e) {
                     // Handle the exception if an error occurs while writing compressed data to file
-                    System.err.println("[MERGER] File not found: " + e.getMessage());
+                    System.err.println(" *** File not found: " + e.getMessage());
                     throw new RuntimeException(e);
                 }
 
@@ -360,11 +348,6 @@ public class Merger {
                         bm25TermUpperBound           //term upper bound (bm25)
                 );
 
-                // For debugging purposes, print information about the current lexicon entry and the number of blocks created
-                if(debug && j%25000 == 0) {
-                    System.out.println("[DEBUG] Current lexicon entry: " + lexiconEntry);
-                    System.out.println("[DEBUG] Number of blocks created: " + blocks.size());
-                }
 
                 // Write the lexicon entry to the lexicon file
                 lexiconEntry.writeToFile(lexiconFile, lexiconEntry);
@@ -390,7 +373,7 @@ public class Merger {
             blocksWithMinTerm.clear(); //Clear the list of blocks with the min term
         }
 
-        System.out.println("[MERGER] Closing the streams of the files. Analyzed " + j + " terms");
+        System.out.println(" *** Closing the streams of the files. Analyzed " + j + " terms ***");
 
         try {
             // Close the file streams
@@ -406,17 +389,17 @@ public class Merger {
 
         } catch (RuntimeException | IOException e) {
             //Handle the exception if any file stream cannot be closed
-            System.err.println("[MERGER] File not found: " + e.getMessage());
+            System.err.println(" *** File not found: ***" + e.getMessage());
             throw new RuntimeException(e);
         }
 
         // Delete blocks if successful
         if(deleteBlocks(num_blocks)){
-            System.out.println("[MERGER] Blocks deleted successfully");
+            System.out.println(" *** Blocks deleted successfully ***");
         }
 
-        System.out.println("[MERGER] Total processing time: " + (System.nanoTime() - start)/1000000000+ "s");
-        System.out.println("[MERGER] MERGING PROCESS COMPLETE");
+        System.out.println(" *** Total processing time: " + (System.nanoTime() - start)/1000000000+ "s ***");
+        System.out.println(" *** MERGING COMPLETE ***");
     }
 
 
