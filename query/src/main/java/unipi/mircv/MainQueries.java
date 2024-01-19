@@ -54,7 +54,7 @@ public class MainQueries {
             setQueryProcessorParameters(settings);
 
             //Wait for a new command
-            //This must be modified in order to have also the possibility to change the query parameters
+            //This must be modified in order to change the query parameters
             while (true) {
 
                 //Get a command from the user
@@ -220,7 +220,7 @@ public class MainQueries {
         }
 
         /**
-         * Sets the query processor parameters, including scoring function, query type, and debug mode
+         * Sets the query processor parameters, including scoring function and query type
          */
         private static void setQueryProcessorParameters(Settings settings){
             //Scanner to read from the standard input stream
