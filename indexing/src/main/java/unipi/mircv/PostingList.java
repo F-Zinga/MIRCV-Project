@@ -8,7 +8,7 @@ import java.util.Iterator;
 
 /**
  * Represents a collection of postings in the inverted index, providing functionality to iterate through and manage
- * posting lists with the use of skip blocks.
+ * posting with the use of skip blocks.
  */
 public class PostingList extends ArrayList<Posting> {
 

@@ -11,7 +11,7 @@ public class Block {
     private int docIDSize; // Size of the skip block in the document IDs file
     private long frqOffset; // Offset in the frequencies file where the skip block starts
     private int frqSize; // Size of the skip block in the frequencies file
-    private long maxDocID; //maximum doc id in the block represented by this skipBlock.
+    private long maxDocID; //maximum doc id in the block
 
 
     public long getDocIDOffset() {

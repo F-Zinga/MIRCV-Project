@@ -81,10 +81,10 @@ public class MainIndexing {
                 long THRESHOLD = (long) (totalMemory * Parameters.PERCENTAGE);
 
                 // Output initial memory information
-                System.out.println(" *** Initial total memory allocated "+ totalMemory+"MB ***");
-                System.out.println(" *** Initial free memory "+ initialMemory+"MB ***");
-                System.out.println("*** Initial memory used "+ beforeUsedMem+"MB ***");
-                System.out.println(" *** Memory threshold: " + THRESHOLD+"MB -> " + Parameters.PERCENTAGE * 100 + "% ***");
+                System.out.println(" *** Initial total memory allocated "+ totalMemory/(1024*1024)+"MB ***");
+                System.out.println(" *** Initial free memory "+ initialMemory/(1024*1024)+"MB ***");
+                System.out.println("*** Initial memory used "+ beforeUsedMem/(1024*1024)+"MB ***");
+                System.out.println(" *** Memory threshold: " + THRESHOLD/(1024*1024)+"MB -> " + Parameters.PERCENTAGE * 100 + "% ***");
                 System.out.println("*** Starting fetch the documents... ***");
 
                 //Iterate over the lines

@@ -62,13 +62,13 @@ public interface Parameters {
 
 
     // merger
-    String DOCID_BLOCK_PATH = "Blocks/invertedIndexDocIds/";
-    String FREQ_BLOCK_PATH = "Blocks/invertedIndexFrequencies/";
-    String LEXICON_BLOCK_PATH = "Blocks/lexiconBlock/";
-    String LEXICON_PATH = "Files/lexicon.txt";
-    String DOCID_PATH = "Files/docids.txt";
-    String FREQ_PATH = "Files/frequencies.txt";
-    String BLOCKS_PATH = "Files/blocks.txt";
+    String DOCID_BLOCK_PATH = "D://Blocks/invertedIndexDocIds/";
+    String FREQ_BLOCK_PATH = "D://Blocks/invertedIndexFrequencies/";
+    String LEXICON_BLOCK_PATH = "D://Blocks/lexiconBlock/";
+    String LEXICON_PATH = "D://Files/lexicon.txt";
+    String DOCID_PATH = "D://Files/docids.txt";
+    String FREQ_PATH = "D://Files/frequencies.txt";
+    String BLOCKS_PATH = "D://Files/blocks.txt";
 
 
     //Test
