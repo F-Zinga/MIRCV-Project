@@ -18,7 +18,7 @@ public class MainEvaluation{
     static final String QUERY_PATH = "Resources/queries/test2020-queries.tsv.gz";
 
     //Path to the output file containing the results of the queries
-    static final String RESULTS_PATH = "Files/queries_results";
+    static final String RESULTS_PATH = "Files/queries_results/";
 
     // Flag indicating if the scoring is bm25 (true) or tfidf (false)
     static Boolean bm25scoring = true;
@@ -78,6 +78,8 @@ public class MainEvaluation{
         //Path of the collection to be read
         File file = new File(QUERY_PATH);
 
+        System.out.println("*** get query... ***");
+
         //Try to open the collection
         try (FileInputStream fileInputStream = new FileInputStream(file)){
 
@@ -96,8 +98,9 @@ public class MainEvaluation{
             //Iterate over the lines
             while ((line = bufferedReader.readLine()) != null ) {
 
-                //Split the line qid\tquery in qid query
+                //Split the line qid\query in qid query
                 String[] split = line.split("\t");
+                System.out.println("*** split ***" + split.toString());
 
                 //Add it to the results array if both qid and query are present
                 if(split[0] != null && split[1] != null) {
@@ -155,7 +158,7 @@ public class MainEvaluation{
 
                 //Parse the query
                 String[] queryTerms = parseQuery(query, lexicon, settings.getStemmingAndStopWords());
-
+                System.out.println("*** query terms... ***" + queryTerms.toString());
 
                 //If the query string is equal to null it means that the query contains all stopwords or all the terms
                 // are not present in the lexicon.
@@ -184,17 +187,18 @@ public class MainEvaluation{
 
                 //Array containing the results of the query
                 ArrayList<Pair<Long, Double>> result;
-
-                //Score the collection
+                System.out.println("*** start result... ***");
 
                 //Retrieve the time at the beginning of the computation
                 long begin = System.currentTimeMillis();
 
+                //Score the collection
                 if(queryType){
                     result = MaxScore.scoreCollectionDisjunctive(postingLists,docIndex, bm25scoring, false);
                 }else {
                     result = MaxScore.scoreCollectionConjunctive(postingLists,docIndex, bm25scoring, false);
                 }
+                System.out.println("*** end result... ***");
 
                 completionTimeTot += (System.currentTimeMillis() - begin);
                 numberOfQueries++;
@@ -214,8 +218,11 @@ public class MainEvaluation{
                             .append(result.get(i).getValue1()).append(" ")
                             .append("runid1").append("\n");
 
+                    //System.out.println("*** start write... ***");
+
                     //Write the string in the file
                     bufferedWriter.write(stringBuilder.toString());
+                    //System.out.println("*** end write... ***");
 
                 }
 
