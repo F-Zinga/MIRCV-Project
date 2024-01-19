@@ -104,7 +104,7 @@ public class MainQueries {
 
 
                     //Print the results
-                    System.out.println("\n#\tDOCNO\t\tSCORE");
+                    System.out.println("\n//\t**DOCNO**\t\t**SCORE**");
                     for(int i = 0; i < result.size(); i++){
                         System.out.println((i+1) +
                                 ")\t" +
