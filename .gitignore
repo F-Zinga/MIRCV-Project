@@ -22,7 +22,7 @@
 *.vscode
 
 Blocks/
-Files/
+Files-tff/
 Files - ftf/
 Files - tff
 resources/queries

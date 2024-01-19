@@ -97,9 +97,9 @@ public class MainQueries {
 
                     //Score the collection
                     if(queryType){
-                        result = MaxScore.scoreCollectionDisjunctive(postingLists,documentIndex, bm25scoring, settings.getDebug());
+                        result = MaxScore.scoreCollectionDisjunctive(postingLists,documentIndex, bm25scoring);
                     }else {
-                        result = MaxScore.scoreCollectionConjunctive(postingLists,documentIndex, bm25scoring, settings.getDebug());
+                        result = MaxScore.scoreCollectionConjunctive(postingLists,documentIndex, bm25scoring);
                     }
 
 

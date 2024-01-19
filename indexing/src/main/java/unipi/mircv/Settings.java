@@ -12,18 +12,6 @@ public class Settings {
 
     private boolean compressed; // Indicates whether compression was enabled during indexing
     private boolean stemmingAndStopWords; // Indicates whether stemming and stopwords removal were enabled during indexing
-
-    private boolean debug; // Indicates whether debug mode is enabled
-
-
-    public boolean getDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
-
     public boolean isCompressed() {
         return compressed;
     }

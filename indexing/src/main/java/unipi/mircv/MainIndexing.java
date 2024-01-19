@@ -81,10 +81,10 @@ public class MainIndexing {
                 long THRESHOLD = (long) (totalMemory * Parameters.PERCENTAGE);
 
                 // Output initial memory information
-                System.out.println(" *** Initial total memory allocated "+ totalMemory/(1024*1024)+"MB ***");
-                System.out.println(" *** Initial free memory "+ initialMemory/(1024*1024)+"MB ***");
-                System.out.println("*** Initial memory used "+ beforeUsedMem/(1024*1024)+"MB ***");
-                System.out.println(" *** Memory threshold: " + THRESHOLD/(1024*1024)+"MB -> " + Parameters.PERCENTAGE * 100 + "% ***");
+                System.out.println(" *** Initial total memory allocated "+ totalMemory+"MB ***");
+                System.out.println(" *** Initial free memory "+ initialMemory+"MB ***");
+                System.out.println("*** Initial memory used "+ beforeUsedMem+"MB ***");
+                System.out.println(" *** Memory threshold: " + THRESHOLD+"MB -> " + Parameters.PERCENTAGE * 100 + "% ***");
                 System.out.println("*** Starting fetch the documents... ***");
 
                 //Iterate over the lines
@@ -227,19 +227,10 @@ public class MainIndexing {
         return Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory() < threshold;
     }
 
-    /**
-     * @return the amount of memory used with respect to the memory available to the process
-     */
-    private static long getMemoryUsed(){
-        Runtime rt = Runtime.getRuntime();
-        long total_mem = rt.totalMemory();
-        long free_mem = rt.freeMemory();
-        return  (total_mem - free_mem)/total_mem;
-    }
 
     public static void main(String[] args){
 
-        boolean stemmingAndStopwordsRemoval = false;
+        boolean stemmingAndStopwordsRemoval = true;
         boolean compressed = true;
 
         // Parse command line arguments

@@ -100,7 +100,7 @@ public class MainEvaluation{
 
                 //Split the line qid\query in qid query
                 String[] split = line.split("\t");
-                System.out.println("*** split ***" + split.toString());
+                System.out.println("*** split ***" + split);
 
                 //Add it to the results array if both qid and query are present
                 if(split[0] != null && split[1] != null) {
@@ -158,7 +158,7 @@ public class MainEvaluation{
 
                 //Parse the query
                 String[] queryTerms = parseQuery(query, lexicon, settings.getStemmingAndStopWords());
-                System.out.println("*** query terms... ***" + queryTerms.toString());
+                System.out.println("*** query terms... ***" + queryTerms);
 
                 //If the query string is equal to null it means that the query contains all stopwords or all the terms
                 // are not present in the lexicon.
@@ -194,9 +194,9 @@ public class MainEvaluation{
 
                 //Score the collection
                 if(queryType){
-                    result = MaxScore.scoreCollectionDisjunctive(postingLists,docIndex, bm25scoring, false);
+                    result = MaxScore.scoreCollectionDisjunctive(postingLists,docIndex, bm25scoring);
                 }else {
-                    result = MaxScore.scoreCollectionConjunctive(postingLists,docIndex, bm25scoring, false);
+                    result = MaxScore.scoreCollectionConjunctive(postingLists,docIndex, bm25scoring);
                 }
                 System.out.println("*** end result... ***");
 

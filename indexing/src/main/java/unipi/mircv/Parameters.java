@@ -73,7 +73,7 @@ public interface Parameters {
 
     //Test
     //Path of the dataset
-    String COLLECTION_PATH = "C://Users//kecco//Desktop//collection.tar.gz";
+    String COLLECTION_PATH = "D://collection.tar.gz";
 
     String FILES_PATH = "Files/";
     //Document index file path
@@ -85,6 +85,6 @@ public interface Parameters {
             "-sc : both enabled";
 
     //Percentage of memory used to define a threshold
-    static final double PERCENTAGE = 0.9;
+    double PERCENTAGE = 0.9;
 
 }

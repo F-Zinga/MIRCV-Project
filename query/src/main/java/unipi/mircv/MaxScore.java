@@ -30,10 +30,9 @@ public class MaxScore {
      * @param postingLists   Array of posting lists corresponding to the query terms.
      * @param documentIndex  Document index containing information about documents.
      * @param BM25           Boolean indicating whether to use BM25 scoring (true) or TFIDF scoring (false).
-     * @param debug          Flag to enable or disable debug mode.
      * @return An ordered list of tuples containing document ID and their corresponding scores.
      */
-    public static ArrayList<Pair<Long,Double>> scoreCollectionDisjunctive(PostingList[] postingLists, DocIndex documentIndex, boolean BM25, boolean debug) {
+    public static ArrayList<Pair<Long,Double>> scoreCollectionDisjunctive(PostingList[] postingLists, DocIndex documentIndex, boolean BM25) {
 
         // Priority queue to store doc ID and its corresponding score in descending order of score
         DocsRanked rankedDocs = new DocsRanked(BEST_K_VALUE);
@@ -147,7 +146,6 @@ public class MaxScore {
                         }
                         break;
                     }
-
                 }
 
                 //Move the cursor to the next posting, if there is one, otherwise the flag of the posting list is set to
@@ -283,10 +281,9 @@ public class MaxScore {
      * @param postingLists Array of posting lists.
      * @param documentIndex document index containing the information of the documents.
      * @param BM25 if it is true, then the BM25 scoring is applied, otherwise the scoring is TFIDF.
-     * @param debug flag to show if in debug mode
      * @return an ordered array of tuples containing the document id and the score associated with the document.
      */
-    public static ArrayList<Pair<Long,Double>> scoreCollectionConjunctive(PostingList[] postingLists, DocIndex documentIndex, boolean BM25, boolean debug) {
+    public static ArrayList<Pair<Long,Double>> scoreCollectionConjunctive(PostingList[] postingLists, DocIndex documentIndex, boolean BM25) {
 
         //Priority queue to store the document id and its score, based on the priority of the document
         DocsRanked docsRanked = new DocsRanked(BEST_K_VALUE);
