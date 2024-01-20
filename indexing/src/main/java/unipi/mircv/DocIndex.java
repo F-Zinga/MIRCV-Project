@@ -23,7 +23,7 @@ public class DocIndex extends HashMap<Long, DocInfo> {
      * Loads the document index into memory from the document index file.
      */
     public void loadDocumentIndex() {
-        System.out.println(" *** loadDocumentIndex... ***");
+        //System.out.println(" *** loadDocumentIndex... ***");
         try (//Object to open the stream from the document index file
              RandomAccessFile documentIndexFile = new RandomAccessFile(DOCUMENT_INDEX_PATH, "r")){
 
@@ -61,10 +61,10 @@ public class DocIndex extends HashMap<Long, DocInfo> {
                 offset += Parameters.DOCUMENT_INDEX_ENTRY_BYTE;
             }
 
-            System.out.println("*** loadedDocumentIndex ***");
+           // System.out.println("*** loadedDocumentIndex ***");
 
         } catch (Exception e) {
-            System.out.println("*** Error loading  documentIndex: " + e.getMessage());
+            //System.out.println("*** Error loading  documentIndex: " + e.getMessage());
             e.printStackTrace();
         }
     }

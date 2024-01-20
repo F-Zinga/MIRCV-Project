@@ -221,7 +221,7 @@ public class PostingList extends ArrayList<Posting> {
             return Compressor.variableByteDecodeLong(docidsByte);
 
         } catch (IOException e) {
-            System.err.println(" *** Exception during seek ***");
+            //System.err.println(" *** Exception during seek ***");
             throw new RuntimeException(e);
         }
     }
@@ -248,7 +248,7 @@ public class PostingList extends ArrayList<Posting> {
             return Compressor.variableByteDecode(docidsByte);
 
         } catch (IOException e) {
-            System.err.println(" *** Exception during seek ***");
+           // System.err.println(" *** Exception during seek ***");
             throw new RuntimeException(e);
         }
     }
@@ -270,7 +270,7 @@ public class PostingList extends ArrayList<Posting> {
             randomAccessFileDocIds.seek(offset);
 
         } catch (IOException e) {
-            System.err.println(" *** Exception during seek ***");
+            //System.err.println(" *** Exception during seek ***");
             throw new RuntimeException(e);
         }
 
@@ -282,7 +282,7 @@ public class PostingList extends ArrayList<Posting> {
                 list.add(randomAccessFileDocIds.readLong());
 
             } catch (IOException e) {
-                System.err.println("*** Exception during read ***");
+                //System.err.println("*** Exception during read ***");
                 throw new RuntimeException(e);
             }
         }
@@ -309,7 +309,7 @@ public class PostingList extends ArrayList<Posting> {
             randomAccessFileFrequencies.seek(offset);
 
         } catch (IOException e) {
-            System.err.println(" *** Exception during seek ***");
+            //System.err.println(" *** Exception during seek ***");
             throw new RuntimeException(e);
         }
 
@@ -321,7 +321,7 @@ public class PostingList extends ArrayList<Posting> {
                 list.add(randomAccessFileFrequencies.readInt());
 
             } catch (IOException e) {
-                System.err.println(" *** Exception during read ***");
+               // System.err.println(" *** Exception during read ***");
                 throw new RuntimeException(e);
             }
         }
@@ -412,7 +412,7 @@ public class PostingList extends ArrayList<Posting> {
             randomAccessFileSkipBlocks.seek(offset);
 
         } catch (IOException e) {
-            System.err.println("[ReadPostingListSkipBlocks] Exception during seek");
+            //System.err.println("[ReadPostingListSkipBlocks] Exception during seek");
             throw new RuntimeException(e);
         }
 
@@ -436,7 +436,7 @@ public class PostingList extends ArrayList<Posting> {
                 );
 
             } catch (IOException e) {
-                System.err.println("[ReadPostingListSkipBlocks] Exception during read");
+                //System.err.println("[ReadPostingListSkipBlocks] Exception during read");
                 throw new RuntimeException(e);
             }
         }

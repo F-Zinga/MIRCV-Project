@@ -98,7 +98,7 @@ public class Settings {
             fr.close();
 
         } catch (IOException e) {
-            System.err.println("Configuration not found.");
+            //System.err.println("Configuration not found.");
             return false;
         }
         return true;

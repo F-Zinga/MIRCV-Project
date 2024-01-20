@@ -21,7 +21,7 @@ public class Merger {
      */
     public static void merge(boolean compress) {
 
-        System.out.println(" *** Merging lexicon blocks and inverted index blocks ... ***");
+        //System.out.println(" *** Merging lexicon blocks and inverted index blocks ... ***");
 
         // Record the start time for performance measurement
         long start = System.nanoTime();
@@ -109,7 +109,7 @@ public class Merger {
 
         } catch (FileNotFoundException e) {
             // Handle the exception if the file is not found
-            System.err.println(" *** File not found : " + e.getMessage());
+           // System.err.println(" *** File not found : " + e.getMessage());
             throw new RuntimeException(e);
         }
 
@@ -134,7 +134,7 @@ public class Merger {
 
             // Print processing info every 25000 blocks
             if(j%25000 == 0){
-                System.out.println(" *** Processing time: " + (System.nanoTime() - start)/1000000000+ "s. Processed " + j + " terms ***");
+                //System.out.println(" *** Processing time: " + (System.nanoTime() - start)/1000000000+ "s. Processed " + j + " terms ***");
             }
 
             //For each block read the next term
@@ -167,7 +167,7 @@ public class Merger {
 
             //Check if we've reached the end of the merge.
             if(endOfAllFiles(endOfBlock, num_blocks)) {
-                System.out.println("*** end of files ***");
+                //System.out.println("*** end of files ***");
                 break;
             }
 
@@ -223,7 +223,7 @@ public class Merger {
                     frequenciesFile.write(frequenciesCompressed);
                 } catch (IOException e) {
                     // Handle the exception if the file is not found
-                    System.err.println(" *** File not found: " + e.getMessage());
+                   // System.err.println(" *** File not found: " + e.getMessage());
                     throw new RuntimeException(e);
                 }
 
@@ -323,7 +323,7 @@ public class Merger {
 
                 } catch (IOException e) {
                     // Handle the exception if an error occurs while writing compressed data to file
-                    System.err.println(" *** File not found: " + e.getMessage());
+                   // System.err.println(" *** File not found: " + e.getMessage());
                     throw new RuntimeException(e);
                 }
 
@@ -373,7 +373,7 @@ public class Merger {
             blocksWithMinTerm.clear(); //Clear the list of blocks with the min term
         }
 
-        System.out.println(" *** Closing the streams of the files. Analyzed " + j + " terms ***");
+        //System.out.println(" *** Closing the streams of the files. Analyzed " + j + " terms ***");
 
         try {
             // Close the file streams
@@ -389,17 +389,17 @@ public class Merger {
 
         } catch (RuntimeException | IOException e) {
             //Handle the exception if any file stream cannot be closed
-            System.err.println(" *** File not found: ***" + e.getMessage());
+           // System.err.println(" *** File not found: ***" + e.getMessage());
             throw new RuntimeException(e);
         }
 
         // Delete blocks if successful
         if(deleteBlocks(num_blocks)){
-            System.out.println(" *** Blocks deleted successfully ***");
+           // System.out.println(" *** Blocks deleted successfully ***");
         }
 
-        System.out.println(" *** Total processing time: " + (System.nanoTime() - start)/1000000000+ "s ***");
-        System.out.println(" *** MERGING COMPLETE ***");
+       // System.out.println(" *** Total processing time: " + (System.nanoTime() - start)/1000000000+ "s ***");
+       // System.out.println(" *** MERGING COMPLETE ***");
     }
 
 
