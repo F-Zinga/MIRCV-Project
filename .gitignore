@@ -26,6 +26,7 @@ Files-tff/
 Files - ftf/
 Files - tff
 resources/queries
+indexing/dacancellare.java
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*

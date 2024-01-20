@@ -138,12 +138,12 @@ public class MainIndexing {
                             indexBuilder.clear();
                         }
 
-                        /*Print checkpoint information
-                        if(numberOfDocuments%50000 == 0){
+                        //Print checkpoint information
+                        if(numberOfDocuments%100000 == 0){
                             System.out.println("*** " + numberOfDocuments+ " processed ***");
                             System.out.println(" *** Processing time: " + (System.nanoTime() - begin)/1000000000+ "s ***");
 
-                        }*/
+                        }
                     }
                 }
                 if(blockDocuments > 0 ){
