@@ -6,9 +6,7 @@ import opennlp.tools.stemmer.PorterStemmer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,7 +17,8 @@ import java.util.stream.Stream;
 public class Parser {
 
     //List of strings that contain stopwords
-    static List<String> stopWords = loadStopWords();
+    // Create a HashSet for faster lookup
+    static Set<String> stopWords= new HashSet<>(loadStopWords());
 
     //Path to the file containing the list of stopwords
     static final String STOPWORDS_FILE = "resources/utility/stopwords";
@@ -90,13 +89,12 @@ public class Parser {
      * @param stopwords List of strings containing the stopwords
      * @return Text without the stopwords
      */
-    private static String[] removeStopWords(String[] text, List<String> stopwords){
+    private static String[] removeStopWords(String[] text, Set<String> stopwords){
 
-        //The performance are x6 faster with the streams, than using the manual remove
-        ArrayList<String> words = Stream.of(text).collect(Collectors.toCollection(ArrayList<String>::new));
-        words.removeAll(stopwords);
-        String[] terms = new String[words.size()];
-        return words.toArray(terms);
+        // Use Java Stream API to filter out stop words
+        return Arrays.stream(text)
+                .filter(word -> !stopWords.contains(word.toLowerCase()))
+                .toArray(String[]::new);
     }
 
     /**

@@ -22,9 +22,10 @@
 *.vscode
 
 Blocks/
-Files-tff/
+Files - tff/
 Files - ftf/
-Files - tff
+Files - fff/
+Files/
 resources/queries
 indexing/dacancellare.java
 
