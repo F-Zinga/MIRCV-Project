@@ -2,7 +2,7 @@ package unipi.mircv;
 
 import org.javatuples.Pair;
 
-import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -128,8 +128,8 @@ public class Compressor {
 
 
     public static Pair<byte[],Pair<Double,Double>> variableByteEncodeFreq(ArrayList<Integer> frequencies, ArrayList<Block> blocks,
-                                                ArrayList<Long> docIds, Pair<Double,Double> scores,
-                                                RandomAccessFile documentIndex, Statistics statistics)
+                                                                          ArrayList<Long> docIds, Pair<Double,Double> scores,
+                                                                          FileChannel documentIndex, Statistics statistics)
     {
 
         //Length of each skip block

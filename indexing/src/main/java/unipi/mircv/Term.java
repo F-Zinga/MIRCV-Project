@@ -3,6 +3,7 @@ package unipi.mircv;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 /**
  * Represents a term within an inverted index, encapsulating metadata and offsets related to the term's postings.
@@ -144,7 +145,7 @@ public class Term {
      * @param lexiconFile Is the random access file on which the term info is written.
      * @param termInfo Information of the term to be written.
      */
-    public void writeToFile(RandomAccessFile lexiconFile, Term termInfo){
+    public void writeToFile(FileChannel lexiconFile, Term termInfo){
         //Fill with whitespaces to keep the length standard
         String tmp = fillspace(termInfo.getTerm(), Parameters.TERM_BYTES);
 
@@ -163,17 +164,17 @@ public class Term {
 
         try {
             // Write termInfo properties to the file
-            lexiconFile.write(term);
-            lexiconFile.write(offsetDocId);
-            lexiconFile.write(offsetFrequency);
-            lexiconFile.write(idf);
-            lexiconFile.write(bytesDocId);
-            lexiconFile.write(bytesFrequency);
-            lexiconFile.write(postingListLength);
-            lexiconFile.write(offsetSkipBlocks);
-            lexiconFile.write(numberOfSkipBlocks);
-            lexiconFile.write(tfidfTermUpperBound);
-            lexiconFile.write(bm25TermUpperBound);
+            lexiconFile.write(ByteBuffer.wrap(term));
+            lexiconFile.write(ByteBuffer.wrap(offsetDocId));
+            lexiconFile.write(ByteBuffer.wrap(offsetFrequency));
+            lexiconFile.write(ByteBuffer.wrap(idf));
+            lexiconFile.write(ByteBuffer.wrap(bytesDocId));
+            lexiconFile.write(ByteBuffer.wrap(bytesFrequency));
+            lexiconFile.write(ByteBuffer.wrap(postingListLength));
+            lexiconFile.write(ByteBuffer.wrap(offsetSkipBlocks));
+            lexiconFile.write(ByteBuffer.wrap(numberOfSkipBlocks));
+            lexiconFile.write(ByteBuffer.wrap(tfidfTermUpperBound));
+            lexiconFile.write(ByteBuffer.wrap(bm25TermUpperBound));
 
         } catch (IOException e) {
             throw new RuntimeException(e);

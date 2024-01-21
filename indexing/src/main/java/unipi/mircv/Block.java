@@ -3,6 +3,7 @@ package unipi.mircv;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 // Represents a skip block used during the merging process
 public class Block {
@@ -102,18 +103,18 @@ public class Block {
      * where all the information is available directly within the Block object.
      * @param skipBlocksFile The random access file where the skip block information is written.
      */
-    public void writeToFile(RandomAccessFile skipBlocksFile){
+    public void writeToFile(FileChannel skipBlocksFile){
         byte[] startDocIdOffset = ByteBuffer.allocate(Parameters.OFFSET_LENGTH).putLong(this.docIDOffset).array();
         byte[] skipBlockDocIdLength = ByteBuffer.allocate(Parameters.BLOCK_DIMENSION_LENGTH).putInt(this.docIDSize).array();
         byte[] startFreqOffset = ByteBuffer.allocate(Parameters.OFFSET_LENGTH).putLong(this.frqOffset).array();
         byte[] skipBlockFreqLength = ByteBuffer.allocate(Parameters.BLOCK_DIMENSION_LENGTH).putInt(this.frqSize).array();
         byte[] maxDocId = ByteBuffer.allocate(Parameters.MAX_DOC_ID_LENGTH).putLong(this.maxDocID).array();
         try {
-            skipBlocksFile.write(startDocIdOffset);
-            skipBlocksFile.write(skipBlockDocIdLength);
-            skipBlocksFile.write(startFreqOffset);
-            skipBlocksFile.write(skipBlockFreqLength);
-            skipBlocksFile.write(maxDocId);
+            skipBlocksFile.write(ByteBuffer.wrap(startDocIdOffset));
+            skipBlocksFile.write(ByteBuffer.wrap(skipBlockDocIdLength));
+            skipBlocksFile.write(ByteBuffer.wrap(startFreqOffset));
+            skipBlocksFile.write(ByteBuffer.wrap(skipBlockFreqLength));
+            skipBlocksFile.write(ByteBuffer.wrap(maxDocId));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -37,11 +39,11 @@ public class Merger {
         RandomAccessFile[] randomAccessFilesLexicon = new RandomAccessFile[num_blocks];
 
         //Files for saving the final result
-        RandomAccessFile lexiconFile;
-        RandomAccessFile docIdsFile;
-        RandomAccessFile frequenciesFile;
-        RandomAccessFile blocksFile;
-        RandomAccessFile documentIndex;
+        FileChannel lexiconFile;
+        FileChannel docIdsFile;
+        FileChannel frequenciesFile;
+        FileChannel blocksFile;
+        FileChannel documentIndex;
 
 
         // Accumulators to hold the current offset for the next list of postings
@@ -83,8 +85,8 @@ public class Merger {
         ArrayList<Block> blocks = new ArrayList<>();
 
         //Arrays containing compressed docIds and frequencies of the posting list of the current min term
-        byte[] docIdsCompressed;
-        byte[] frequenciesCompressed;
+        ByteBuffer docIdsCompressed;
+        ByteBuffer frequenciesCompressed;
 
 
         try {
@@ -100,11 +102,11 @@ public class Merger {
 
             //Create a stream for the lexicon file, the docids file, frequencies file, blocks file, and document index,
             //opened in write-only and read-only modes, respectively
-            lexiconFile = new RandomAccessFile(Parameters.LEXICON_PATH, "rw");
-            docIdsFile = new RandomAccessFile(Parameters.DOCID_PATH, "rw");
-            frequenciesFile = new RandomAccessFile(Parameters.FREQ_PATH, "rw");
-            blocksFile = new RandomAccessFile(Parameters.BLOCKS_PATH, "rw");
-            documentIndex = new RandomAccessFile(DocIndex.DOCUMENT_INDEX_PATH, "r");
+            lexiconFile = new RandomAccessFile(Parameters.LEXICON_PATH, "rw").getChannel();
+            docIdsFile = new RandomAccessFile(Parameters.DOCID_PATH, "rw").getChannel();
+            frequenciesFile = new RandomAccessFile(Parameters.FREQ_PATH, "rw").getChannel();
+            blocksFile = new RandomAccessFile(Parameters.BLOCKS_PATH, "rw").getChannel();
+            documentIndex = new RandomAccessFile(DocIndex.DOCUMENT_INDEX_PATH, "r").getChannel();
 
 
         } catch (FileNotFoundException e) {
@@ -132,8 +134,8 @@ public class Merger {
 
             j++;
 
-            // Print processing info every 25000 blocks
-            if(j%25000 == 0){
+            // Print processing info every 100000 terms
+            if(j%100000 == 0){
                 //System.out.println(" *** Processing time: " + (System.nanoTime() - start)/1000000000+ "s. Processed " + j + " terms ***");
             }
 
@@ -210,11 +212,11 @@ public class Merger {
                 Pair<Double, Double> maxscore = Pair.with(0.0, 0.0);
 
                 //Compress the list of docIds using VBE and create the list of skip blocks for the list of docids
-                docIdsCompressed = Compressor.variableByteEncodeDocId(docIds, blocks);
+                docIdsCompressed = ByteBuffer.wrap(Compressor.variableByteEncodeDocId(docIds, blocks));
 
                 //Compress the list of frequencies using VBE and update the frequencies information in the skip blocks
                 Pair<byte[],Pair<Double,Double>> tuple = Compressor.variableByteEncodeFreq(frequencies, blocks, docIds, maxscore, documentIndex, statistics);
-                frequenciesCompressed = tuple.getValue0();
+                frequenciesCompressed = ByteBuffer.wrap(tuple.getValue0());
                 maxscore = tuple.getValue1();
 
                 //Write the compressed docIds and frequencies of the current term to the respective files
@@ -239,8 +241,8 @@ public class Merger {
                         docIdsOffset,                //offset in the docids file in which the docids list starts
                         frequenciesOffset,           //offset in the frequencies file in which the frequencies list starts
                         idf,                         //idf
-                        docIdsCompressed.length,     //length in bytes of the compressed docids list
-                        frequenciesCompressed.length,//length in bytes of the compressed frequencies list
+                        docIdsCompressed.capacity(),     //length in bytes of the compressed docids list
+                        frequenciesCompressed.capacity(),//length in bytes of the compressed frequencies list
                         docIds.size(),               //Length of the posting list of the current term
                         blocksOffset,               //Offset of the SkipBlocks in the SkipBlocks file
                         blocks.size(),              //number of SkipBlocks
@@ -253,8 +255,8 @@ public class Merger {
                 lexiconEntry.writeToFile(lexiconFile, lexiconEntry);
 
                 // Update offsets for docIds and frequencies
-                docIdsOffset += docIdsCompressed.length;
-                frequenciesOffset += frequenciesCompressed.length;
+                docIdsOffset += docIdsCompressed.capacity();
+                frequenciesOffset += frequenciesCompressed.capacity();
 
 
             }else {//No compression
@@ -291,10 +293,12 @@ public class Merger {
 
 
                         //Write the docIds (long) to the end of the docIds file
-                        docIdsFile.writeLong(docIds.get(i));
+                        byte[] docid = ByteBuffer.allocate(Parameters.TERM_DOCID_BYTES).putLong(docIds.get(i)).array();
+                        docIdsFile.write(ByteBuffer.wrap(docid));
 
                         //Write the frequencies (integer) to the end of the frequencies file
-                        frequenciesFile.writeInt(frequencies.get(i));
+                        byte[] freq = ByteBuffer.allocate(Parameters.FREQUENCY_BYTES).putLong(docIds.get(i)).array();
+                        frequenciesFile.write(ByteBuffer.wrap(freq));
 
                         //We create a new skip block iIf we are at a skip position
                         if(((i+1)%blocksLength == 0) || ((i + 1) == docIds.size())){

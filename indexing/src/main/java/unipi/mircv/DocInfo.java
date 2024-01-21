@@ -3,6 +3,7 @@ package unipi.mircv;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 /**
  * Represents information about a document, including its document number, length, URL, and PageRank score.
@@ -86,17 +87,17 @@ public class DocInfo {
      * @param docId             Document ID for which to retrieve the entry
      * @return Document length associated with the document ID
      */
-    public static int getDocLenFromFile(RandomAccessFile documentIndexFile, long docId){
+    public static int getDocLenFromFile(FileChannel documentIndexFile, long docId){
 
         //Accumulator for the current offset in the file
         long offset = (docId - 1)* Parameters.DOCUMENT_INDEX_ENTRY_BYTE + Parameters.DOCID_BYTE + Parameters.DOCNO_BYTE;
 
         try {
             //Move to the correct offset
-            documentIndexFile.seek(offset);
+            documentIndexFile.position(offset);
 
             //Read the length of the document, 4 bytes starting from the offset
-            return documentIndexFile.readInt();
+            return documentIndexFile.read(ByteBuffer.allocateDirect(4));
 
         } catch (IOException e) {
             throw new RuntimeException(e);
