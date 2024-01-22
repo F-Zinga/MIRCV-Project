@@ -8,19 +8,89 @@ import java.util.HashMap;
 /**
  * Represents the lexicon of terms used in the inverted index. Extends HashMap to provide a mapping from terms to their corresponding Term objects.
  */
-public class Lexicon extends HashMap<String,Term> {
+public class Lexicon {
 
-        //Object to open the stream from the lexicon file
-        private RandomAccessFile lexiconFile;
+    //the lexicon is represented as a hashmap  between a term and the posting list information.
+    private HashMap<String, Term> lexicon = new HashMap<>();
 
-    /**
-     * Constructor for the Lexicon class, utilizing the HashMap constructor.
-     */
-    public Lexicon() {
-            super();
+    public class Term{
+        public int offsetDocId;
+        public int offsetFreq;
+        public int offsetLastDocIds;
+        public int offsetSkipBlock;
+        public int postingListLength;
+        public float bm25termUpperBound;
+        public float tfidftermUpperBound;
+
+        public Term(int offsetDocId, int offsetFreq, int offsetLastDocIds, int offsetSkipBlock, int postingListLength, float bm25termUpperBound, float tfidftermUpperBound) {
+            this.offsetDocId = offsetDocId;
+            this.offsetFreq = offsetFreq;
+            this.offsetLastDocIds = offsetLastDocIds;
+            this.offsetSkipBlock = offsetSkipBlock;
+            this.postingListLength = postingListLength;
+            this.bm25termUpperBound = bm25termUpperBound;
+            this.tfidftermUpperBound = tfidftermUpperBound;
+        }
+
+        public float gettfidftermUpperBound() {
+            return tfidftermUpperBound;
+        }
+
+        public void settfidftermUpperBound(int tfidftermUpperBound) {
+            this.tfidftermUpperBound = tfidftermUpperBound;
+        }
+
+        public float getbm25termUpperBound() {
+            return bm25termUpperBound;
+        }
+
+        public void setbm25termUpperBound(int bm25TermUpperBound) {
+            this.bm25termUpperBound = bm25termUpperBound;
+        }
+
+        public int getPostingListLength() {
+            return postingListLength;
+        }
+
+        public void setPostingListLength(int postingListLength) {
+            this.postingListLength = postingListLength;
+        }
+
+        public int getoffsetDocId() {
+            return offsetDocId;
+        }
+
+        public void setoffsetDocId(int offsetDocId) {
+            this.offsetDocId = offsetDocId;
+        }
+
+        public int getoffsetFrequency() {
+            return offsetFreq;
+        }
+
+        public void setoffsetFrequency(int offsetFrequency) {
+            this.offsetFreq = offsetFreq;
+        }
+
+        public long getOffsetSkipBlock() {
+            return offsetSkipBlock;
+        }
+
+        public void setOffsetSkipBlock(int offsetSkipBlock) {
+            this.offsetSkipBlock = offsetSkipBlock;
+        }
+
+        public int getoffsetLastDocIds() {
+            return offsetLastDocIds;
+        }
+
+        public void setoffsetLastDocIds(int offsetDocId) {
+            this.offsetLastDocIds = offsetLastDocIds;
         }
 
 
+
+    //TODO: in beans
     /**
      * Loads the lexicon from the specified lexicon file.
      */
@@ -73,6 +143,8 @@ public class Lexicon extends HashMap<String,Term> {
          * @param offset starting offset of the next term to be read
          * @return The next term from the lexicon file.
          */
+
+        //TODO: in beans
         private Term readNextTerm(int offset) {
             //Array of bytes to store the term
             byte[] termBytes = new byte[Parameters.TERM_BYTES];
@@ -114,5 +186,25 @@ public class Lexicon extends HashMap<String,Term> {
                 return null;
             }
         }
+
+    public void setLexicon(HashMap<String, Term> lexicon){ this.lexicon = lexicon; }
+    public HashMap<String, Term> getLexicon(){ return lexicon; }
+
+    public void addInformation(String term, int offsetDocIds, int offsetFreq, int offsetLastDocIds, int postingListLength, float tfidfTermUpperBound, float bm25TermUpperBound){
+        if(!lexicon.containsKey(term)){
+            lexicon.put(term, new Term(offsetDocIds, offsetFreq, offsetLastDocIds, postingListLength, tfidfTermUpperBound, bm25TermUpperBound));
+        }
+        else{ //it computes the highest term frequency
+            lexicon.get(term).setbm25TermUpperBound(Math.max(bm25TermUpperBound, lexicon.get(term).getbm25TermUpperBound()));
+            lexicon.get(term).settfidfTermUpperBound(Math.max(tfidfTermUpperBound, lexicon.get(term).gettfidfTermUpperBound()));
+        }
+    }
+
+    //function that returns a list of sorted terms taken from the lexicon.
+    public ArrayList<String> sortLexicon(){
+        ArrayList<String> sortedTerms = new ArrayList<>(lexicon.keySet());
+        Collections.sort(sortedTerms);
+        return sortedTerms;
+    }
 
 }

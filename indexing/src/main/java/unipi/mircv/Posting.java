@@ -6,7 +6,7 @@ package unipi.mircv;
 
 public class Posting {
 
-    private long docID; // Document ID associated with the posting
+    private int docID; // Document ID associated with the posting
     private int termFrequency; // Term frequency of the term in the document
 
 
@@ -36,7 +36,8 @@ public class Posting {
         this.termFrequency = termFrequency;
     }
 
-    public void updateTermFrequency() { termFrequency++; }
+    //TODO: non serve
+    //public void updateTermFrequency() { termFrequency++; }
 
     /**
      * Returns a string representation of the Posting object.
