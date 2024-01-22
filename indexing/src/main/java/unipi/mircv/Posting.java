@@ -15,7 +15,7 @@ public class Posting {
      * @param docID The document ID associated with the posting.
      * @param termFrequency The term frequency of the term in the document.
      */
-    public Posting(long docID, int termFrequency) {
+    public Posting(int docID, int termFrequency) {
         this.docID = docID;
         this.termFrequency = termFrequency;
     }
@@ -28,7 +28,7 @@ public class Posting {
         return termFrequency;
     }
 
-    public void setDocID(long docID) {
+    public void setDocID(int docID) {
         this.docID = docID;
     }
 
