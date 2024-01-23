@@ -15,8 +15,8 @@ public class DocIndex  {
         docIndex = new HashMap<>();
     }
 
-    public void setDocumentIndex(HashMap<Integer, DocInfo> documentIndex){ this.docIndex = docIndex;}
-    public HashMap<Integer, DocInfo> getDocumentIndex(){ return this.docIndex; }
+    public void setDocIndex(HashMap<Integer, DocInfo> docIndex){ this.docIndex = docIndex;}
+    public HashMap<Integer, DocInfo> getDocIndex(){ return this.docIndex; }
 
 
     //function that adds a document to the document index.
@@ -25,7 +25,7 @@ public class DocIndex  {
     }
 
     //function that returns a list of sorted integers representing the docIds of the document index
-    public ArrayList<Integer> sortDocumentIndex(){
+    public ArrayList<Integer> sortDocIndex(){
         ArrayList<Integer> sortedDocIds = new ArrayList<>(docIndex.keySet());
         Collections.sort(sortedDocIds);
         return sortedDocIds;

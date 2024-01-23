@@ -2,285 +2,374 @@ package unipi.mircv;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.apache.commons.io.FileUtils;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
 
-public class MainIndexing {
+//class that performs the main operations during the indexing phase.
+public class Index {
 
-    // Counter to track the number of blocks read
-    static int blockNumber = 1;
+    public int docId = 0;
+    public int blockCounter = 0;
+
+    public IndexBuilder indexBuilder;
+    public Lexicon lexicon;
+    public DocIndex docIndex;
+    public FileManager fileManager;
+    public Statistics statistics;
+    public String encodingType;
+    public int postingListLength;
+
+    public TextPreprocessing textPreprocessing; //nostro parser
+
+    public Index(TextPreprocessing textPreprocessing){
+        this.indexBuilder = new IndexBuilder();
+        this.lexicon = new Lexicon();
+        this.docIndex = new DocIndex();
+        this.fileManager = new FileManager();
+        this.statistics = new Statistics(0, 0, 0, 0);
+
+        this.textPreprocessing = textPreprocessing;
+
+        //TODO: da rivedere la lunghezza
+        this.postingListLength = 500;
+    }
+
+    public int getDocId() {
+        return docId;
+    }
+
+    public void setDocId(int docId) {
+        this.docId = docId;
+    }
+
+    public int getBlockCounter() {
+        return blockCounter;
+    }
+
+    public void setBlockCounter(int blockCounter) {
+        this.blockCounter = blockCounter;
+    }
+
+    public IndexBuilder getIndexBuilder() {
+        return indexBuilder;
+    }
+
+    public void setInvertedIndex(IndexBuilder indexBuilder) {
+        this.indexBuilder = indexBuilder;
+    }
+
+    public Lexicon getLexicon() {
+        return lexicon;
+    }
+
+    public void setLexicon(Lexicon lexicon) {
+        this.lexicon = lexicon;
+    }
+
+    public DocIndex getDocIndex() {
+        return docIndex;
+    }
+
+    public void setDocIndex(DocIndex docIndex) {
+        this.docIndex = docIndex;
+    }
+
+    public FileManager getFileManager() {
+        return fileManager;
+    }
+
+    public void setFileManager(FileManager fileManager) {
+        this.fileManager = fileManager;
+    }
+
+    public Statistics getStatistics() {
+        return statistics;
+    }
+
+    public void setStatistics(Statistics Statistics) {
+        this.statistics = statistics;
+    }
+
+    public int getPostingListLength() {
+        return postingListLength;
+    }
+
+    public void setPostingListLength(int postingListLength) {
+        this.postingListLength = postingListLength;
+    }
+
+    public String getEncodingType() {
+        return encodingType;
+    }
+
+    public void setEncodingType(String encodingType) {
+        this.encodingType = encodingType;
+    }
+
+    //function that taken the compressed document collection, preprocess and elaborate every document.
+    public void processCollection(String file, String type){
+        setEncodingType(type);
+        try {
+            // Open the compressed file
+            FileInputStream input = new FileInputStream(file);
+
+            // Create a zip input stream from the compressed file
+            TarArchiveInputStream tarinput = new TarArchiveInputStream(input);
+
+            // Read the first entry in the zip file
+            TarArchiveEntry entry = tarinput.getNextEntry();
+
+            // Create a reader for reading the uncompressed data
+            InputStreamReader reader = new InputStreamReader(tarinput, "UTF-8");
+
+            BufferedReader bufferedReader=new BufferedReader(reader);
+            // Read data from the zip file and process it
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                String[] columns = line.split("\t",2); //Read the line and split it (cause the line is composed by (docNo \t document))
+
+                int docNo;
+                try{ docNo = Integer.parseInt(columns[0]); }catch (NumberFormatException e){continue;}
+                if(columns[1].length() == 0) continue;
+
+                //preprocess the document
+                String document = textPreprocessing.parse(columns[1]); //Get document
+                //elaborate the document
+                createIndex(document, docNo);
+            }
 
 
-    /**
-     * Build an inverted index for the collection in the specified path. Utilizes the SPIMI algorithm to create different
-     * blocks, each containing a partial inverted index and its respective lexicon.
-     *
-     * @param path            Path of the archive containing the collection (tar.gz archive)
-     * @param stopStemming    true to apply stopwords removal and stemming, false otherwise
-     */
-    private static void parseCollection(String path, Boolean stopStemming) {
+            // Close the input stream
+            bufferedReader.close();
+            input.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        //Path of the collection
-        File file = new File(path);
+        //after finishing the documents saves block that is in the main memory.
+        writeBlock(lexicon, lexicon.sortLexicon(), docIndex.sortDocIndex());
+        indexBuilder.setIndexBuilder(new HashMap<>());
+        lexicon.setLexicon(new HashMap<>());
+        docIndex.setDocIndex(new HashMap<>());
+        blockCounter += 1;
+        System.gc();
 
-        //Try to open the collection
-        try (
-                FileInputStream fileInputStream = new FileInputStream(file);
-             RandomAccessFile documentIndexFile = new RandomAccessFile(Parameters.DOCUMENT_INDEX_PATH, "rw");
-            TarArchiveInputStream tarInput = new TarArchiveInputStream(new GzipCompressorInputStream(fileInputStream))
-        ){
+        mergeBlocks();
+        saveCollectionStatistics();
+    }
 
 
+    //function that taken a document and a doc no elaborate the document to create the index.
+    public void createIndex(String document, int docNo){
+        float totalMemory = Runtime.getRuntime().totalMemory();
+        float memoryUsage = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        float percentageMemory= (memoryUsage / totalMemory) * 100;
+        //if the available memory is not enough to process the document saves the current block into the disk.
+        if (percentageMemory >= 75 ){
+            writeBlock(lexicon, lexicon.sortLexicon(), docIndex.sortDocIndex()); //writes the current block to disk
+            lexicon.setLexicon(new HashMap<>());
+            indexBuilder.setIndexBuilder(new HashMap<>());
+            docIndex.setDocIndex(new HashMap<>());
+            blockCounter += 1;
+            System.gc(); //calls the garbage collector to force to free memory.
+        }
+        String[] terms = document.split(" ");
+        HashMap<String, Integer> counter = new HashMap<>();
+        //associate to every term the term count in the document.
+        for (String term : terms){
+            counter.put(term, counter.containsKey(term) ? counter.get(term) + 1 : 1);
+        }
+        // update the index information for every term.
+        for (String term : counter.keySet()) {
+            lexicon.addInformation(term, 0, 0, 0,
+                    0, 0, counter.get(term));
+            indexBuilder.addPosting(term, docId, counter.get(term));
+            statistics.setPostings(statistics.getPostings() + 1);
+        }
+        docIndex.addDocument(docId, docNo, terms.length);
+        docId += 1;
+        statistics.setnDocs(statistics.getNDocs() + 1);
+        statistics.setAvdl(statistics.getAvdl() + terms.length);
+    }
 
-            //Get the first file from the stream (is only one)
-            TarArchiveEntry currentEntry = tarInput.getNextTarEntry();
+    //function that writes the current block that is in memory to the disk.
+    public void writeBlock(Lexicon lexicon, ArrayList<String> sortedTerms, ArrayList<Integer> sortedDocIds){
+        fileManager.openBlockFiles(blockCounter, encodingType);
+        //saves the document index.
+        for(Integer docId : sortedDocIds){
+            fileManager.writeOnFile(fileManager.getMyWriterDocumentIndex(), docId);
+            fileManager.writeOnFile(fileManager.getMyWriterDocumentIndex(), docIndex.docIndex.get(docId).getDocNo());
+            fileManager.writeOnFile(fileManager.getMyWriterDocumentIndex(), docIndex.docIndex.get(docId).getSize());
+        }
+        //saves the lexicon and the docIds and frequencies in the relative files.
+        for (String term : sortedTerms){
+            lexicon.getLexicon().get(term).setPostingListLength(indexBuilder.getIndexBuilder().get(term).size());
+            fileManager.writeLineOnFile((TextWriter) fileManager.getMyWriterLexicon(), term + " " + lexicon.getLexicon().get(term).toString() + "\n");
+            for (Posting posting : indexBuilder.getIndexBuilder().get(term)){
+                fileManager.writeOnFile(fileManager.getMyWriterDocIds(), posting.getDocID());
+                fileManager.writeOnFile(fileManager.getMyWriterFreq(), posting.setTermFrequency());
+            }
+        }
+        fileManager.closeBlockFiles();
+        System.out.println("Successfully wrote to the files.");
+    }
 
-            //If the file exist
-            if(currentEntry != null) {
+    //function that implements the merging phase of the SPIMI algorithm.
+    public void mergeBlocks(){
+        String[][] terms = new String[blockCounter][]; //terms read from the current pointer in the lexicon
+        boolean[] scannerToRead = new boolean[blockCounter]; //array of boolean to indicate if a scanner to a file need to be read.
+        boolean[] scannerFinished = new boolean[blockCounter]; //array of boolean to indicate if a scanner has scanned al the block file.
+        int postingBlockCounter;
+        for(int i = 0; i<blockCounter; i++){
+            scannerToRead[i] = true;
+            scannerFinished[i] = false;
+        }
+        int localPostingListLength;
+        int postingListLength;
+        int offsetDocIds = 0;
+        int offsetFreq = 0;
+        int offsetLastDocIds = 0;
+        int offsetSkipPointers = 0;
+        int docId = 0;
+        float termUpperBound;
+        float maxTermFrequency;
+        float localTermFrequency;
+        float tf;
+        float idf;
+        String minTerm;
 
-                //Read the uncompressed tar file specifying UTF-8 as encoding
-                InputStreamReader inputStreamReader = new InputStreamReader(tarInput, StandardCharsets.UTF_8);
-
-                //Create a BufferedReader to access one line of the file at a time
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-                //Variable to keep the current line from the buffer
-                String line;
-
-                //Instantiate the inverted index builder for the current block
-                IndexBuilder indexBuilder = new IndexBuilder();
-
-                //Counter storing the total number of documents read
-                int numberOfDocuments = 0;
-
-                //variable storing the average length of the document
-                float avdl = 0;
-
-                //Counter storing the number of documents read for the current block
-                int blockDocuments = 0;
-
-                //String storing the current document processed
-                DocParsed parsedDocument;
-
-                //Record the start time for performance measurement
-                long begin = System.nanoTime();
-
-                //Record the initial free memory
-                long initialMemory = Runtime.getRuntime().freeMemory();
-
-                //Record the total memory allocated for the execution of the current runtime
-                long totalMemory = Runtime.getRuntime().totalMemory();
-
-                //Record the memory used at the beginning of the computation
-                long beforeUsedMem=Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory();
-
-                //Define the threshold of memory over which the index must be flushed to disk
-                long THRESHOLD = (long) (totalMemory * Parameters.PERCENTAGE);
-
-                // Output initial memory information
-                /*
-                System.out.println(" *** Initial total memory allocated "+ totalMemory/(1024*1024)+"MB ***");
-                System.out.println(" *** Initial free memory "+ initialMemory/(1024*1024)+"MB ***");
-                System.out.println("*** Initial memory used "+ beforeUsedMem/(1024*1024)+"MB ***");
-                System.out.println(" *** Memory threshold: " + THRESHOLD/(1024*1024)+"MB -> " + Parameters.PERCENTAGE * 100 + "% ***");
-                System.out.println("*** Starting fetch the documents... ***");
-                */
-                //Iterate over the lines
-                while ((line = bufferedReader.readLine()) != null ) {
-
-                    //Use the stemming and stopwords removal
-                    parsedDocument = Parser.processDocument(line,stopStemming);
-
-                    //If the parsing of the document was completed correctly, appended it to the collection buffer
-                    if (parsedDocument!= null && parsedDocument.getTerms().length != 0) {
-
-                        //update the average number of documents
-                        avdl = avdl*(numberOfDocuments)/(numberOfDocuments + 1) + ((float) parsedDocument.getTerms().length)/(numberOfDocuments + 1);
-
-                        //Increase the total number of documents
-                        numberOfDocuments++;
-
-                        //Increase the number of documents in the current block
-                        blockDocuments++;
-
-                        //Set the docid of the current document
-                        parsedDocument.setDocId(numberOfDocuments);
-
-                        indexBuilder.insertDocument(parsedDocument);
-
-                        // Create a document index entry for the current document, which will be written to the document index file.
-                        // The document index will be read from the file in the future; we build it
-                        // and store it inside a file.
-                        DocInfo docEntry = new DocInfo(parsedDocument.getDocNo(), parsedDocument.getDocumentLength());
-                        docEntry.writeFile(documentIndexFile, numberOfDocuments);
-
-                        //Check if the memory used is above the threshold
-                        if(!isMemoryAvailable(THRESHOLD)){
-                            //System.out.println(" *** Flush " + blockDocuments + " documents to disk... ***");
-
-                            //Sort the lexicon and the inverted index
-                            indexBuilder.sortLexicon();
-                            indexBuilder.sortInvertedIndex();
-
-                            //Write the inverted index and the lexicon in the file
-                            writeToFiles(indexBuilder, blockNumber);
-
-                            //System.out.println("*** Block "+blockNumber+" written to disk! ***");
-
-                            //Blocks' information
-                            blockNumber++;
-                            blockDocuments = 0;
-
-                            //Clear the inverted index data structure and call the garbage collector
-                            indexBuilder.clear();
+        fileManager.openScanners(blockCounter, encodingType); //open the scanners of the block files
+        fileManager.openMergeFiles(encodingType); //open the final marge files
+        //in this for we do the merging of the document index first. It reads a number to check if the file is ended.
+        //Every row of the document index is saved as 3 integers.
+        for (int i = 0; i < blockCounter; i++) {
+            int number = fileManager.readFromFile(fileManager.getDocumentIndexScanners()[i]); //read the first integer
+            while(number != -1){ //continue until the file is not ended
+                fileManager.writeOnFile(fileManager.getMyWriterDocumentIndex(), number); //write on the final file the read integer
+                for (int j = 0; j < 2; j++) // reads other 2 times an integer from the current block file and writes it to the final file
+                {
+                    fileManager.writeOnFile(fileManager.getMyWriterDocumentIndex(), fileManager.readFromFile(fileManager.getDocumentIndexScanners()[i]));
+                }
+                number = fileManager.readFromFile(fileManager.getDocumentIndexScanners()[i]);
+            }
+        }
+        //here the merging loop of the lexicon and of the documentIds and frequencies files is performed.
+        while(true){
+            //it read from the lexicon files that needs to be read.
+            advancePointers(fileManager.getLexiconScanners(), scannerToRead, terms, scannerFinished);
+            //it checks if the merging phase is finished.
+            if(!continueMerging(scannerFinished)){break;}
+            //it gets the minimum term.
+            minTerm = minTerm(terms, scannerFinished);
+            postingListLength = 0;
+            postingBlockCounter = 0;
+            maxTermFrequency = 0;
+            //it writes the term information to the lexicon in text format.
+            fileManager.writeLineOnFile((TextWriter) fileManager.getMyWriterLexicon(), minTerm + " "
+                    + offsetDocIds + " " + offsetFreq + " " + offsetLastDocIds + " " + offsetSkipPointers + " ");
+            //for every block if the current pointed term is the minimum term we perform merging.
+            for(int i = 0; i<blockCounter; i++){
+                if(terms[i][0].equals(minTerm)){
+                    scannerToRead[i] = true; //we are using the information so the next time we need to read new information.
+                    //obtain the posting list length of the current block
+                    localPostingListLength = Integer.parseInt(terms[i][5]);
+                    //update the global posting list length
+                    postingListLength += localPostingListLength;
+                    localTermFrequency = Float.parseFloat(terms[i][6]);
+                    if(localTermFrequency > maxTermFrequency) maxTermFrequency = localTermFrequency;
+                    for(int j = 0; j<localPostingListLength; j++){
+                        //if it is at the start of the posting list block it saves the skip pointers for the block
+                        if(postingBlockCounter == 0){
+                            //it saves in the skiPointers file 2 integers: one for the docId offset and one for the frequency offset.
+                            offsetSkipPointers += fileManager.writeOnFile(fileManager.getMyWriterSkipPointers(), offsetDocIds);
+                            offsetSkipPointers += fileManager.writeOnFile(fileManager.getMyWriterSkipPointers(), offsetFreq);
                         }
 
-                        //Print checkpoint information
-                        if(numberOfDocuments%100000 == 0){
-                            System.out.println("*** " + numberOfDocuments+ " processed ***");
-                            System.out.println(" *** Processing time: " + (System.nanoTime() - begin)/1000000000+ "s ***");
+                        docId = fileManager.readFromFile(fileManager.getDocIdsScanners()[i]);
+                        //it saves in the final files the information arriving from the block files.
+                        offsetDocIds += fileManager.writeOnFile(fileManager.getMyWriterDocIds(), docId);
+                        offsetFreq += fileManager.writeOnFile(fileManager.getMyWriterFreq(),
+                                fileManager.readFromFile(fileManager.getFreqScanners()[i]));
 
+                        postingBlockCounter += 1;
+                        //if we are at the end of the posting list block we save the current docId in the lastDocId file.
+                        if (postingBlockCounter == postingListLength){
+                            offsetLastDocIds += fileManager.writeOnFile(fileManager.getMyWriterLastDocIds(), docId);
+                            postingBlockCounter = 0;
                         }
                     }
                 }
-                if(blockDocuments > 0 ){
-
-                    //System.out.println(" *** Last block reached ***");
-                    //System.out.println("*** Flush " + blockDocuments + " documents to disk... ***");
-
-                    //Sort the lexicon and the inverted index
-                    indexBuilder.sortLexicon();
-                    indexBuilder.sortInvertedIndex();
-
-                    //Write the inverted index and the lexicon to the file
-                    writeToFiles(indexBuilder, blockNumber);
-
-                    //System.out.println("*** Block "+blockNumber+" written to disk ***");
-
-                    //Write the blocks statistics
-                    Statistics.writeStats(blockNumber, numberOfDocuments, avdl, (System.nanoTime() - begin)/1000000000);
-
-                    //System.out.println("*** Statistics of blocks written to disk ***");
-
-                }else{
-                    //Write the blocks statistics
-                    Statistics.writeStats(blockNumber-1, numberOfDocuments, avdl, (System.nanoTime() - begin)/1000000000);
-
-                    //System.out.println("*** Statistics of blocks written to disk ***");
+                else{
+                    //if the current term of the lexicon pointer is not the min term the next time we do not need to read
+                    //from the scanner again
+                    scannerToRead[i] = false;
                 }
-
-                //System.out.println("*** Total processing time: " + (System.nanoTime() - begin)/1000000000+ "s ***");
             }
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            //at the end of the merging for a specific term we save the docId of the last posting of the posting list of that term.
+            if(postingBlockCounter != postingListLength){
+                offsetLastDocIds += fileManager.writeOnFile(fileManager.getMyWriterLastDocIds(), docId);
+            }
+            //we conclude the lexicon merging adding the global posting list length and the term upper bound information.
+            tf = (float) (1+Math.log(maxTermFrequency));
+            idf = (float) Math.log((double) statistics.getNDocs()/postingListLength);
+            termUpperBound = tf * idf;
+            fileManager.writeLineOnFile((TextWriter) fileManager.getMyWriterLexicon(), postingListLength + " "
+                    + termUpperBound + "\n");
         }
+        fileManager.closeMergeFiles();
+        fileManager.closeScanners();
     }
 
-    /**
-     * Clears the contents of the "Files" folder.
-     */
-    private static void clearFiles(){
-        try {
-            FileUtils.cleanDirectory(new File(Parameters.FILES_PATH));
-        } catch (IOException e) {
-            //System.out.println(" ***Error clearing files ***");
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Writes the inverted index and the lexicon blocks. The block's number is passed as a parameter.
-     * At the end, it clears the data structures and calls the garbage collector.
-     *
-     * @param indexBuilder Inverted index builder object containing the inverted index and the lexicon.
-     * @param blockNumber Number of the block that will be written.
-     */
-
-    private static void writeToFiles(IndexBuilder indexBuilder, int blockNumber){
-
-        //Write the inverted index's files into the block's files
-        indexBuilder.writeInvertedIndexToFile(
-                Parameters.DOCID_BLOCK_PATH +blockNumber+".txt",
-                Parameters.FREQ_BLOCK_PATH +blockNumber+".txt");
-
-        //Write the block's lexicon into the given file
-        indexBuilder.writeLexiconToFile(Parameters.LEXICON_BLOCK_PATH+blockNumber+".txt");
-
-        //System.out.println("Block "+blockNumber+" written");
-
-        //Clear the inverted index and lexicon data structure and call the garbage collector
-        indexBuilder.clear();
-    }
-
-    /**
-     * Return true if the memory used is under the threshold (there is enough free memory to continue)
-     * otherwise it will return false.
-     * @param threshold Memory threshold in byte.
-     */
-    private static boolean isMemoryAvailable(long threshold){
-
-        //Obtain the memory used, subtracting the free memory at the moment to the total memory allocated, then check
-        //if the memory used is above the threshold
-        return Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory() < threshold;
-    }
-
-
-    public static void main(String[] args){
-
-        boolean stemmingAndStopwordsRemoval = true;
-        boolean compressed = true;
-
-        // Parse command line arguments
-        if(args.length >= 1){
-            switch (args[0]) {
-                case "-s":
-                    stemmingAndStopwordsRemoval = true;
-                    break;
-                case "-c":
-                    compressed = true;
-                    break;
-                case "-sc":
-                    stemmingAndStopwordsRemoval = true;
-                    compressed = true;
-                    break;
-                default:
-                    //System.err.println("Invalid command\n"+Parameters.ARGS_ERROR);
-                    return;
+    //function to check if we need to continue the merging phase.
+    public boolean continueMerging(boolean[] scannerFinished){
+        boolean continueMerging;
+        continueMerging = false;
+        for(int i = 0; i<blockCounter; i++){
+            if (!scannerFinished[i]) {
+                continueMerging = true;
+                break;
             }
         }
-
-        // Additional configuration based on command line arguments
-        if(args.length >= 1){
-            //System.err.println("Wrong number of arguments\n"+Parameters.ARGS_ERROR);
-            return;
-        }
-
-        // Display the configuration information
-        /*
-        System.out.println(" *** Configuration ***\n" +
-                "\tStemming and stopwords removal: " + stemmingAndStopwordsRemoval+"\n" +
-                "\tCompression: " + compressed + "\n" );
-        */
-        // Clear existing files in the "Files" folder
-        clearFiles();
-
-        //Create the inverted index including the document index file and statistics file
-        parseCollection(Parameters.COLLECTION_PATH, stemmingAndStopwordsRemoval);
-
-        //Merge the blocks to obtain the inverted index, compressed indicates if the compression is enabled
-        Merger.merge(compressed);
-
-        // Save the execution configuration
-        //System.out.println(" *** Save configuration... ***");
-        Settings.saveConfiguration(stemmingAndStopwordsRemoval, compressed);
-
-        //System.out.println("*** Configuration saved ***");
-
+        return continueMerging;
     }
 
+    //function that advance the right pointers during the merge phase.
+    public void advancePointers(Reader[] lexiconScanners, boolean[] scannerToRead, String[][] terms, boolean[] scannerFinished){
+        for(int i = 0; i<blockCounter; i++){
+            if(scannerToRead[i]) {
+                if(fileManager.hasNextLine((TextReader) fileManager.getLexiconScanners()[i])){
+                    terms[i] = fileManager.readLineFromFile((TextReader) lexiconScanners[i]).split(" ");
+                }
+                else{
+                    scannerFinished[i] = true;
+                }
+            }
+        }
+    }
 
+    //function that given the terms currently pointed during the merging phase returns the minimum term.
+    public String minTerm(String[][] terms, boolean[] scannerFinished){
+        String minTerm = "}";
+        for(int i=0; i<blockCounter; i++){
+            if(terms[i][0].compareTo(minTerm) < 0 && !scannerFinished[i]){
+                minTerm = terms[i][0];
+            }
+        }
+        return minTerm;
+    }
+
+    //function that saves the collection statistics.
+    public void saveCollectionStatistics(){
+        statistics.setAvdl(statistics.getAvdl() / statistics.getNDocs());
+        try{
+            FileWriter writer = new FileWriter("Data/Output/CollectionStatistics/collectionStatistics.txt");
+            writer.write(statistics.getNDocs() + " "
+                    + statistics.getAvdl() + " " + statistics.getPostings());
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

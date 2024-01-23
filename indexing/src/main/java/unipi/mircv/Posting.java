@@ -36,8 +36,6 @@ public class Posting {
         this.termFrequency = termFrequency;
     }
 
-    //TODO: non serve
-    //public void updateTermFrequency() { termFrequency++; }
 
     /**
      * Returns a string representation of the Posting object.
