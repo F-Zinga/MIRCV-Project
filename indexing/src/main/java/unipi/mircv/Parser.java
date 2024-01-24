@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -23,17 +22,21 @@ public class Parser {
     //Path to the file containing the list of stopwords
     static final String STOPWORDS_FILE = "resources/utility/stopwords";
 
+    public Parser() {
+
+    }
+
     /**
      * Processes a document by tokenizing it in the format: [doc_id]\t[token1 token2 ... tokenN]\n.
      * @param line           String containing a document of the collection in the format: [doc_id]\t[text]\n
      * @param stopStemming  Flag indicating whether to perform stop word removal and stemming
      * @return Document tokenized based on the specified conditions
      */
-    public static DocParsed processDocument(String line,boolean stopStemming){
+    public static String processDocument(String line,boolean stopStemming){
         //Utility variables to keep the current docno and text
         String docno;
         String text;
-
+        /*
         //Divide the line using \t as delimiter, splitting the docNo and the text
         StringTokenizer stringTokenizer = new StringTokenizer(line, "\t");
 
@@ -52,9 +55,9 @@ public class Parser {
             //The line is empty, or it was not possible to retrieve it
             return null;
         }
-
+    */
         //Remove punctuation, then split when there are one or more whitespace characters
-        String[] splittedText = removePunctuation(text).split("\\s+");
+        String[] splittedText = removePunctuation(line).split("\\s+");
 
 
         if(stopStemming) {
@@ -66,9 +69,11 @@ public class Parser {
         }
 
 
-        DocParsed doc = new DocParsed(docno, splittedText);
+        //DocParsed doc = new DocParsed(docno, splittedText);
 
-        return doc;
+        String y = String.join(",",splittedText);
+
+        return y;
 
     }
 

@@ -20,7 +20,7 @@ public class Posting {
         this.termFrequency = termFrequency;
     }
 
-    public long getDocID() {
+    public int getDocID() {
         return docID;
     }
 
