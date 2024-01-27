@@ -1,23 +1,28 @@
 package unipi.mircv;
+
 import org.javatuples.Pair;
-import java.util.Iterator;
+
 import java.util.PriorityQueue;
 
 
 /**
- This class extends the PriorityQueue class and is designed to manage pairs (docId, score),
- * where the score determines the priority of the docId. The elements are ordered in decreasing order of score.
- * It also handles a threshold score used for pruning purposes (MaxScore).
+ This class extends the PriorityQueue class, designed to manage pairs (docId, score),
+ * The elements are ordered in decreasing order of score (where the score determines the priority of the docId)
+ * It also handles a threshold score used for pruning in the MaxScore.
  */
 
 public class DocsRanked extends PriorityQueue<Pair<Integer, Double>> {
 
-        // Document identifier
-        private int doc;
-        // Final score
-        private double value;
+        private int doc; // Document identifier
+        private double value;  // Final score
 
 
+    /**
+     * Constructs a DocsRanked object with a specified document ID and score.
+     *
+     * @param doc   The document identifier.
+     * @param value The final score.
+     */
     public DocsRanked(int doc, double value) {
         super((o1, o2) -> o2.getValue1().compareTo(o1.getValue1()));
         this.doc = doc;
