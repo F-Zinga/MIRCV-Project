@@ -71,7 +71,7 @@ public class Parser {
 
         //DocParsed doc = new DocParsed(docno, splittedText);
 
-        String y = String.join(",",splittedText);
+        String y = String.join(" ",splittedText); // a string with whitespaces between words
 
         return y;
 
@@ -85,7 +85,7 @@ public class Parser {
     private static String removePunctuation(String text){
         //Replace all punctuation marks with a whitespace character, then trim (cut) the string to remove the whitespaces
         // at the beginning or end of the string.
-        return text.replaceAll("[^\\w\\s]", " ").trim();
+        return text.replaceAll("[^a-zA-Z0-9]", " ").trim().toLowerCase();
     }
 
     /**
@@ -98,7 +98,7 @@ public class Parser {
 
         // Use Java Stream API to filter out stop words
         return Arrays.stream(text)
-                .filter(word -> !stopWords.contains(word.toLowerCase()))
+                .filter(word -> !stopWords.contains(word))
                 .toArray(String[]::new);
     }
 
