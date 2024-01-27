@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 //class that performs the main operations during the indexing phase.
-public class Index {
+public class MainIndexing {
 
     public int docId = 0;
     public int blockCounter = 0;
@@ -16,21 +16,19 @@ public class Index {
     public IndexBuilder indexBuilder;
     public Lexicon lexicon;
     public DocIndex docIndex;
-    public FileManager fileManager;
+    public ManagerIO fileManager;
     public Statistics statistics;
     public String encodingType;
     public int postingListLength;
 
-    public TextPreprocessing textPreprocessing; //nostro parser
+    public Parser parser = new Parser();
 
-    public Index(TextPreprocessing textPreprocessing){
+    public MainIndexing(){
         this.indexBuilder = new IndexBuilder();
         this.lexicon = new Lexicon();
         this.docIndex = new DocIndex();
-        this.fileManager = new FileManager();
+        this.fileManager = new ManagerIO();
         this.statistics = new Statistics(0, 0, 0, 0);
-
-        this.textPreprocessing = textPreprocessing;
 
         //TODO: da rivedere la lunghezza
         this.postingListLength = 500;
@@ -76,11 +74,11 @@ public class Index {
         this.docIndex = docIndex;
     }
 
-    public FileManager getFileManager() {
+    public ManagerIO getFileManager() {
         return fileManager;
     }
 
-    public void setFileManager(FileManager fileManager) {
+    public void setFileManager(ManagerIO fileManager) {
         this.fileManager = fileManager;
     }
 
@@ -109,7 +107,7 @@ public class Index {
     }
 
     //function that taken the compressed document collection, preprocess and elaborate every document.
-    public void processCollection(String file, String type){
+    public void processCollection(String file, String type,boolean stopWordsStemming){
         setEncodingType(type);
         try {
             // Open the compressed file
@@ -127,15 +125,16 @@ public class Index {
             BufferedReader bufferedReader=new BufferedReader(reader);
             // Read data from the zip file and process it
             String line;
+
             while ((line = bufferedReader.readLine()) != null) {
                 String[] columns = line.split("\t",2); //Read the line and split it (cause the line is composed by (docNo \t document))
 
                 int docNo;
                 try{ docNo = Integer.parseInt(columns[0]); }catch (NumberFormatException e){continue;}
-                if(columns[1].length() == 0) continue;
+                if(columns[1].isEmpty()) continue;
 
                 //preprocess the document
-                String document = textPreprocessing.parse(columns[1]); //Get document
+                String document = parser.processDocument(columns[1],stopWordsStemming); //Get document
                 //elaborate the document
                 createIndex(document, docNo);
             }
@@ -201,7 +200,7 @@ public class Index {
         for(Integer docId : sortedDocIds){
             fileManager.writeOnFile(fileManager.getMyWriterDocumentIndex(), docId);
             fileManager.writeOnFile(fileManager.getMyWriterDocumentIndex(), docIndex.docIndex.get(docId).getDocNo());
-            fileManager.writeOnFile(fileManager.getMyWriterDocumentIndex(), docIndex.docIndex.get(docId).getSize());
+            fileManager.writeOnFile(fileManager.getMyWriterDocumentIndex(), docIndex.docIndex.get(docId).getDocLen());
         }
         //saves the lexicon and the docIds and frequencies in the relative files.
         for (String term : sortedTerms){
@@ -209,7 +208,7 @@ public class Index {
             fileManager.writeLineOnFile((TextWriter) fileManager.getMyWriterLexicon(), term + " " + lexicon.getLexicon().get(term).toString() + "\n");
             for (Posting posting : indexBuilder.getIndexBuilder().get(term)){
                 fileManager.writeOnFile(fileManager.getMyWriterDocIds(), posting.getDocID());
-                fileManager.writeOnFile(fileManager.getMyWriterFreq(), posting.setTermFrequency());
+                fileManager.writeOnFile(fileManager.getMyWriterFreq(), posting.getTermFrequency());
             }
         }
         fileManager.closeBlockFiles();
@@ -364,12 +363,31 @@ public class Index {
     public void saveCollectionStatistics(){
         statistics.setAvdl(statistics.getAvdl() / statistics.getNDocs());
         try{
-            FileWriter writer = new FileWriter("Data/Output/CollectionStatistics/collectionStatistics.txt");
+            FileWriter writer = new FileWriter("Output/CollectionStatistics/collectionStatistics.txt");
             writer.write(statistics.getNDocs() + " "
                     + statistics.getAvdl() + " " + statistics.getPostings());
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args){
+
+        System.out.println("Welcome");
+        String file = args[0];
+        String type = args[1];
+        Boolean stopWordsStemming = Boolean.valueOf(args[2]); //Stopwords Removal
+
+        if(!type.equals("text") && !type.equals("bytes")){
+            System.out.println("Sorry the encoding type is wrong please try again");
+        }
+        else{
+            MainIndexing index = new MainIndexing();
+            long start = System.currentTimeMillis();
+            index.processCollection(file, type, stopWordsStemming);
+            long end = System.currentTimeMillis();
+            System.out.println("Elapsed Time in milliseconds: " + (end-start));
         }
     }
 }
