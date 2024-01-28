@@ -10,18 +10,18 @@ public class ScoreFunction {
     private double avgDocumentLength;
     private String scoreType;
 
-    public ScoreFunction(HashMap<String, ArrayList<Posting>> postingLists, String[] queryTerms, HandleIndex handleIndex, String scoreType) {
-        double nDocuments = handleIndex.getCollectionStatistics().getDocuments();
+    public ScoreFunction(HashMap<String, ArrayList<Posting>> postingLists, String[] queryTerms, QueryProcessor queryProcessor, String scoreType) {
+        double nDocuments = queryProcessor.getStatistics().getNDocs();
         this.queryTerms = queryTerms;
 
         this.idf = new HashMap<>();
         for (String term : postingLists.keySet()) {
-            double df = handleIndex.getLexicon().getLexicon().get(term).getPostingListLength();
+            double df = queryProcessor.getLexicon().getLexicon().get(term).getPostingListLength();
             idf.put(term, Math.log(nDocuments / df));
         }
 
-        this.avgDocumentLength = handleIndex.getCollectionStatistics().getAvgDocumentLength();
-        this.docInfo = handleIndex.getDocumentIndex().getDocumentIndex();
+        this.avgDocumentLength = queryProcessor.getStatistics().getAvdl();
+        this.docInfo = queryProcessor.getDocIndex().getDocIndex();
 
         this.scoreType = scoreType;
     }

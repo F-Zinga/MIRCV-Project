@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
 public class MaxScore {
 
     String queryType;
-    HandleIndex handleIndex;
+    QueryProcessor queryProcessor;
 
 
-    public MaxScore(String queryType, HandleIndex handleIndex){
+    public MaxScore(String queryType, QueryProcessor queryProcessor){
         this.queryType = queryType;
-        this.handleIndex = handleIndex;
+        this.queryProcessor = queryProcessor;
     }
 
     //Main function for scoring documents
@@ -30,7 +30,7 @@ public class MaxScore {
 
         //Find term upper bounds for each query term
         for(String term : queryTerms){
-            termUpperBounds.put(term,(double) handleIndex.getLexicon().getLexicon().get(term).getTermUpperBound());
+            termUpperBounds.put(term,(double) queryProcessor.getLexicon().getLexicon().get(term).getTermUpperBound());
         }
 
         //Sort the posting lists based on the term upper bounds

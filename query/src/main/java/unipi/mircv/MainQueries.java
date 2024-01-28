@@ -14,7 +14,7 @@ import java.util.Scanner;
 public class MainQueries {
 
         private int k;
-        public HandleIndex handleIndex;
+        public QueryProcessor queryProcessor;
         public String scoreFunction;
         public String documentProcessor;
         public Parser parser;
@@ -23,12 +23,12 @@ public class MainQueries {
         private final String queryType;
 
 
-        public MainQueries(int k, String scoreFunction, String documentProcessor, String queryType, boolean stopwordStemming) {
+        public MainQueries(int k, String scoreFunction, String documentProcessor, String queryType, boolean stopwordStemming, String encodingType) {
             this.k = k;
             this.scoreFunction = scoreFunction;
             this.documentProcessor = documentProcessor;
             this.queryType = queryType;
-            this.handleIndex = new HandleIndex();
+            this.queryProcessor = new QueryProcessor(encodingType);
             this.parser = new Parser();
         }
 
@@ -42,9 +42,9 @@ public class MainQueries {
             HashMap<String, ArrayList<Posting>> postingLists;
 
             if (documentProcessor.equals("daat")){
-                postingLists = handleIndex.lookup(queryTerms);
+                postingLists = queryProcessor.lookup(queryTerms,encodingType);
             }else{
-                postingLists = handleIndex.initialLookUp(queryTerms); //Retrieve candidate postinglists
+                postingLists = queryProcessor.initialLookUp(queryTerms,encodingType); //Retrieve candidate postinglists
             }
 
             return scoreDocuments(queryTerms, postingLists); //Return scores
@@ -60,9 +60,9 @@ public class MainQueries {
         ScoreFunction scoreFunction = null;
 
         if (scoreFunction.equals("tfidf")) {
-            scoreFunction = new ScoreFunction(postingLists, queryTerms, handleIndex, queryType);
+            scoreFunction = new ScoreFunction(postingLists, queryTerms, queryProcessor, queryType);
         } else if (scoreFunction.equals("bm25")) {
-            scoreFunction = new ScoreFunction(postingLists, queryTerms, handleIndex, queryType);
+            scoreFunction = new ScoreFunction(postingLists, queryTerms, queryProcessor, queryType);
         } else {
             // Handle the case when an unsupported score function type is provided
             return null;
@@ -70,7 +70,7 @@ public class MainQueries {
 
 
         if (documentProcessor.equals("maxscore")) {
-            MaxScore maxScore = new MaxScore(queryType, handleIndex);
+            MaxScore maxScore = new MaxScore(queryType, queryProcessor);
             return maxScore.scoreDocuments(queryTerms, postingLists, scoreFunction, k);
         } /*else if (documentProcessor.equals("daat")) {
             DAAT daat = new DAAT(queryType, handleIndex);
@@ -90,13 +90,13 @@ public class MainQueries {
 
         System.out.println("Welcome to Query Processing ");
         int nResults = Integer.parseInt(args[0]); //number of results
-        String scoreFunction = args[1]; //Which scoring function to use
+        String scoreType = args[1]; //Which scoring function to use
         String documentProcessor = args[2]; //How to process the postinglist
         String queryType = args[3]; //Type of relation (conjunctive or disjunctive)
         Boolean stopwordStemming = Boolean.valueOf(args[4]); //Stopwords Removal
+        String encodingType = args[5]; //encoding type
 
-
-        MainQueries mainQueries = new MainQueries(nResults, scoreFunction, documentProcessor, queryType, stopwordStemming);
+        MainQueries mainQueries = new MainQueries(nResults, scoreType, documentProcessor, queryType, stopwordStemming, encodingType);
 
         Scanner sc = new Scanner(System.in);
 

@@ -34,8 +34,8 @@ public class Parser {
      */
     public static String processDocument(String line,boolean stopStemming){
         //Utility variables to keep the current docno and text
-        String docno;
-        String text;
+        //String docno;
+        //String text;
         /*
         //Divide the line using \t as delimiter, splitting the docNo and the text
         StringTokenizer stringTokenizer = new StringTokenizer(line, "\t");
@@ -56,6 +56,7 @@ public class Parser {
             return null;
         }
     */
+
         //Remove punctuation, then split when there are one or more whitespace characters
         String[] splittedText = removePunctuation(line).split("\\s+");
 
