@@ -1,7 +1,5 @@
 package unipi.mircv;
 
-import org.javatuples.Pair;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -37,7 +35,7 @@ public class MainQueries {
          * @param query the query to process
          * @return BoundedPriorityQueue of top-k results
          */
-        public PQueue processQuery(String query, boolean stopwordStemming){
+        public PQueue processQuery(String query, boolean stopwordStemming, String encodingType){
             String[] queryTerms = parser.processDocument(query, stopwordStemming).split(" "); //Parse the query
             HashMap<String, ArrayList<Posting>> postingLists;
 
@@ -105,7 +103,7 @@ public class MainQueries {
             String query = sc.nextLine();
 
             long start = System.currentTimeMillis();
-            PQueue results = mainQueries.processQuery(query, stopwordStemming);
+            PQueue results = mainQueries.processQuery(query, stopwordStemming, encodingType);
             long end = System.currentTimeMillis();
 
             System.out.println("Elapsed Time in milliseconds: "+ (end-start));
