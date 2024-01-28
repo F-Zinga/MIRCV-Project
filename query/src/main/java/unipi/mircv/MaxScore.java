@@ -23,7 +23,7 @@ public class MaxScore {
     }
 
     //Main function for scoring documents
-    public PQueue scoreDocuments(String[] queryTerms, HashMap<String, ArrayList<Posting>> postingLists, ScoreFunction scoreFunction, int k){
+    public PQueue scoreDocuments(String[] queryTerms, HashMap<String, ArrayList<Posting>> postingLists, ScoreFunction scoreFunction, int k,String encodingType,String scoreType){
         PQueue scores = new PQueue(k); //Initialize a new PriorityQueue with a capacity of k
         HashMap<String, Double> termUpperBounds = new HashMap<>(); //Create a HashMap of term upper bounds
         double threshold = 0;
@@ -52,18 +52,18 @@ public class MaxScore {
         //Create an array list of PostingListIterators, one for each query term
         ArrayList<PostingList> postingIterators = new ArrayList<>();
         for(String term : termsOrder){
-            postingIterators.add(new PostingList(term, postingLists.get(term), scoreFunction, handleIndex, "maxscore"));
+            postingIterators.add(new PostingList(term, postingLists.get(term), scoreFunction, queryProcessor, "maxscore"));
         }
 
         //Check if the query is conjunctive and execute it conjunctive in case
         if(queryType.equals("conjunctive")){
-            processConjunctive(scores,postingIterators);
+            processConjunctive(scores,postingIterators,encodingType,scoreType);
             return scores;
         }
 
         //Iterate through the posting lists until all are finished
-        while(!notFinished(postingIterators, essentialPostingList)){
-            int minDocid = minDocId(postingIterators, essentialPostingList); //Get minimum docID over all posting lists
+        while(!notFinished(postingIterators, essentialPostingList,encodingType)){
+            int minDocid = minDocId(postingIterators, essentialPostingList,encodingType); //Get minimum docID over all posting lists
             double score = 0.0;
             boolean checkDocUpperBound = false;
             // Loop through the posting lists in reverse order
@@ -79,12 +79,12 @@ public class MaxScore {
                             checkDocUpperBound = true;
                         }
                     }
-                    term_iterator.nextGEQ(minDocid); // Move the iterator to the next element with a docID greater or equal to the minimum docID
+                    term_iterator.nextGEQ(minDocid,encodingType); // Move the iterator to the next element with a docID greater or equal to the minimum docID
                 }
                 // If the iterator has not reached the end of the posting list
                 if (term_iterator.hasNext()) {
                     if (term_iterator.docid() == minDocid) {  // If the current posting has the same docID as the minimum docID
-                        score += term_iterator.score(termsOrder[i]); // Add the score for the posting to the total score for the document
+                        score += term_iterator.score(termsOrder[i],scoreType); // Add the score for the posting to the total score for the document
                         term_iterator.next(); // Move the iterator to the next element
                     }
                 }
@@ -108,28 +108,28 @@ public class MaxScore {
     }
 
 
-    public void processConjunctive(PQueue scores, ArrayList<PostingList> postingListIterators){
+    public void processConjunctive(PQueue scores, ArrayList<PostingList> postingListIterators,String encodingType,String scoreType){
         //Find the smallest postingList
         int minPostingListIndex = 0;
-        int minPostingListLength = handleIndex.getLexicon().getLexicon().get(postingListIterators.get(0).getTerm()).getPostingListLength();
+        int minPostingListLength = queryProcessor.getLexicon().getLexicon().get(postingListIterators.get(0).getTerm()).getPostingListLength();
         for(int i=1; i<postingListIterators.size(); i++){
-            if(minPostingListLength>handleIndex.getLexicon().getLexicon().get(postingListIterators.get(i).getTerm()).getPostingListLength()){
+            if(minPostingListLength>queryProcessor.getLexicon().getLexicon().get(postingListIterators.get(i).getTerm()).getPostingListLength()){
                 minPostingListIndex = i;
-                minPostingListLength = handleIndex.getLexicon().getLexicon().get(postingListIterators.get(i).getTerm()).getPostingListLength();
+                minPostingListLength = queryProcessor.getLexicon().getLexicon().get(postingListIterators.get(i).getTerm()).getPostingListLength();
             }
         }
 
         PostingList minPostingListIterator = postingListIterators.get(minPostingListIndex);
-        while(!minPostingListIterator.isFinished()){//While there are posting to be processed
+        while(!minPostingListIterator.isFinished(encodingType)){//While there are posting to be processed
             boolean toAdd = true;
             int docId = minPostingListIterator.docid();
-            double score = minPostingListIterator.score(minPostingListIterator.getTerm());
+            double score = minPostingListIterator.score(minPostingListIterator.getTerm(),scoreType);
             minPostingListIterator.next();
             for(int i=0;i<postingListIterators.size();i++){ //foreach other posting list call the nextGEQ on the docID of the smallest postingList
                 if(i!=minPostingListIndex){
-                    postingListIterators.get(i).nextGEQ(docId);
+                    postingListIterators.get(i).nextGEQ(docId,encodingType);
                     if(docId == postingListIterators.get(i).docid()){
-                        score += postingListIterators.get(i).score(postingListIterators.get(i).getTerm());
+                        score += postingListIterators.get(i).score(postingListIterators.get(i).getTerm(),scoreType);
                     }else{
                         toAdd = false;
                         break;
@@ -137,7 +137,7 @@ public class MaxScore {
                 }
             }
             if(toAdd){
-                scores.add(new Pair<>(handleIndex.getDocumentIndex().getDocumentIndex().get(docId).getDocNo(),score));
+                scores.add(new DocsRanked(queryProcessor.getDocIndex().getDocIndex().get(docId).getDocNo(),score));
             }
         }
 
@@ -152,13 +152,13 @@ public class MaxScore {
     }
 
     //Get the minimum docID over all the posting lists
-    public int minDocId(ArrayList<PostingList> postingIterators, boolean[] essentialPostingList){
+    public int minDocId(ArrayList<PostingList> postingIterators, boolean[] essentialPostingList,String encodingType){
         int minDocId = Integer.MAX_VALUE;
 
         for(int i=essentialPostingList.length-1; i>=0; i--){
             if(essentialPostingList[i]){
                 PostingList postingIterator = postingIterators.get(i);
-                if(!postingIterator.isFinished()) {
+                if(!postingIterator.isFinished(encodingType)) {
                     if(postingIterator.docid() < minDocId){
                         minDocId = postingIterator.docid();
                     }
@@ -170,11 +170,11 @@ public class MaxScore {
     }
 
     //Check if the query processing is finished, i.e. all the posting lists has been fully processed
-    public boolean notFinished(ArrayList<PostingList> postingIterators, boolean[] essentialPostingList){
+    public boolean notFinished(ArrayList<PostingList> postingIterators, boolean[] essentialPostingList,String encodingType){
         boolean finished = true;
         for(int i=essentialPostingList.length-1; i>=0; i--){
             if(essentialPostingList[i]){
-                if(!postingIterators.get(i).isFinished()) {
+                if(!postingIterators.get(i).isFinished(encodingType)) {
                     finished = false;
                     break;
                 }

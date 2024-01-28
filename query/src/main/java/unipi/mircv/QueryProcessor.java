@@ -7,7 +7,6 @@ import java.util.*;
  * such as the lexicon, document index, and collection statistics.
  */
 public class QueryProcessor {
-    public ManagerIO managerIO;
     public Lexicon lexicon;
     public Statistics statistics;
     public DocIndex docIndex;
@@ -21,17 +20,17 @@ public class QueryProcessor {
     public TextReader freqTextRead;
     public TextReader lastDocIdTextRead;
     public TextReader skipPointersTextRead;
-    public static TextReader lexiconRead;
+    public TextReader lexiconRead;
     public TextReader documentIndexTextRead;
     public RandomByteReader documentIndexByteRead;
     public TextReader statisticsRead;
-    public static String encodingType;
+    public String encodingType;
 
     /**
      * Default constructor initializing components and loading necessary data into memory.
      */
     public QueryProcessor(String encodingType) {
-        this.managerIO = new ManagerIO();
+
         this.lexicon = new Lexicon();
         this.docIndex = new DocIndex();
         this.encodingType= encodingType;
@@ -52,12 +51,6 @@ public class QueryProcessor {
         obtainStatistics();
         obtainDocumentIndex(encodingType);
 
-
-        if (encodingType.equals("text")) {
-            // Close obtain files
-            closeTextLookupFiles();
-        }
-        else closeByteLookupFiles();
 
         postingListLength = 500; //TODO: da controllare
     }
@@ -313,7 +306,7 @@ public class QueryProcessor {
          * Loads the lexicon from disk into main memory.
          * @param lexicon The Lexicon object to store the loaded data..
          */
-        public static void obtainLexicon (Lexicon lexicon){
+        public void obtainLexicon (Lexicon lexicon){
             String line;
             String[] terms;
 
@@ -375,10 +368,6 @@ public class QueryProcessor {
             return docIndex;
         }
 
-        public ManagerIO getManagerIO () {
-            return managerIO;
-        }
-
         public Lexicon getLexicon () {
             return lexicon;
         }
@@ -409,8 +398,8 @@ public class QueryProcessor {
                 return postingLists;  // If skip pointers are not found, return an empty postingLists.
 
             // Go to the specified offsets for docIds and frequencies.
-            managerIO.goToOffset(docIdByteRead, skipPointers[0]);
-            managerIO.goToOffset(freqByteRead, skipPointers[1]);
+            goToOffset(docIdByteRead, skipPointers[0]);
+            goToOffset(freqByteRead, skipPointers[1]);
             postingListLength = lexicon.getLexicon().get(term).getPostingListLength();
 
             // Calculate the number of postings to read in the next block.
@@ -462,8 +451,8 @@ public class QueryProcessor {
             offsetSkipPointers = lexicon.getLexicon().get(term).getOffsetSkipPointers();
 
             // Go to the specified offsets for last docIds and skip pointers.
-            managerIO.goToOffset(lastDocIdByteRead, offsetLastDocIds);
-            managerIO.goToOffset(skipPointersByteRead, offsetSkipPointers);
+            goToOffset(lastDocIdByteRead, offsetLastDocIds);
+            goToOffset(skipPointersByteRead, offsetSkipPointers);
 
             if (encodingType.equals("text")) {
                 // Read information about each block.
@@ -503,61 +492,61 @@ public class QueryProcessor {
 
     //function that opens the lookup files for the lookup phase.
     public void openTextLookupFiles() {
-        docIdsTextRead = new TextReader("Output/DocIds/docIds.txt");
-        freqTextRead = new TextReader("Output/Frequencies/freq.txt");
-        lastDocIdTextRead = new TextReader("Output/Skipping/lastDocIds.txt");
-        skipPointersTextRead = new TextReader("Output/Skipping/skipPointers.txt");
+        this.docIdsTextRead = new TextReader("Output/DocIds/docIds.txt");
+        this.freqTextRead = new TextReader("Output/Frequencies/freq.txt");
+        this.lastDocIdTextRead = new TextReader("Output/Skipping/lastDocIds.txt");
+        this.skipPointersTextRead = new TextReader("Output/Skipping/skipPointers.txt");
     }
 
     //function that opens the lookup files for the lookup phase.
     public void openByteLookupFiles() {
         Compressor compressor = new Compressor();
-        docIdByteRead = new RandomByteReader("Output/DocIds/docIds.dat", compressor);
-        freqByteRead = new RandomByteReader("Output/Frequencies/freq.dat", compressor);
-        lastDocIdByteRead = new RandomByteReader("Output/Skipping/lastDocIds.dat", compressor);
-        skipPointersByteRead = new RandomByteReader("Output/Skipping/skipPointers.dat", compressor);
+        this.docIdByteRead = new RandomByteReader("Output/DocIds/docIds.dat", compressor);
+        this.freqByteRead = new RandomByteReader("Output/Frequencies/freq.dat", compressor);
+        this.lastDocIdByteRead = new RandomByteReader("Output/Skipping/lastDocIds.dat", compressor);
+        this.skipPointersByteRead = new RandomByteReader("Output/Skipping/skipPointers.dat", compressor);
     }
 
     //function that closes the lookup files.
     public void closeTextLookupFiles() {
-        docIdsTextRead.close();
-        freqTextRead.close();
-        lastDocIdTextRead.close();
-        skipPointersTextRead.close();
+        this.docIdsTextRead.close();
+        this.freqTextRead.close();
+        this.lastDocIdTextRead.close();
+        this.skipPointersTextRead.close();
 
     }
     public void closeByteLookupFiles() {
-        docIdByteRead.close();
-        freqByteRead.close();
-        lastDocIdByteRead.close();
-        skipPointersByteRead.close();
+        this.docIdByteRead.close();
+        this.freqByteRead.close();
+        this.lastDocIdByteRead.close();
+        this.skipPointersByteRead.close();
 
     }
 
 
     public void openTextObtainFiles() {
         Compressor compressor = new Compressor();
-        lexiconRead = new TextReader("Output/Lexicon/lexicon.txt");
-        statisticsRead = new TextReader("Output/CollectionStatistics/collectionStatistics.txt");
-        documentIndexTextRead = new TextReader("Output/DocumentIndex/documentIndex.txt");
+        this.lexiconRead = new TextReader("Output/Lexicon/lexicon.txt");
+        this.statisticsRead = new TextReader("Output/CollectionStatistics/collectionStatistics.txt");
+        this.documentIndexTextRead = new TextReader("Output/DocumentIndex/documentIndex.txt");
     }
 
     public void openByteObtainFiles() {
         Compressor compressor = new Compressor();
-        lexiconRead = new TextReader("Output/Lexicon/lexicon.txt");
-        statisticsRead = new TextReader("Output/CollectionStatistics/collectionStatistics.txt");
-        documentIndexByteRead = new RandomByteReader("Output/DocumentIndex/documentIndex.dat", compressor);
+        this.lexiconRead = new TextReader("Output/Lexicon/lexicon.txt");
+        this.statisticsRead = new TextReader("Output/CollectionStatistics/collectionStatistics.txt");
+        this.documentIndexByteRead = new RandomByteReader("Output/DocumentIndex/documentIndex.dat", compressor);
     }
 
     public void closeTextObtainFiles() {
-        lexiconRead.close();
-        statisticsRead.close();
-        documentIndexTextRead.close();
+        this.lexiconRead.close();
+        this.statisticsRead.close();
+        this.documentIndexTextRead.close();
     }
 
     public void closeByteObtainFiles() {
-        lexiconRead.close();
-        statisticsRead.close();
-        documentIndexByteRead.close();
+        this.lexiconRead.close();
+        this.statisticsRead.close();
+        this.documentIndexByteRead.close();
     }
 }

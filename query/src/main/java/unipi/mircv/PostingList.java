@@ -27,7 +27,7 @@ public PostingList(String term, ArrayList<Posting> PostingList, ScoreFunction sc
         this.position = 0;
         this.scoreFunction = scoreFunction;
         this.term = term;
-        this.queryProcessor = new QueryProcessor();
+        this.queryProcessor = queryProcessor;
         this.documentProcessor = documentProcessor;
         this.isFinished = false;
     }
@@ -40,13 +40,13 @@ public PostingList(String term, ArrayList<Posting> PostingList, ScoreFunction sc
     public int docid(){
         return postingList.get(position).getDocID();
     }
-    String scoreType = null;
-    public double score(String term){
+
+    public double score(String term,String scoreType){
 
         return scoreFunction.scoreF(term, postingList.get(position), scoreType);
     }
 
-    public boolean isFinished(){
+    public boolean isFinished(String encodingType){
         if (this.postingList.size() == 0) {
             return true;
         }
@@ -57,7 +57,7 @@ public PostingList(String term, ArrayList<Posting> PostingList, ScoreFunction sc
             }
             if (position >= postingList.size()) {
                 int docId = postingList.get(postingList.size() - 1).getDocID(); //Gets the docID of the last posting to use it to load the nextBlock (using loadNextBlock)
-                HashMap<String, ArrayList<Posting>> newBlock = queryProcessor.loadNextBlock(this.term, docId);
+                HashMap<String, ArrayList<Posting>> newBlock = queryProcessor.loadNextBlock(this.term, docId,encodingType);
                 if(!newBlock.containsKey(term)){
                     this.isFinished = true;
                     return true;
@@ -78,10 +78,10 @@ public PostingList(String term, ArrayList<Posting> PostingList, ScoreFunction sc
         return postingList.get(position++);
     }
 
-    public void nextGEQ(int docId) {
+    public void nextGEQ(int docId,String encodingType) {
         //Load another block if the docID searched is not in the currentBlock
         if (docId > postingList.get(postingList.size()-1).getDocID()){
-            HashMap<String,ArrayList<Posting>> newBlock =  queryProcessor.lookupDocId(this.term, docId);
+            HashMap<String,ArrayList<Posting>> newBlock =  queryProcessor.lookupDocId(this.term, docId, encodingType);
             if (newBlock.containsKey(term)){
                 this.postingList = newBlock.get(term);
                 this.position = 0;
