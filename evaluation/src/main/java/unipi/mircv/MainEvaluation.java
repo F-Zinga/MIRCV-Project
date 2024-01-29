@@ -1,278 +1,104 @@
 package unipi.mircv;
 
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.javatuples.Pair;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.PriorityQueue;
+import java.util.Scanner;
+import java.util.Stack;
 
-/**
- * Main class for the query evaluation module. Provides methods to load queries from a file, generate query results,
- *  * and evaluate them using the TREC_EVAL tool.
- */
-public class MainEvaluation{
+public class MainEvaluation {
 
-    //Path to the input file containing the queries
-    static final String QUERY_PATH = "Resources/queries/test2020-queries.tsv.gz";
+    private File resultFile;
+    private PrintWriter writer;
 
-    //Path to the output file containing the results of the queries
-    static final String RESULTS_PATH = "Files/queries_results/";
-
-    // Flag indicating if the scoring is bm25 (true) or tfidf (false)
-    static Boolean bm25scoring = true;
-
-    // Flag indicating if the query is disjunctive (true) or conjunctive (false)
-    static Boolean queryType = true;
-
-
-    public static void main( String[] args )
-    {
-        // Load configuration settings
-        Settings settings = new Settings();
-
-        //If configuration is not found, inverted index is not present; exits the program.
-        if(!settings.loadSettings())
-            return;
-
-        System.out.println(" *** loadSettings... *** ");
-        System.out.println(settings);
-
-        System.out.println(" *** loadLexicon... *** ");
-        // Load the lexicon into memory
-        Lexicon lexicon = new Lexicon();
-        lexicon.loadLexicon();
-
-        System.out.println(" *** loadDocumentIndex... *** ");
-        // Load the document index into memory
-        DocIndex docIndex = new DocIndex();
-        docIndex.loadDocumentIndex();
-
-        // Evaluate disjunctive queries with BM25 scoring
-        evaluateQueries(getQueries(), settings, docIndex, lexicon, 0);
-
-        // Evaluate conjunctive queries with BM25 scoring
-        queryType = false;
-        bm25scoring = true;
-        evaluateQueries(getQueries(), settings, docIndex, lexicon, 1);
-
-        // Evaluate conjunctive queries with TFIDF scoring
-        queryType = false;
-        bm25scoring = false;
-        evaluateQueries(getQueries(), settings, docIndex, lexicon, 2);
-
-        // Evaluate disjunctive queries with TFIDF scoring
-        queryType = true;
-        bm25scoring = false;
-        evaluateQueries(getQueries(), settings, docIndex, lexicon, 3);
-    }
-
-    /**
-     * Read  queries from a file in the format of qid\tquery and return an array of tuple containing the
-     * qid and the query: (qid, query)
-     * @return an ArrayList of tuple containing the qid and the query: (qid, query)
-     */
-    private static ArrayList<Pair<Long, String>> getQueries(){
-
-        //Path of the collection to be read
-        File file = new File(QUERY_PATH);
-
-        System.out.println("*** get query... ***");
-
-        //Try to open the collection
-        try (FileInputStream fileInputStream = new FileInputStream(file)){
-
-            //Read the uncompressed tar file specifying UTF-8 as encoding
-            InputStreamReader inputStreamReader = new InputStreamReader(new GzipCompressorInputStream(fileInputStream), StandardCharsets.UTF_8);
-
-            //Create a BufferedReader to access one line of the file at a time
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-            //Variable to keep the current line read from the buffer
-            String line;
-
-            //Array list for the results
-            ArrayList<Pair<Long, String>> results = new ArrayList<>();
-
-            //Iterate over the lines
-            while ((line = bufferedReader.readLine()) != null ) {
-
-                //Split the line qid\query in qid query
-                String[] split = line.split("\t");
-                System.out.println("*** split ***" + split);
-
-                //Add it to the results array if both qid and query are present
-                if(split[0] != null && split[1] != null) {
-                    results.add(new Pair<>(Long.parseLong(split[0]), split[1]));
-                }
+    public MainEvaluation() {
+        try {
+            resultFile = new File("Data/Output/queryResults.txt");
+            if (resultFile.createNewFile()) {
+                System.out.println("File created: " + resultFile.getName());
+            } else {
+                System.out.println("File already exists.");
             }
-
-            return results;
-
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("An error occurred during the creation of the output file.");
+            e.printStackTrace();
         }
-    }
-
-    /**
-     * Performs all the queries in the array of queries, using the configuration parameters passed, for the scoring it
-     * requires the document index and the lexicon.
-     * @param queries array of tuples containing the query id and the query string (queryId, query)
-     * @param settings configuration used during the creation of the previous inverted index
-     * @param docIndex document index containing the document info
-     * @param lexicon lexicon containing the terms information
-     */
-    private static void evaluateQueries(ArrayList<Pair<Long,String>> queries, Settings settings, DocIndex docIndex, Lexicon lexicon, int k){
-
-        //Object used to build the lexicon line into a string
-        StringBuilder stringBuilder;
-
-        //Buffered writer used to format the output
-        BufferedWriter bufferedWriter;
 
         try {
-            String fileName = RESULTS_PATH;
-            if(k == 0){
-                fileName+= "disj_bm25.txt";
-            }
-            else if(k == 1){
-                fileName+= "conj_bm25.txt";
-            }
-            else if(k == 2){
-                fileName+= "conj_tfidf.txt";
-            }
-            else{
-                fileName+= "disj_tfidf.txt";
-            }
+            writer = new PrintWriter(resultFile);
+        } catch (FileNotFoundException e) {
+            System.out.println("Query result file not founded");
+            e.printStackTrace();
+        }
+    }
 
-            bufferedWriter = new BufferedWriter(new FileWriter(fileName,false));
 
-            double completionTimeTot = 0.0;
-            int numberOfQueries = 0;
+    public void processCollection(String file) {
+        try {
+            File myFile = new File(file);
+            Scanner myReader;
+            myReader = new Scanner(myFile, StandardCharsets.UTF_8);
+            Boolean stopwordStemming= Boolean.valueOf("true");
+            String encodingType="byte";
+            MainQueries mainQueries = new MainQueries(10, "tfidf", "daat", "disjunctive", stopwordStemming, encodingType);
+            int counter = 0;
+            while (myReader.hasNextLine()) {
+                System.out.println("Processing Query number: " + counter);
+                String[] line = myReader.nextLine().split("\t", 2); //Read the line and split it (cause the line is composed by (docNo \t document))
 
-            for( Pair<Long,String> tuple : queries ){
-
-                //Read the next query, add -1 to indicate that it is a query
-                String query = "--\t" + tuple.getValue1();
-
-                //Parse the query
-                String[] queryTerms = parseQuery(query, lexicon, settings.getStemmingAndStopWords());
-                System.out.println("*** query terms... ***" + queryTerms);
-
-                //If the query string is equal to null it means that the query contains all stopwords or all the terms
-                // are not present in the lexicon.
-                if(queryTerms == null || queryTerms.length == 0) {
-                    System.out.println(" Please rewrite the query: it is too generic.");
+                int qid;
+                try {
+                    qid = Integer.parseInt(line[0]); //Get docNo
+                } catch (NumberFormatException e) {
                     continue;
                 }
-
-                //Remove the duplicates
-                queryTerms = Arrays.stream(queryTerms).distinct().toArray(String[]::new);
-
-
-                //Load the posting list of the terms of the query
-                PostingList[] postingLists = new PostingList[queryTerms.length];
-
-                //For each term in the query terms array
-                for (int i = 0; i < queryTerms.length; i++) {
-
-                    //Instantiate the posting for the i-th query term
-                    postingLists[i] = new PostingList();
-
-                    //Load in memory the posting list of the i-th query term
-                    postingLists[i].openList(lexicon.get(queryTerms[i]));
-
-                }
-
-                //Array containing the results of the query
-                ArrayList<Pair<Long, Double>> result;
-                System.out.println("*** start result... ***");
-
-                //Retrieve the time at the beginning of the computation
-                long begin = System.currentTimeMillis();
-
-                //Score the collection
-                if(queryType){
-                    result = MaxScore.scoreCollectionDisjunctive(postingLists,docIndex, bm25scoring);
-                }else {
-                    result = MaxScore.scoreCollectionConjunctive(postingLists,docIndex, bm25scoring);
-                }
-                System.out.println("*** end result... ***");
-
-                completionTimeTot += (System.currentTimeMillis() - begin);
-                numberOfQueries++;
-
-                //Write the results in a format valid for the TREC_EVAL tool
-                for(int i = 0; i < result.size(); i++){
-
-                    //New string builder for the current result
-                    stringBuilder = new StringBuilder();
-
-                    //build the string
-                    stringBuilder
-                            .append(tuple.getValue0()).append(" ")
-                            .append("q0 ")
-                            .append(docIndex.get(result.get(i).getValue0()).getDocNo()).append(" ")
-                            .append(i+1).append(" ")
-                            .append(result.get(i).getValue1()).append(" ")
-                            .append("runid1").append("\n");
-
-                    //System.out.println("*** start write... ***");
-
-                    //Write the string in the file
-                    bufferedWriter.write(stringBuilder.toString());
-                    //System.out.println("*** end write... ***");
-
-                }
-
-                //Close the posting lists
-                for (PostingList postingList : postingLists) {
-                    postingList.closeList();
-                }
-
+                processQuery(line[1], qid, mainQueries, stopwordStemming, encodingType);
+                counter += 1;
             }
-
-            System.out.println("Average completion time: " + completionTimeTot/numberOfQueries + "ms");
-            System.out.println("Number of queries: " + numberOfQueries);
-
-            //Close the writer
-            bufferedWriter.close();
+            myReader.close();
+            writer.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("The specified file is not found. Please try again.");
+            e.printStackTrace();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    /**
-     * Parses the input query string and retrieves the list of terms after applying the same parsing process used during the indexing phase.
-     * @param query the query string to parse
-     * @param stopwordsRemovalAndStemming if true remove the stopwords and applies the stemming procedure.
-     * @return the array of terms after the parsing of the query
-     */
-    public static String[] parseQuery(String query, Lexicon lexicon ,boolean stopwordsRemovalAndStemming) {
+    public void processQuery(String query, int qid, MainQueries mainQueries, boolean stopwordStemming, String encodingType ) {
+        PQueue results = mainQueries.processQuery(query,stopwordStemming,encodingType);
+        results.printResults();
 
-        //Array of terms to build the result
-        ArrayList<String> results = new ArrayList<>();
+        PriorityQueue<DocsRanked> queue = results.getQueue();
+        Stack<DocsRanked> stack = new Stack<>();
 
-        System.out.println(query);
-
-        //Parse the query using the same configuration of the indexer
-        DocParsed parsedDocument = Parser.processDocument(query, stopwordsRemovalAndStemming);
-
-        //Return null if no terms are returned by the parser
-        if(parsedDocument == null){
-            return null;
+        // Iterate through the priority queue and add each element to the stack
+        while (!queue.isEmpty()) {
+            stack.push(queue.poll());
         }
 
-        //Remove the query terms that are not present in the lexicon
-        for(String term : parsedDocument.getTerms()){
-            if(lexicon.get(term) != null){
-                results.add(term);
-            }
+        int position = 1;
+        while (!stack.isEmpty()) {
+            DocsRanked fs = stack.pop();
+            writer.println(qid + " " + "Q0" + " " + fs.getKey() + " " + position + " " + fs.getValue() + " " + "STANDARD");
+            position += 1;
         }
+    }
 
-        //Return an array of String containing the results of the parsing process
-        return results.toArray(new String[0]);
+
+    public static void main(String[] args) throws IOException, InterruptedException {
+        System.out.println("Welcome to the Evaluation");
+        String file = args[0];
+
+        MainEvaluation eval = new MainEvaluation();
+        long start = System.currentTimeMillis();
+        eval.processCollection(file);
+        long end = System.currentTimeMillis();
+        System.out.println("Elapsed Time in milliseconds: " + (end - start));
     }
 
 
