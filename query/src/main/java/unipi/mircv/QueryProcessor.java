@@ -56,7 +56,7 @@ public class QueryProcessor {
         else
             closeByteObtainFiles();
 
-        postingListBlockLenght = 500; // TODO: da controllare
+        postingListBlockLenght = 500;
     }
 
 
@@ -457,8 +457,6 @@ public class QueryProcessor {
             offsetLastDocIds = lexicon.getLexicon().get(term).getOffsetLastDocIds();
             offsetSkipPointers = lexicon.getLexicon().get(term).getOffsetSkipPointers();
 
-            // TODO buffer reader is 000000
-
             // Go to the specified offsets for last docIds and skip pointers.
             goToOffset(lastDocIdByteRead, offsetLastDocIds);
             goToOffset(skipPointersByteRead, offsetSkipPointers);
@@ -480,7 +478,7 @@ public class QueryProcessor {
             //System.out.println("Hola: " + (int) Math.floor(Math.sqrt(docIds.size())));
             // Iterate through docIds to find the block containing the specified docId.
             for (int i = 0; i < docIds.size(); i++) {
-                if (docId == docIds.get(i)) {//TODO docids.get(i) does not find docID
+                if (docId == docIds.get(i)) {
 
                     // If the docId belongs to the last block, return without updating skipPointers.
                     if (i == (docIds.size() - 1)) return;
