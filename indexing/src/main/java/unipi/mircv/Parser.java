@@ -33,29 +33,6 @@ public class Parser {
      * @return Document tokenized based on the specified conditions
      */
     public static String processDocument(String line,boolean stopStemming){
-        //Utility variables to keep the current docno and text
-        //String docno;
-        //String text;
-        /*
-        //Divide the line using \t as delimiter, splitting the docNo and the text
-        StringTokenizer stringTokenizer = new StringTokenizer(line, "\t");
-
-        //Retrieve the first token, that is the docno
-        if(stringTokenizer.hasMoreTokens()){
-            docno = stringTokenizer.nextToken();
-
-            //Retrieve the second token, that is the text and cast it to lower case
-            if(stringTokenizer.hasMoreTokens()){
-                text = stringTokenizer.nextToken().toLowerCase();
-            }else{
-                //The text is empty, or it was not possible to retrieve it
-                return null;
-            }
-        }else{
-            //The line is empty, or it was not possible to retrieve it
-            return null;
-        }
-    */
 
         //Remove punctuation, then split when there are one or more whitespace characters
         String[] splittedText = removePunctuation(line).split("\\s+");
@@ -72,9 +49,7 @@ public class Parser {
 
         //DocParsed doc = new DocParsed(docno, splittedText);
 
-        String y = String.join(" ",splittedText); // a string with whitespaces between words
-
-        return y;
+        return String.join(" ",splittedText);
 
     }
 

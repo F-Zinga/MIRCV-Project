@@ -39,17 +39,10 @@ public class Term {
         return offsetDocId;
     }
 
-    public void setOffsetDocId(int offsetDocId) {
-        this.offsetDocId = offsetDocId;
-    }
-
     public int getOffsetFreq() {
         return offsetFreq;
     }
 
-    public void setOffsetFreq(int offsetFreq) {
-        this.offsetFreq = offsetFreq;
-    }
 
     public int getOffsetLastDocIds() {
         return offsetLastDocIds;

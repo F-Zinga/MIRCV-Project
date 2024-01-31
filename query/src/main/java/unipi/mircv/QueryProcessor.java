@@ -382,10 +382,6 @@ public class QueryProcessor {
             return lexicon;
         }
 
-        public void setLexicon (Lexicon lexicon){
-            this.lexicon = lexicon;
-        }
-
         /**
          * Loads the next block of a posting list for a specific term and document ID.
          * @param term The term for which to load the next block.
