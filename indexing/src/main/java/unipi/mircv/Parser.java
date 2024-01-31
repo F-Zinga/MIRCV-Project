@@ -86,7 +86,7 @@ public class Parser {
     private static String removePunctuation(String text){
         //Replace all punctuation marks with a whitespace character, then trim (cut) the string to remove the whitespaces
         // at the beginning or end of the string.
-        return text.replaceAll("[^a-zA-Z0-9]", " ").trim().toLowerCase();
+        return text.replaceAll("[^a-zA-Z0-9]", " ").trim().toLowerCase().replaceAll(" +"," ");
     }
 
     /**

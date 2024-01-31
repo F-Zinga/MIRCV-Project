@@ -1,8 +1,6 @@
 package unipi.mircv;
 
 
-import org.javatuples.Pair;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,9 +48,9 @@ public class MaxScore {
         }
 
         //Create an array list of PostingListIterators, one for each query term
-        ArrayList<PostingList> postingIterators = new ArrayList<>();
+        ArrayList<PLI> postingIterators = new ArrayList<>();
         for(String term : termsOrder){
-            postingIterators.add(new PostingList(term, postingLists.get(term), scoreFunction, queryProcessor, "maxscore"));
+            postingIterators.add(new PLI(term, postingLists.get(term), scoreFunction, queryProcessor, "maxscore"));
         }
 
         //Check if the query is conjunctive and execute it conjunctive in case
@@ -68,7 +66,7 @@ public class MaxScore {
             boolean checkDocUpperBound = false;
             // Loop through the posting lists in reverse order
             for(int i = termsOrder.length-1; i >= 0; i--){ //Foreach posting list check if the current posting corresponds to the minimum docID
-                PostingList term_iterator = postingIterators.get(i);
+                PLI term_iterator = postingIterators.get(i);
                 if (term_iterator.getPostingList().isEmpty()) continue;
                 // If the current posting list is not essential
                 if (!essentialPostingList[i]) {
@@ -108,7 +106,7 @@ public class MaxScore {
     }
 
 
-    public void processConjunctive(PQueue scores, ArrayList<PostingList> postingListIterators,String encodingType,String scoreType){
+    public void processConjunctive(PQueue scores, ArrayList<PLI> postingListIterators, String encodingType, String scoreType){
         //Find the smallest postingList
         int minPostingListIndex = 0;
         int minPostingListLength = queryProcessor.getLexicon().getLexicon().get(postingListIterators.get(0).getTerm()).getPostingListLength();
@@ -119,7 +117,7 @@ public class MaxScore {
             }
         }
 
-        PostingList minPostingListIterator = postingListIterators.get(minPostingListIndex);
+        PLI minPostingListIterator = postingListIterators.get(minPostingListIndex);
         while(!minPostingListIterator.isFinished(encodingType)){//While there are posting to be processed
             boolean toAdd = true;
             int docId = minPostingListIterator.docid();
@@ -152,12 +150,12 @@ public class MaxScore {
     }
 
     //Get the minimum docID over all the posting lists
-    public int minDocId(ArrayList<PostingList> postingIterators, boolean[] essentialPostingList,String encodingType){
+    public int minDocId(ArrayList<PLI> postingIterators, boolean[] essentialPostingList, String encodingType){
         int minDocId = Integer.MAX_VALUE;
 
         for(int i=essentialPostingList.length-1; i>=0; i--){
             if(essentialPostingList[i]){
-                PostingList postingIterator = postingIterators.get(i);
+                PLI postingIterator = postingIterators.get(i);
                 if(!postingIterator.isFinished(encodingType)) {
                     if(postingIterator.docid() < minDocId){
                         minDocId = postingIterator.docid();
@@ -170,7 +168,7 @@ public class MaxScore {
     }
 
     //Check if the query processing is finished, i.e. all the posting lists has been fully processed
-    public boolean notFinished(ArrayList<PostingList> postingIterators, boolean[] essentialPostingList,String encodingType){
+    public boolean notFinished(ArrayList<PLI> postingIterators, boolean[] essentialPostingList, String encodingType){
         boolean finished = true;
         for(int i=essentialPostingList.length-1; i>=0; i--){
             if(essentialPostingList[i]){

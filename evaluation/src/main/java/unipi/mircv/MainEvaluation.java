@@ -17,7 +17,7 @@ public class MainEvaluation {
 
     public MainEvaluation() {
         try {
-            resultFile = new File("Data/Output/queryResults.txt");
+            resultFile = new File("Output/queryResults.txt");
             if (resultFile.createNewFile()) {
                 System.out.println("File created: " + resultFile.getName());
             } else {
@@ -44,7 +44,7 @@ public class MainEvaluation {
             myReader = new Scanner(myFile, StandardCharsets.UTF_8);
             Boolean stopwordStemming= Boolean.valueOf("true");
             String encodingType="byte";
-            MainQueries mainQueries = new MainQueries(10, "tfidf", "daat", "disjunctive", stopwordStemming, encodingType);
+            MainQueries mainQueries = new MainQueries(10, "tfidf", "maxscore", "disjunctive", stopwordStemming, encodingType);
             int counter = 0;
             while (myReader.hasNextLine()) {
                 System.out.println("Processing Query number: " + counter);
@@ -84,7 +84,7 @@ public class MainEvaluation {
         int position = 1;
         while (!stack.isEmpty()) {
             DocsRanked fs = stack.pop();
-            writer.println(qid + " " + "Q0" + " " + fs.getKey() + " " + position + " " + fs.getValue() + " " + "STANDARD");
+            writer.println(qid + " " + "Q0" + " " + fs.getKey() + " " + position + " " + fs.getValue() + " " + "runid1");
             position += 1;
         }
     }

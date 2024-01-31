@@ -10,7 +10,7 @@ public class QueryProcessor {
     public Lexicon lexicon;
     public Statistics statistics;
     public DocIndex docIndex;
-    public int postingListLength;
+    public int postingListBlockLenght;
 
     public RandomByteReader docIdByteRead;
     public RandomByteReader freqByteRead;
@@ -22,7 +22,7 @@ public class QueryProcessor {
     public TextReader skipPointersTextRead;
     public TextReader lexiconRead;
     public TextReader documentIndexTextRead;
-    public RandomByteReader documentIndexByteRead;
+    public ByteReader documentIndexByteRead;
     public TextReader statisticsRead;
     public String encodingType;
 
@@ -51,8 +51,12 @@ public class QueryProcessor {
         obtainStatistics();
         obtainDocumentIndex(encodingType);
 
+        if (encodingType.equals("text"))
+            closeTextObtainFiles();
+        else
+            closeByteObtainFiles();
 
-        postingListLength = 500; //TODO: da controllare
+        postingListBlockLenght = 500; // TODO: da controllare
     }
 
 
@@ -68,6 +72,8 @@ public class QueryProcessor {
         int postingListLength;
         int docId;
         int freq;
+
+
 
         HashMap<String, ArrayList<Posting>> postingLists = new HashMap<>();
         Set<String> queryTermsSet = new HashSet<>(List.of(queryTerms));
@@ -90,6 +96,7 @@ public class QueryProcessor {
                         docId = docIdsTextRead.read();
                         freq = freqTextRead.read();
                         addPosting(postingLists, term, docId, freq);
+
                     }
                 }
                 else{
@@ -116,6 +123,7 @@ public class QueryProcessor {
          * @return A HashMap between each term and the first block of its posting list.
          */
         public HashMap<String, ArrayList<Posting>> initialLookUp (String[]queryTerms, String encodingType){
+
             int offsetDocId;
             int offsetFreq;
             int postingListLength;
@@ -139,7 +147,7 @@ public class QueryProcessor {
                     goToOffset(freqByteRead, offsetFreq);
 
                     // Determine the number of postings to read
-                    postingToRead = Math.min(postingListLength, postingListLength);
+                    postingToRead = Math.min(postingListLength, postingListBlockLenght);
 
                 if (encodingType.equals("text")) {
                     // Iterate through the first block of the posting list and add postings to the list, reading docId and frequency from the relative files
@@ -154,6 +162,7 @@ public class QueryProcessor {
                         docId = docIdByteRead.read();
                         freq = freqByteRead.read();
                         addPosting(postingLists, term, docId, freq);
+
                     }
                 }
                 } catch (NullPointerException e) {
@@ -188,16 +197,15 @@ public class QueryProcessor {
             // Go to the specified offsets in docIds and freq files
             goToOffset(docIdByteRead, skipPointers[0]);
             goToOffset(freqByteRead, skipPointers[1]);
-
             // Determine the number of posting to read
             postingListLength = lexicon.getLexicon().get(term).getPostingListLength();
             //skiPointers[2] == 0 if the docId is not contained in the last block of the posting list, 1 otherwise.
             if (skipPointers[2] == 0) {
-                postingToRead = Math.min(postingListLength, postingListLength);
+                postingToRead = Math.min(postingListLength, postingListBlockLenght);
             } else {
                 // Compute the right length to read if the posting containing the docId is the last block
-                numberOfBlocks = (lexicon.getLexicon().get(term).getPostingListLength() / postingListLength) + 1;
-                postingToRead = postingListLength - (numberOfBlocks - 1) * postingListLength;
+                numberOfBlocks = (lexicon.getLexicon().get(term).getPostingListLength() / postingListBlockLenght) + 1;
+                postingToRead = postingListLength - (numberOfBlocks - 1) * postingListBlockLenght;
             }
 
             if (encodingType.equals("text")) {
@@ -212,6 +220,7 @@ public class QueryProcessor {
                 for (int i = 0; i < postingToRead; i++) {
                     newDocId = docIdByteRead.read();
                     newFreq = freqByteRead.read();
+                    //TODO
                     addPosting(postingLists, term, newDocId, newFreq);
                 }
             }
@@ -232,9 +241,9 @@ public class QueryProcessor {
             int offsetSkipPointers;
 
             //Gets the number of blocks of the term's posting list
-            int blockNumber = (lexicon.getLexicon().get(term).getPostingListLength() / postingListLength) + 1;
+            int blockNumber = (lexicon.getLexicon().get(term).getPostingListLength() / postingListBlockLenght) + 1;
             offsetLastDocIds = lexicon.getLexicon().get(term).getOffsetLastDocIds();
-            offsetSkipPointers = lexicon.getLexicon().get(term).getOffsetSkipBlock();
+            offsetSkipPointers = lexicon.getLexicon().get(term).getOffsetSkipPointers();
 
             // Go to the specified offsets in last docIds and skip pointers files
             goToOffset(lastDocIdByteRead, offsetLastDocIds);
@@ -255,6 +264,7 @@ public class QueryProcessor {
                     pointerFreq.add(skipPointersByteRead.read());
                 }
             }
+
             // Search for the block containing the posting with the specified docId grater or equal to the one passed as argument.
             for (int i = 0; i < docIds.size(); i++) {
                 //if a posting with a docId greater than the docId passed is not present in the posting list, skipPointers[3] is put equal 0.
@@ -401,16 +411,15 @@ public class QueryProcessor {
             goToOffset(docIdByteRead, skipPointers[0]);
             goToOffset(freqByteRead, skipPointers[1]);
             postingListLength = lexicon.getLexicon().get(term).getPostingListLength();
-
             // Calculate the number of postings to read in the next block.
             //skiPointers[2] == 0 if the docId is not contained in the last block of the posting list, 1 otherwise.
             if (skipPointers[2] == 0) {
-                postingToRead = Math.min(postingListLength, postingListLength);
+                postingToRead = Math.min(postingListLength, postingListBlockLenght);
             } else {
                 //if the posting containing the docId is the last block of the posting list it computes the right
                 //length to read.
-                numberOfBlocks = (lexicon.getLexicon().get(term).getPostingListLength() / postingListLength) + 1;
-                postingToRead = postingListLength - (numberOfBlocks - 1) * postingListLength;
+                numberOfBlocks = (lexicon.getLexicon().get(term).getPostingListLength() / postingListBlockLenght) + 1;
+                postingToRead = postingListLength - (numberOfBlocks - 1) * postingListBlockLenght;
             }
 
             if (encodingType.equals("text")) {
@@ -425,7 +434,9 @@ public class QueryProcessor {
                 for (int i = 0; i < postingToRead; i++) {
                     newDocId = docIdByteRead.read();
                     newFreq = freqByteRead.read();
+                    //TODO check freq
                     addPosting(postingLists, term, newDocId, newFreq);
+
                 }
             }
             return postingLists;
@@ -445,15 +456,16 @@ public class QueryProcessor {
             int offsetSkipPointers;
 
             // Calculate the number of blocks for the term's posting list.
-            int blockNumber = (lexicon.getLexicon().get(term).getPostingListLength() / postingListLength) + 1;
+            int blockNumber = (lexicon.getLexicon().get(term).getPostingListLength() / postingListBlockLenght) + 1;
 
             offsetLastDocIds = lexicon.getLexicon().get(term).getOffsetLastDocIds();
             offsetSkipPointers = lexicon.getLexicon().get(term).getOffsetSkipPointers();
 
+            // TODO buffer reader is 000000
+
             // Go to the specified offsets for last docIds and skip pointers.
             goToOffset(lastDocIdByteRead, offsetLastDocIds);
             goToOffset(skipPointersByteRead, offsetSkipPointers);
-
             if (encodingType.equals("text")) {
                 // Read information about each block.
                 for (int i = 0; i < blockNumber; i++) {
@@ -469,17 +481,16 @@ public class QueryProcessor {
                     pointerFreq.add(skipPointersByteRead.read());
                 }
             }
-
+            //System.out.println("Hola: " + (int) Math.floor(Math.sqrt(docIds.size())));
             // Iterate through docIds to find the block containing the specified docId.
             for (int i = 0; i < docIds.size(); i++) {
-                if (docId == docIds.get(i)) {
+                if (docId == docIds.get(i)) {//TODO docids.get(i) does not find docID
 
                     // If the docId belongs to the last block, return without updating skipPointers.
                     if (i == (docIds.size() - 1)) return;
 
                     // If the next block is the last block, set the flag to indicate the last block.
                     if (i == (docIds.size() - 2)) skipPointers[2] = 1;
-
                     // Update skipPointers with the offsets for the next block.
                     skipPointers[0] = pointersDocIds.get(i + 1);
                     skipPointers[1] = pointerFreq.get(i + 1);
@@ -492,61 +503,60 @@ public class QueryProcessor {
 
     //function that opens the lookup files for the lookup phase.
     public void openTextLookupFiles() {
-        this.docIdsTextRead = new TextReader("Output/DocIds/docIds.txt");
-        this.freqTextRead = new TextReader("Output/Frequencies/freq.txt");
-        this.lastDocIdTextRead = new TextReader("Output/Skipping/lastDocIds.txt");
-        this.skipPointersTextRead = new TextReader("Output/Skipping/skipPointers.txt");
+        docIdsTextRead = new TextReader("Output/DocIds/docIds.txt");
+        freqTextRead = new TextReader("Output/Frequencies/freq.txt");
+        lastDocIdTextRead = new TextReader("Output/Skipping/lastDocIds.txt");
+        skipPointersTextRead = new TextReader("Output/Skipping/skipPointers.txt");
     }
 
     //function that opens the lookup files for the lookup phase.
     public void openByteLookupFiles() {
         Compressor compressor = new Compressor();
-        this.docIdByteRead = new RandomByteReader("Output/DocIds/docIds.dat", compressor);
-        this.freqByteRead = new RandomByteReader("Output/Frequencies/freq.dat", compressor);
-        this.lastDocIdByteRead = new RandomByteReader("Output/Skipping/lastDocIds.dat", compressor);
-        this.skipPointersByteRead = new RandomByteReader("Output/Skipping/skipPointers.dat", compressor);
+        docIdByteRead = new RandomByteReader("Output/DocIds/docIds.dat", compressor);
+        freqByteRead = new RandomByteReader("Output/Frequencies/freq.dat", compressor);
+        lastDocIdByteRead = new RandomByteReader("Output/Skipping/lastDocIds.dat", compressor);
+        skipPointersByteRead = new RandomByteReader("Output/Skipping/skipPointers.dat", compressor);
     }
 
     //function that closes the lookup files.
     public void closeTextLookupFiles() {
-        this.docIdsTextRead.close();
-        this.freqTextRead.close();
-        this.lastDocIdTextRead.close();
-        this.skipPointersTextRead.close();
+        docIdsTextRead.close();
+        freqTextRead.close();
+        lastDocIdTextRead.close();
+        skipPointersTextRead.close();
 
     }
     public void closeByteLookupFiles() {
-        this.docIdByteRead.close();
-        this.freqByteRead.close();
-        this.lastDocIdByteRead.close();
-        this.skipPointersByteRead.close();
+        docIdByteRead.close();
+        freqByteRead.close();
+        lastDocIdByteRead.close();
+        skipPointersByteRead.close();
 
     }
 
 
     public void openTextObtainFiles() {
-        Compressor compressor = new Compressor();
-        this.lexiconRead = new TextReader("Output/Lexicon/lexicon.txt");
-        this.statisticsRead = new TextReader("Output/CollectionStatistics/collectionStatistics.txt");
-        this.documentIndexTextRead = new TextReader("Output/DocumentIndex/documentIndex.txt");
+        lexiconRead = new TextReader("Output/Lexicon/lexicon.txt");
+        statisticsRead = new TextReader("Output/CollectionStatistics/collectionStatistics.txt");
+        documentIndexTextRead = new TextReader("Output/DocumentIndex/documentIndex.txt");
     }
 
     public void openByteObtainFiles() {
         Compressor compressor = new Compressor();
-        this.lexiconRead = new TextReader("Output/Lexicon/lexicon.txt");
-        this.statisticsRead = new TextReader("Output/CollectionStatistics/collectionStatistics.txt");
-        this.documentIndexByteRead = new RandomByteReader("Output/DocumentIndex/documentIndex.dat", compressor);
+        lexiconRead = new TextReader("Output/Lexicon/lexicon.txt");
+        statisticsRead = new TextReader("Output/CollectionStatistics/collectionStatistics.txt");
+        documentIndexByteRead = new ByteReader("Output/DocumentIndex/documentIndex.dat", compressor);
     }
 
     public void closeTextObtainFiles() {
-        this.lexiconRead.close();
-        this.statisticsRead.close();
-        this.documentIndexTextRead.close();
+        lexiconRead.close();
+        statisticsRead.close();
+        documentIndexTextRead.close();
     }
 
     public void closeByteObtainFiles() {
-        this.lexiconRead.close();
-        this.statisticsRead.close();
-        this.documentIndexByteRead.close();
+        lexiconRead.close();
+        statisticsRead.close();
+        documentIndexByteRead.close();
     }
 }

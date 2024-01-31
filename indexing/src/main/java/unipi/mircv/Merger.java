@@ -25,6 +25,9 @@ public class Merger {
     public ByteWriter lastDocIdsByteWriter;
     public ByteWriter skipPointersByteWriter;
 
+    public int postingListBlockLenght = 500;
+
+
 
     //function that implements the merging phase of the SPIMI algorithm.
     public void mergeByteBlocks(int blockCounter, String encodingType, Statistics statistics) {
@@ -42,12 +45,13 @@ public class Merger {
         float tf;
         float idf;
         String minTerm;
+        int postingBlockCounter;
 
         String[][] terms = new String[blockCounter][]; //terms read from the current pointer in the lexicon
         boolean[] scannerToRead = new boolean[blockCounter]; //array of boolean to indicate if a scanner to a file need to be read.
         boolean[] scannerFinished = new boolean[blockCounter]; //array of boolean to indicate if a scanner has scanned al the block file.
 
-        int postingBlockCounter;
+
         for (int i = 0; i < blockCounter; i++) {
             scannerToRead[i] = true;
             scannerFinished[i] = false;
@@ -111,7 +115,7 @@ public class Merger {
 
                         postingBlockCounter += 1;
                         //if we are at the end of the posting list block we save the current docId in the lastDocId file.
-                        if (postingBlockCounter == postingListLength) {
+                        if (postingBlockCounter == postingListBlockLenght) {
                             offsetLastDocIds += lastDocIdsByteWriter.write(docId);
                             postingBlockCounter = 0;
                         }
@@ -123,7 +127,7 @@ public class Merger {
                 }
             }
             //at the end of the merging for a specific term we save the docId of the last posting of the posting list of that term.
-            if (postingBlockCounter != postingListLength) {
+            if (postingBlockCounter != postingListBlockLenght) {
                 offsetLastDocIds += lastDocIdsByteWriter.write(docId);
             }
             //we conclude the lexicon merging adding the global posting list length and the term upper bound information.
@@ -235,7 +239,7 @@ public class Merger {
 
                         postingBlockCounter += 1;
                         //if we are at the end of the posting list block we save the current docId in the lastDocId file.
-                        if (postingBlockCounter == postingListLength) {
+                        if (postingBlockCounter == postingListBlockLenght) {
                             offsetLastDocIds += lastDocIdsTextWriter.write(docId);
                             postingBlockCounter = 0;
                         }
@@ -247,7 +251,7 @@ public class Merger {
                 }
             }
             //at the end of the merging for a specific term we save the docId of the last posting of the posting list of that term.
-            if (postingBlockCounter != postingListLength) {
+            if (postingBlockCounter != postingListBlockLenght) {
                 offsetLastDocIds += lastDocIdsTextWriter.write(docId);
             }
             //we conclude the lexicon merging adding the global posting list length and the term upper bound information.

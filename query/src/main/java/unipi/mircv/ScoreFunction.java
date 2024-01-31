@@ -22,27 +22,28 @@ public class ScoreFunction {
 
         this.avgDocumentLength = queryProcessor.getStatistics().getAvdl();
         this.docInfo = queryProcessor.getDocIndex().getDocIndex();
-
         this.scoreType = scoreType;
     }
 
-    public double scoreF(String term,Posting posting, String scoreType) {
+    public double computeScore(String term,Posting posting, String scoreType) {
+
         double k1 = 1.6;
         double b = 0.75;
+        double result= 0;
+
         if (scoreType.equals("bm25")) {
 
             double tf = posting.getTermFrequency();
             double denominator = k1 * ((1 - b) + b * ((double) docInfo.get(posting.getDocID()).getDocLen() / avgDocumentLength)) + tf;
             double idf = this.idf.get(term);
 
-            return (tf * idf) / denominator;
+            result = (tf * idf) / denominator;
         } else if (scoreType.equals("tfidf")) {
             double tf = 1 + Math.log(posting.getTermFrequency());
             double idf = this.idf.get(term);
-            return tf * idf;
-        } else {
-        return 1;
+            result = tf * idf;
         }
+
+        return result;
     }
 }
-

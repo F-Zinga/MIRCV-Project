@@ -9,7 +9,7 @@ import java.util.Iterator;
  * Represents a collection of postings in the inverted index, providing functionality to iterate through and manage
  * posting with the use of skip blocks.
  */
-public class PostingList implements Iterator<Posting> {
+public class PLI implements Iterator<Posting> {
 
     private final String term;
     private ArrayList<Posting> postingList;
@@ -22,8 +22,8 @@ public class PostingList implements Iterator<Posting> {
     private boolean isFinished;
 
     // Constructor
-public PostingList(String term, ArrayList<Posting> PostingList, ScoreFunction scoreFunction, QueryProcessor queryProcessor, String documentProcessor) {
-        this.postingList = PostingList;
+public PLI(String term, ArrayList<Posting> postingList, ScoreFunction scoreFunction, QueryProcessor queryProcessor, String documentProcessor) {
+        this.postingList = postingList;
         this.position = 0;
         this.scoreFunction = scoreFunction;
         this.term = term;
@@ -43,7 +43,7 @@ public PostingList(String term, ArrayList<Posting> PostingList, ScoreFunction sc
 
     public double score(String term,String scoreType){
 
-        return scoreFunction.scoreF(term, postingList.get(position), scoreType);
+        return scoreFunction.computeScore(term, postingList.get(position),scoreType);
     }
 
     public boolean isFinished(String encodingType){
@@ -79,6 +79,7 @@ public PostingList(String term, ArrayList<Posting> PostingList, ScoreFunction sc
     }
 
     public void nextGEQ(int docId,String encodingType) {
+
         //Load another block if the docID searched is not in the currentBlock
         if (docId > postingList.get(postingList.size()-1).getDocID()){
             HashMap<String,ArrayList<Posting>> newBlock =  queryProcessor.lookupDocId(this.term, docId, encodingType);

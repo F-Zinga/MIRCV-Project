@@ -17,7 +17,6 @@ public class MainIndexing {
     public DocIndex docIndex;
     public Statistics statistics;
     public String encodingType;
-    public int postingListLength;
 
     public Parser parser;
 
@@ -27,8 +26,6 @@ public class MainIndexing {
         this.docIndex = new DocIndex();
         this.statistics = new Statistics(0, 0, 0, 0);
 
-        //TODO: da rivedere la lunghezza
-        this.postingListLength = 500;
     }
 
     public int getDocId() {
@@ -78,14 +75,6 @@ public class MainIndexing {
         this.statistics = statistics;
     }
 
-    public int getPostingListLength() {
-        return postingListLength;
-    }
-
-    public void setPostingListLength(int postingListLength) {
-        this.postingListLength = postingListLength;
-    }
-
     public String getEncodingType() {
         return encodingType;
     }
@@ -97,6 +86,7 @@ public class MainIndexing {
     //function that taken the compressed document collection, preprocess and elaborate every document.
     public void processCollection(String file, String type,boolean stopWordsStemming){
         setEncodingType(type);
+
         try {
             // Open the compressed file
             FileInputStream input = new FileInputStream(file);

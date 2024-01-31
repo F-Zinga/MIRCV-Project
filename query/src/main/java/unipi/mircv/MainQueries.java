@@ -13,7 +13,7 @@ public class MainQueries {
 
     private int k;
     public QueryProcessor queryProcessor;
-    public String scoreFunction;
+    public String stringScore;
     public String documentProcessor;
     public Parser parser;
 
@@ -21,10 +21,10 @@ public class MainQueries {
     private final String queryType;
 
 
-    public MainQueries(int k, String scoreFunction, String documentProcessor, String queryType, boolean stopwordStemming, String encodingType) {
+    public MainQueries(int k, String stringScore, String documentProcessor, String queryType, boolean stopwordStemming, String encodingType) {
 
         this.k = k;
-        this.scoreFunction = scoreFunction;
+        this.stringScore = stringScore;
         this.documentProcessor = documentProcessor;
         this.queryType = queryType;
         this.queryProcessor = new QueryProcessor(encodingType);
@@ -73,16 +73,10 @@ public class MainQueries {
         } else
         */
         if (documentProcessor.equals("maxscore")) {
-
             MaxScore maxScore = new MaxScore(queryType, queryProcessor);
-            if (scoreFunction.equals("tfidf")) {
-                ScoreFunction score = new ScoreFunction(postingLists, queryTerms, queryProcessor, scoreFunction);
-                return maxScore.scoreDocuments(queryTerms, postingLists, score, k, encodingType,scoreFunction);
-            } else if (scoreFunction.equals("bm25")) {
-                ScoreFunction score = new ScoreFunction(postingLists, queryTerms, queryProcessor, scoreFunction);
-                return maxScore.scoreDocuments(queryTerms, postingLists, score, k, encodingType,scoreFunction);
+            ScoreFunction x = new ScoreFunction(postingLists, queryTerms, queryProcessor,stringScore);
+            return maxScore.scoreDocuments(queryTerms, postingLists, x, k, encodingType,stringScore);
             }
-        }
         return null;
     }
 
