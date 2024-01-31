@@ -10,8 +10,8 @@ public class ByteReader {
     /**
      * A class for reading encoded integers using a buffered input stream and a specified compressor.
      */
-        public BufferedInputStream bufferedInputStream;
-        public Compressor compressor;
+        public BufferedInputStream bufferedInputStream; //for reading bytes.
+        public Compressor compressor; //for reading encoded integers.
 
         /**
          * Constructs a ByteReader with the given file and compressor.

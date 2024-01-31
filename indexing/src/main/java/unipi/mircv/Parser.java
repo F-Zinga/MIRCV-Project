@@ -1,6 +1,5 @@
 package unipi.mircv;
 
-//import it.unipi.mircv.beans.ParsedDocument;
 import opennlp.tools.stemmer.PorterStemmer;
 
 import java.io.IOException;
@@ -13,21 +12,24 @@ import java.util.stream.Stream;
  * The Parser class is responsible for processing and tokenizing documents, including tasks such as removing punctuation,
  * handling stop words, and applying stemming.
  */
+
 public class Parser {
 
-    //List of strings that contain stopwords
-    // Create a HashSet for faster lookup
+    // A set of stop words for faster lookup
     static Set<String> stopWords= new HashSet<>(loadStopWords());
 
     //Path to the file containing the list of stopwords
     static final String STOPWORDS_FILE = "resources/utility/stopwords";
 
+    /**
+     * Default constructor for the Parser class.
+     */
     public Parser() {
 
     }
 
     /**
-     * Processes a document by tokenizing it in the format: [doc_id]\t[token1 token2 ... tokenN]\n.
+     * Processes a document by remove stopwords and punctuation and applying stemming
      * @param line           String containing a document of the collection in the format: [doc_id]\t[text]\n
      * @param stopStemming  Flag indicating whether to perform stop word removal and stemming
      * @return Document tokenized based on the specified conditions
@@ -54,7 +56,7 @@ public class Parser {
     }
 
     /**
-     * Remove the punctuation replacing it with an empty string
+     * Remove the punctuation by replacing it with an empty string.
      * @param text String containing a text
      * @return Text without punctuation
      */
@@ -89,8 +91,6 @@ public class Parser {
         PorterStemmer porterStemmer = new PorterStemmer();
 
         //Create an array list of stems:
-        //  The stream is obtained by splitting the text using the whitespace as delimiter;
-        //  It's used a map stage where each word is stemmed
         //  The result is collected into an Array of strings
         return Stream.of(terms).map(porterStemmer::stem).toArray(String[]::new);
     }
@@ -101,8 +101,7 @@ public class Parser {
      * @return List of stop words
      */
     private static List<String> loadStopWords(){
-        //System.out.println(" *** loadStopWords... *** ");
-        //If the stopwords removal and the stemming is requested, the stopwords are read from a file
+        //If the stopwords removal and the stemming is requested, read the stopwords from a file
         try {
             return Files.readAllLines(Paths.get(STOPWORDS_FILE));
         } catch (IOException e) {

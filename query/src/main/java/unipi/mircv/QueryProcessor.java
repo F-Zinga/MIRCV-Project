@@ -2,6 +2,8 @@ package unipi.mircv;
 
 import java.util.*;
 
+import static unipi.mircv.Parameters.*;
+
 /**
  * The QueryProcessor class handles the processing of queries, interacting with various components,
  * such as the lexicon, document index, and collection statistics.
@@ -175,11 +177,11 @@ public class QueryProcessor {
         }
 
         /**
-         //     * Given a term and a docId, retrieves the posting list block containing that docId.
-         //     * @param term The term for which to retrieve the posting list block.
-         //     * @param docId The docId for which to find the posting list block.
-         //     * @return A HashMap between the term and the posting list block containing the specified docId.
-         //     */
+         * Given a term and a docId, retrieves the posting list block containing that docId.
+         * @param term The term for which to retrieve the posting list block.
+         * @param docId The docId for which to find the posting list block.
+         * @return A HashMap between the term and the posting list block containing the specified docId.
+         */
         public HashMap<String, ArrayList<Posting>> lookupDocId (String term,int docId, String encodingType){
             HashMap<String, ArrayList<Posting>> postingLists = new HashMap<>();
             int[] skipPointers = new int[4];

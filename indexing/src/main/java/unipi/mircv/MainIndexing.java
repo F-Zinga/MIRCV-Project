@@ -7,7 +7,10 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-//class that performs the main operations during the indexing phase.
+/**
+ * This class handles the primary operations during the indexing phase.
+*/
+
 public class MainIndexing {
 
     public int docId = 0;
@@ -17,9 +20,13 @@ public class MainIndexing {
     public DocIndex docIndex;
     public Statistics statistics;
     public String encodingType;
+    public int postingListLength;
 
     public Parser parser;
 
+    /**
+     *  Constructor initializes various components and sets default posting list length
+      */
     public MainIndexing(){
         this.indexBuilder = new IndexBuilder();
         this.lexicon = new Lexicon();
@@ -83,37 +90,45 @@ public class MainIndexing {
         this.encodingType = encodingType;
     }
 
-    //function that taken the compressed document collection, preprocess and elaborate every document.
+    /**
+     *  Method that processes a compressed document collection, performing preprocessing and analysis on each document.
+     */
     public void processCollection(String file, String type,boolean stopWordsStemming){
+        // Set the encoding type for the document collection
         setEncodingType(type);
 
         try {
             // Open the compressed file
             FileInputStream input = new FileInputStream(file);
 
-            // Create a zip input stream from the compressed file
+            // Create a zip input stream to read entries from the compressed file
             TarArchiveInputStream tarinput = new TarArchiveInputStream(input);
 
-            // Read the first entry in the zip file
+            // Read the first entry in the compressed  file
             TarArchiveEntry entry = tarinput.getNextEntry();
 
-            // Create a reader for reading the uncompressed data
+            // Create a reader to read uncompressed data with UTF-8 encoding
             InputStreamReader reader = new InputStreamReader(tarinput, "UTF-8");
 
+            // Create a buffered reader for efficient reading
             BufferedReader bufferedReader=new BufferedReader(reader);
-            // Read data from the zip file and process it
-            String line;
 
+            // Process each line in the compressed file, tokenizing documents in the format [doc_id]\t[token1 token2 ... tokenN]\n
+            String line;
             while ((line = bufferedReader.readLine()) != null) {
-                String[] columns = line.split("\t",2); //Read the line and split it (cause the line is composed by (docNo \t document))
+                // Split the line into columns (docNo \t document)
+                String[] columns = line.split("\t",2);
 
                 int docNo;
-                try{ docNo = Integer.parseInt(columns[0]); }catch (NumberFormatException e){continue;}
-                if(columns[1].isEmpty()) continue;
+                try{
+                    // Parse the document number as an integer
+                    docNo = Integer.parseInt(columns[0]); }catch (NumberFormatException e){continue;} // Skip processing if the document number is not a valid integer
+                if(columns[1].isEmpty()) continue; // Skip processing if the document content is empty
 
-                //preprocess the document
-                String document = Parser.processDocument(columns[1],stopWordsStemming); //Get document
-                //elaborate the document
+                // Preprocess the document and obtain the processed document
+                String document = parser.processDocument(columns[1],stopWordsStemming); //Get document
+
+                // Perform document analysis and create the index
                 createIndex(document, docNo);
             }
 
@@ -125,7 +140,7 @@ public class MainIndexing {
             e.printStackTrace();
         }
 
-        //after finishing the documents saves block that is in the main memory.
+        // After processing the documents, save the block currently in main memory
         if(encodingType.equals("text")) {
             writeTextBlock(lexicon, lexicon.sortLexicon(), docIndex.sortDocIndex());
         }
@@ -133,70 +148,88 @@ public class MainIndexing {
             writeBytesBlock(lexicon, lexicon.sortLexicon(), docIndex.sortDocIndex());
         }
 
+        // Reset data structures and counters for the next block
         indexBuilder.setIndexBuilder(new HashMap<>());
         lexicon.setLexicon(new HashMap<>());
         docIndex.setDocIndex(new HashMap<>());
         blockCounter += 1;
 
-        System.gc(); // garbage collector
+        System.gc();  // Trigger garbage collection to free up memory
 
-        Merger merger = new Merger();
+        Merger merger = new Merger();  // Create a Merger instance for merging blocks
 
+        // Perform block merging based on encoding type
         if(encodingType.equals("text"))
             merger.mergeTextBlocks(blockCounter,encodingType,statistics);
         else
             merger.mergeByteBlocks(blockCounter,encodingType,statistics);
 
-        saveStatistics();
+        saveStatistics(); // Save the final statistics
     }
 
-
-    //function that taken a document and a doc no elaborate the document to create the index.
+    /**
+     * Method that takes a document and its corresponding document number, processes the document, and generates the index.
+     * @param document document to process
+     * @param docNo document number
+     */
     public void createIndex(String document, int docNo){
 
+        // Calculate memory usage statistics
         float totalMemory = Runtime.getRuntime().totalMemory();
         float memoryUsage = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
         float percentageMemory= (memoryUsage / totalMemory) * 100;
 
-        //if the available memory is not enough to process the document saves the current block into the disk.
+        // Check if available memory is below a threshold; if so, save the current block to disk
         if (percentageMemory >= 75 ){
+
+            // Write the current block to disk based on the encoding type
             if(encodingType.equals("text")) {
                 writeTextBlock(lexicon, lexicon.sortLexicon(), docIndex.sortDocIndex());
             }
             else{
                 writeBytesBlock(lexicon, lexicon.sortLexicon(), docIndex.sortDocIndex());
             }
-             //writes the current block to disk
 
+            // Reset data structures and counters for the next block
             lexicon.setLexicon(new HashMap<>());
             indexBuilder.setIndexBuilder(new HashMap<>());
             docIndex.setDocIndex(new HashMap<>());
             blockCounter += 1;
 
-            System.gc(); //calls the garbage collector to force to free memory.
+            System.gc(); // Trigger garbage collection to free up memory
         }
-        String[] terms = document.split(" ");
+
+        String[] terms = document.split(" "); // Split the document into terms
+        // Count occurrences of each term in the document
         HashMap<String, Integer> counter = new HashMap<>();
-        //associate to every term the term count in the document.
         for (String term : terms){
             counter.put(term, counter.containsKey(term) ? counter.get(term) + 1 : 1);
         }
-        // update the index information for every term.
+
+        //Update the index information for each term.
         for (String term : counter.keySet()) {
             lexicon.addInformation(term, 0, 0, 0,
                     0, 0, counter.get(term));
             indexBuilder.addPosting(term, docId, counter.get(term));
             statistics.setPostings(statistics.getPostings() + 1);
         }
+
+        // Update document index information and statistics
         docIndex.addDocument(docId, docNo, terms.length);
         docId += 1;
         statistics.setnDocs(statistics.getNDocs() + 1);
         statistics.setAvdl(statistics.getAvdl() + terms.length);
     }
 
-    //function that writes the current block that is in memory to the disk.
+    /**
+     * Method that writes the current in-memory block to disk in compressed format for byte-encoded data.
+     * @param lexicon object lexicon
+     * @param sortedTerms list of ordered terms
+     * @param sortedDocIds list of sorted docIds
+     */
     public void writeBytesBlock(Lexicon lexicon, ArrayList<String> sortedTerms, ArrayList<Integer> sortedDocIds){
 
+        // Create writers for lexicon, document IDs, frequencies, and document index
         TextWriter lexiconWriter = new TextWriter("Output/Lexicon/lexicon" + blockCounter + ".txt");
         Compressor compressor = new Compressor();
         ByteWriter docIDWriter = new ByteWriter("Output/DocIds/docIds" + blockCounter + ".dat", compressor);
@@ -204,13 +237,13 @@ public class MainIndexing {
         ByteWriter docIndexWriter = new ByteWriter("Output/DocumentIndex/documentIndex" + blockCounter + ".dat", compressor);
 
         //saves the document index.
-
         for(Integer docId : sortedDocIds){
             docIndexWriter.write(docId);
             docIndexWriter.write(docIndex.docIndex.get(docId).getDocNo());
             docIndexWriter.write(docIndex.docIndex.get(docId).getDocLen());
         }
-        //saves the lexicon and the docIds and frequencies in the relative files.
+
+        // Save the lexicon, document IDs, and frequencies to their respective files
         for (String term : sortedTerms){
             lexicon.getLexicon().get(term).setPostingListLength(indexBuilder.getIndexBuilder().get(term).size());
             lexiconWriter.write(term + " " + lexicon.getLexicon().get(term).toString() + "\n");
@@ -220,30 +253,38 @@ public class MainIndexing {
             }
         }
 
+        // Close the writers
         docIDWriter.close();
         freqWriter.close();
         lexiconWriter.close();
         docIndexWriter.close();
 
-        System.out.println("Successfully wrote to the files.");
+        System.out.println("*** Blocks are successfully wrote to the files. ***");
     }
 
 
+    /**
+     * // Method that writes the current in-memory block to disk in text format.
+     * @param lexicon object lexicon
+     * @param sortedTerms list of sorted terms
+     * @param sortedDocIds list of sorted docIds
+     */
     public void writeTextBlock(Lexicon lexicon, ArrayList<String> sortedTerms, ArrayList<Integer> sortedDocIds){
 
+        // Create writers for lexicon, document IDs, frequencies, and document index
         TextWriter lexiconWriter = new TextWriter("Output/Lexicon/lexicon" + blockCounter + ".txt");
         TextWriter docIDWriter = new TextWriter("Output/DocIds/docIds" + blockCounter + ".txt");
         TextWriter freqWriter = new TextWriter("Output/Frequencies/freq" + blockCounter + ".txt");
         TextWriter docIndexWriter = new TextWriter("Output/DocumentIndex/documentIndex" + blockCounter + ".txt");
 
         //saves the document index.
-
         for(Integer docId : sortedDocIds){
             docIndexWriter.write(docId);
             docIndexWriter.write(docIndex.docIndex.get(docId).getDocNo());
             docIndexWriter.write(docIndex.docIndex.get(docId).getDocLen());
         }
-        //saves the lexicon and the docIds and frequencies in the relative files.
+
+        // Save the lexicon, document IDs, and frequencies to their respective files
         for (String term : sortedTerms){
             lexicon.getLexicon().get(term).setPostingListLength(indexBuilder.getIndexBuilder().get(term).size());
             lexiconWriter.write(term + " " + lexicon.getLexicon().get(term).toString() + "\n");
@@ -253,19 +294,24 @@ public class MainIndexing {
             }
         }
 
+        // Close the writers
         docIDWriter.close();
         freqWriter.close();
         lexiconWriter.close();
         docIndexWriter.close();
 
-        System.out.println("Successfully wrote to the files.");
+        System.out.println("*** Blocks are successfully wrote to the files. ***");
     }
 
 
-    //function that saves the collection statistics.
+    /**
+     * Method that saves statistics about the processed document collection.
+     */
     public void saveStatistics(){
+        // Calculate and set the average document length
         statistics.setAvdl(statistics.getAvdl() / statistics.getNDocs());
         try{
+            // Write collection statistics to a file
             FileWriter writer = new FileWriter("Output/CollectionStatistics/collectionStatistics.txt");
             writer.write(statistics.getNDocs() + " "
                     + statistics.getAvdl() + " " + statistics.getPostings());
@@ -277,20 +323,23 @@ public class MainIndexing {
 
     public static void main(String[] args){
 
-        System.out.println("Welcome");
+        System.out.println("*** MAIN INDEXING ***");
+
+        // Retrieve command line arguments for the input file, encoding type, and stop words and stemming flag
         String file = args[0];
         String type = args[1];
         Boolean stopWordsStemming = Boolean.valueOf(args[2]); //Stopwords Removal
 
+        // Check if the provided encoding type is valid
         if(!type.equals("text") && !type.equals("bytes")){
-            System.out.println("Sorry the encoding type is wrong please try again");
+            System.out.println("*** Try again: the encoding type is wrong. ***");
         }
         else{
             MainIndexing index = new MainIndexing();
-            long start = System.currentTimeMillis();
-            index.processCollection(file, type, stopWordsStemming);
-            long end = System.currentTimeMillis();
-            System.out.println("Elapsed Time in milliseconds: " + (end-start));
+            long start = System.currentTimeMillis(); // Record the start time for performance measurement
+            index.processCollection(file, type, stopWordsStemming); // Process the document collection with the specified parameters
+            long end = System.currentTimeMillis(); // Record the end time and calculate the elapsed time
+            System.out.println("*** Time in milliseconds: " + (end-start) + " ***");
         }
     }
 }

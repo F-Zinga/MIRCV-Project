@@ -82,7 +82,7 @@ public class MainQueries {
 
     public static void main(String[] args) {
 
-        System.out.println("Welcome to Query Processing ");
+        System.out.println("*** MAIN QUERIES ***");
         int nResults = Integer.parseInt(args[0]); //number of results
         String scoreType = args[1]; //Which scoring function to use
         String documentProcessor = args[2]; //How to process the postinglist (daat, maxscore)
@@ -95,14 +95,14 @@ public class MainQueries {
         Scanner sc = new Scanner(System.in);
 
         while (true) {
-            System.out.print("Insert the new query: ");
+            System.out.print("*** Insert a query: ");
             String query = sc.nextLine();
 
             long start = System.currentTimeMillis();
             PQueue results = mainQueries.processQuery(query, stopwordStemming, encodingType);
             long end = System.currentTimeMillis();
 
-            System.out.println("Elapsed Time in milliseconds: " + (end - start));
+            System.out.println("*** Time in milliseconds: " + (end - start) + " ***");
             results.printResults();
         }
     }
