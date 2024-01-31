@@ -300,7 +300,7 @@ public class MainIndexing {
         lexiconWriter.close();
         docIndexWriter.close();
 
-        System.out.println("*** Blocks are successfully wrote to the files. ***");
+        System.out.println("*** Blocks successfully written to disk. ***");
     }
 
 

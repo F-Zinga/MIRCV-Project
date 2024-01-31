@@ -67,11 +67,14 @@ public class PQueue {
             stack.push(copy.poll());
         }
 
-        System.out.print("[ ");
+        System.out.print("\nPOSITION DOCID SCORE");
+        System.out.print("\n--------------------------\n");
         // Print the elements in the stack (in reverse order)
+        int i=1;
         while (!stack.isEmpty()) {
-            System.out.print("(" + stack.pop() + "), ");
+            System.out.print(i);
+            i += 1;
+            System.out.print( ") " + stack.pop() + "\n");
         }
-        System.out.println(" ]");
     }
 }
