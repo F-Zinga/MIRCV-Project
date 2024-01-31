@@ -5,13 +5,23 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+/**
+ * A class for reading bytes from a random access file using a specified compressor.
+ */
 public class RandomByteReader {
 
-        public RandomAccessFile randomAccessFile;
-        public FileInputStream fileInputStream;
-        public BufferedInputStream bufferedInputStream;
-        public Compressor compressor;
+        public RandomAccessFile randomAccessFile; //for seeking and reading bytes.
+        public FileInputStream fileInputStream; //for reading from the random access file.
+        public BufferedInputStream bufferedInputStream; // for reading bytes from the file input stream.
+        public Compressor compressor; //for reading encoded integers.
 
+
+    /**
+     * Constructs a RandomByteReader with the given file path and compressor.
+     *
+     * @param file       The file path to read from.
+     * @param compressor The compressor implementation to use.
+     */
         public RandomByteReader(String file, Compressor compressor){
             this.compressor = compressor;
             try{
@@ -23,10 +33,19 @@ public class RandomByteReader {
             }
         }
 
+    /**
+     * Reads an encoded integer from the input stream using the assigned compressor.
+     *
+     * @return The decoded integer.
+     */
         public int read() {
             return compressor.readBytes(bufferedInputStream);
         }
 
+
+    /**
+     * Closes the underlying buffered input stream.
+     */
         public void close() {
             try {
                 bufferedInputStream.close();
@@ -40,6 +59,11 @@ public class RandomByteReader {
             return bufferedInputStream;
         }
 
+    /**
+     * Moves the file pointer to the specified offset and updates the input streams accordingly.
+     *
+     * @param offset The offset to seek within the random access file.
+     */
         public void goToOffset(int offset){
             try{
                 randomAccessFile.seek(offset);

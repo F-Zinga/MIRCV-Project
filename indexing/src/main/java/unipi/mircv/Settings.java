@@ -3,8 +3,7 @@ package unipi.mircv;
 import java.io.*;
 
 /**
- * Represents the configuration settings for the inverted index, such as stemming and stopwords removal, compression,
- * and debug mode.
+ * Represents the configuration settings for the inverted index, such as stemming and stopwords removal, compression.
  */
 
 public class Settings {

@@ -8,7 +8,7 @@ import java.util.Scanner;
  * A class for reading text data from a file using a Scanner.
  */
 public class TextReader {
-        public Scanner scanner;
+        public Scanner scanner; //for reading text data.
 
         /**
          * Constructs a TextReader with the given file path.

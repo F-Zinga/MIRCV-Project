@@ -1,7 +1,7 @@
 package unipi.mircv;
 
 /**
- * Represents statistics related to the execution, such as the number of terms, the total number of parsed documents,
+ * Represents statistics related to the execution, such as the number of terms, the total number of documents,
  * the average document length and the number of postings.
  */
 public class Statistics {
@@ -11,10 +11,15 @@ public class Statistics {
         private int terms; // Number of terms
         private int nDocs; // Total number of documents
         private double avdl; // Average document length
-        private int postings;
+        private int postings; //Number of posting
         private long time;
 
 
+    /**
+     * Overrides the toString method to provide a string representation of the Statistics object.
+     *
+     * @return A string representation of the Statistics.
+     */
     @Override
     public String toString() {
         return "Statistics{" +
@@ -27,7 +32,7 @@ public class Statistics {
     }
 
     /**
-     * Constructs a Statistics object by reading values from the statistics file.
+     * Constructs a Statistics object with the given values.
      */
     public Statistics(int nDocs, double avdl, int terms, int postings) {
         this.nDocs = nDocs;

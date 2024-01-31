@@ -8,8 +8,8 @@ import java.io.IOException;
  * A class for writing encoded integers using a buffered output stream and a specified compressor.
  */
 public class ByteWriter {
-        public BufferedOutputStream bufferedOutputStream;
-        public Compressor compressor;
+        public BufferedOutputStream bufferedOutputStream; //for writing bytes.
+        public Compressor compressor; //for writing encoded integers.
 
     /**
      * Constructs a ByteWriter with the given file and compressor.

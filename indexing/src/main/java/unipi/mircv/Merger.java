@@ -1,5 +1,12 @@
 package unipi.mircv;
 
+import static unipi.mircv.Parameters.*;
+
+/**
+ * The Merger class is responsible for merging block files generated during the SPIMI algorithm's indexing phase.
+ * It handles both text and byte encodings, performing the merging of lexicon, document IDs, frequencies, document index,
+ * last document IDs, and skip pointers.
+ */
 public class Merger {
 
     //readers used during the merging phase
@@ -11,7 +18,7 @@ public class Merger {
     ByteReader[] freqByteScanners;
     ByteReader[] documentIndexByteScanners;
 
-    //writers used to write to blocks during indexing and then for merging.
+    //writers used to write the blocks during indexing and then for merging.
     public TextWriter lexiconWriter;
     public TextWriter docIdsTextWriter;
     public TextWriter freqTextWriter;
@@ -29,7 +36,15 @@ public class Merger {
 
 
 
-    //function that implements the merging phase of the SPIMI algorithm.
+
+    /**
+     * Merges byte-encoded blocks using the SPIMI algorithm, combining information from lexicon, document IDs,
+     * frequencies, document index, last document IDs, and skip pointers.
+     *
+     * @param blockCounter  Number of blocks to merge.
+     * @param encodingType  The encoding type "byte".
+     * @param statistics    Statistics object for indexing information.
+     */
     public void mergeByteBlocks(int blockCounter, String encodingType, Statistics statistics) {
 
         int localPostingListLength;
@@ -47,69 +62,77 @@ public class Merger {
         String minTerm;
         int postingBlockCounter;
 
-        String[][] terms = new String[blockCounter][]; //terms read from the current pointer in the lexicon
-        boolean[] scannerToRead = new boolean[blockCounter]; //array of boolean to indicate if a scanner to a file need to be read.
-        boolean[] scannerFinished = new boolean[blockCounter]; //array of boolean to indicate if a scanner has scanned al the block file.
+        // Array to store terms read from the current lexicon pointers
+        String[][] terms = new String[blockCounter][];
+        // Arrays to manage whether scanners need to read from files or have finished scanning
+        boolean[] scannerToRead = new boolean[blockCounter];
+        boolean[] scannerFinished = new boolean[blockCounter];
 
 
+        // Initialization of scanner status arrays
         for (int i = 0; i < blockCounter; i++) {
             scannerToRead[i] = true;
             scannerFinished[i] = false;
         }
 
-        openScanners(blockCounter, encodingType); //open the scanners of the block files
+        openScanners(blockCounter, encodingType); //open scanners of the block files
 
-        openMergeFiles(encodingType); //open the final marge files
+        openMergeFiles(encodingType); //open the final merge files
 
-        //in this for we do the merging of the document index first. It reads a number to check if the file is ended.
-        //Every row of the document index is saved as 3 integers.
+
+        // Merging of the document index is performed first, reading three integers for each row.
         for (int i = 0; i < blockCounter; i++) {
             int number = documentIndexByteScanners[i].read(); //read the first integer
+
             while (number != -1) { //continue until the file is not ended
-                docIndexByteWriter.write(number); //write on the final file the read integer
-                for (int j = 0; j < 2; j++) // reads other 2 times an integer from the current block file and writes it to the final file
+                docIndexByteWriter.write(number); //write the read integer on the final file
+                for (int j = 0; j < 2; j++) // Read two more integers from the current block file and write them to the final file
                 {
                     docIndexByteWriter.write(documentIndexByteScanners[i].read());
                 }
                 number = documentIndexByteScanners[i].read();
             }
         }
-        //here the merging loop of the lexicon and of the documentIds and frequencies files is performed.
+        // Merging loop for lexicon, document IDs, and frequencies files
         while (true) {
-            //it read from the lexicon files that needs to be read.
+            //Read from the lexicon files that needs to be read.
             advancePointers(lexiconScanners, scannerToRead, terms, scannerFinished,blockCounter);
-            //it checks if the merging phase is finished.
+            //Checks if the merging phase is finished.
             if (!continueMerging(scannerFinished,blockCounter)) {
                 break;
             }
-            //it gets the minimum term.
+            // Get the minimum term among the current pointers
             minTerm = minTerm(terms, scannerFinished,blockCounter);
             postingListLength = 0;
             postingBlockCounter = 0;
             maxTermFrequency = 0;
-            //it writes the term information to the lexicon in text format.
+
+            // Write term information to the lexicon in text format
             lexiconWriter.write(minTerm + " "
                     + offsetDocIds + " " + offsetFreq + " " + offsetLastDocIds + " " + offsetSkipPointers + " ");
-            //for every block if the current pointed term is the minimum term we perform merging.
+
+            //for every block if the current pointed term is the minimum term perform merging.
             for (int i = 0; i < blockCounter; i++) {
                 if (terms[i][0].equals(minTerm)) {
-                    scannerToRead[i] = true; //we are using the information so the next time we need to read new information.
-                    //obtain the posting list length of the current block
+                    scannerToRead[i] = true;  // Indicate that information is used, so the next time it needs to read new information
+
+                    //Obtain the posting list length of the current block
                     localPostingListLength = Integer.parseInt(terms[i][5]);
-                    //update the global posting list length
+                    //Update the global posting list length
                     postingListLength += localPostingListLength;
                     localTermFrequency = Float.parseFloat(terms[i][6]);
+
                     if (localTermFrequency > maxTermFrequency) maxTermFrequency = localTermFrequency;
                     for (int j = 0; j < localPostingListLength; j++) {
-                        //if it is at the start of the posting list block it saves the skip pointers for the block
+                        // If at the start of the posting list block, save skip pointers for the block
                         if (postingBlockCounter == 0) {
-                            //it saves in the skiPointers file 2 integers: one for the docId offset and one for the frequency offset.
+                            // Save two integers in the skipPointers file: the docId offset and the frequency offset
                             offsetSkipPointers += skipPointersByteWriter.write(offsetDocIds);
                             offsetSkipPointers += skipPointersByteWriter.write(offsetFreq);
                         }
 
                         docId = docIdByteScanners[i].read();
-                        //it saves in the final files the information arriving from the block files.
+                        // Save information from block files to the final files
                         offsetDocIds += docIdsByteWriter.write(docId);
                         offsetFreq += freqByteWriter.write(freqByteScanners[i].read());
 
@@ -121,8 +144,7 @@ public class Merger {
                         }
                     }
                 } else {
-                    //if the current term of the lexicon pointer is not the min term the next time we do not need to read
-                    //from the scanner again
+                    //We not read from the scanner again if the current term of the lexicon pointer is not the min term
                     scannerToRead[i] = false;
                 }
             }
@@ -130,7 +152,7 @@ public class Merger {
             if (postingBlockCounter != postingListBlockLenght) {
                 offsetLastDocIds += lastDocIdsByteWriter.write(docId);
             }
-            //we conclude the lexicon merging adding the global posting list length and the term upper bound information.
+            //At the end of lexicon merging we add the global posting list length and the term upper bound information.
             tf = (float) (1 + Math.log(maxTermFrequency));
             idf = (float) Math.log((double) statistics.getNDocs() / postingListLength);
             termUpperBound = tf * idf;
@@ -155,6 +177,15 @@ public class Merger {
             skipPointersByteWriter.close();
     }
 
+
+    /**
+     * Merges byte-encoded blocks using the SPIMI algorithm, combining information from lexicon, document IDs,
+     * frequencies, document index, last document IDs, and skip pointers.
+     *
+     * @param blockCounter  Number of blocks to merge.
+     * @param encodingType  The encoding type "text".
+     * @param statistics    Statistics object for indexing information.
+     */
     public void mergeTextBlocks(int blockCounter, String encodingType, Statistics statistics) {
 
         int localPostingListLength;
@@ -171,10 +202,13 @@ public class Merger {
         float idf;
         String minTerm;
 
-        String[][] terms = new String[blockCounter][]; //terms read from the current pointer in the lexicon
-        boolean[] scannerToRead = new boolean[blockCounter]; //array of boolean to indicate if a scanner to a file need to be read.
-        boolean[] scannerFinished = new boolean[blockCounter]; //array of boolean to indicate if a scanner has scanned al the block file.
+        // Array to store terms read from the current lexicon pointers
+        String[][] terms = new String[blockCounter][];
+        // Arrays to manage whether scanners need to read from files or have finished scanning
+        boolean[] scannerToRead = new boolean[blockCounter];
+        boolean[] scannerFinished = new boolean[blockCounter];
 
+        // Initialization of scanner status arrays
         int postingBlockCounter;
         for (int i = 0; i < blockCounter; i++) {
             scannerToRead[i] = true;
@@ -185,55 +219,57 @@ public class Merger {
 
         openMergeFiles(encodingType); //open the final marge files
 
-        //in this for we do the merging of the document index first. It reads a number to check if the file is ended.
-        //Every row of the document index is saved as 3 integers.
+        // Merging of the document index is performed first, reading three integers for each row.
         for (int i = 0; i < blockCounter; i++) {
             int number = documentIndexTextScanners[i].read(); //read the first integer
             while (number != -1) { //continue until the file is not ended
                 docIndexTextWriter.write(number); //write on the final file the read integer
-                for (int j = 0; j < 2; j++) // reads other 2 times an integer from the current block file and writes it to the final file
+                for (int j = 0; j < 2; j++) // Read two more integers from the current block file and write them to the final file
                 {
                     docIndexTextWriter.write(documentIndexTextScanners[i].read());
                 }
                 number = documentIndexTextScanners[i].read();
             }
         }
-        //here the merging loop of the lexicon and of the documentIds and frequencies files is performed.
+        // Merging loop for lexicon, document IDs, and frequencies files
         while (true) {
-            //it read from the lexicon files that needs to be read.
+            //Read from the lexicon files that needs to be read.
             advancePointers(lexiconScanners, scannerToRead, terms, scannerFinished,blockCounter);
-            //it checks if the merging phase is finished.
+            //Checks if the merging phase is finished.
             if (!continueMerging(scannerFinished,blockCounter)) {
                 break;
             }
-            //it gets the minimum term.
+            // Get the minimum term among the current pointers
             minTerm = minTerm(terms, scannerFinished,blockCounter);
             postingListLength = 0;
             postingBlockCounter = 0;
             maxTermFrequency = 0;
-            //it writes the term information to the lexicon in text format.
+            // Write term information to the lexicon in text format
             lexiconWriter.write(minTerm + " "
                     + offsetDocIds + " " + offsetFreq + " " + offsetLastDocIds + " " + offsetSkipPointers + " ");
-            //for every block if the current pointed term is the minimum term we perform merging.
+
+            //for every block if the current pointed term is the minimum term perform merging.
             for (int i = 0; i < blockCounter; i++) {
                 if (terms[i][0].equals(minTerm)) {
-                    scannerToRead[i] = true; //we are using the information so the next time we need to read new information.
-                    //obtain the posting list length of the current block
+                    scannerToRead[i] = true; // Indicate that information is used, so the next time it needs to read new information
+
+                    //Obtain the posting list length of the current block
                     localPostingListLength = Integer.parseInt(terms[i][5]);
-                    //update the global posting list length
+                    //Update the global posting list length
                     postingListLength += localPostingListLength;
                     localTermFrequency = Float.parseFloat(terms[i][6]);
+
                     if (localTermFrequency > maxTermFrequency) maxTermFrequency = localTermFrequency;
                     for (int j = 0; j < localPostingListLength; j++) {
-                        //if it is at the start of the posting list block it saves the skip pointers for the block
+                        // If at the start of the posting list block, save skip pointers for the block
                         if (postingBlockCounter == 0) {
-                            //it saves in the skiPointers file 2 integers: one for the docId offset and one for the frequency offset.
+                            //Saves in the skiPointers file 2 integers: the docId offset and the frequency offset.
                             offsetSkipPointers += skipPointersTextWriter.write(offsetDocIds);
                             offsetSkipPointers += skipPointersTextWriter.write(offsetFreq);
                         }
 
                         docId = docIdsTextScanners[i].read();
-                        //it saves in the final files the information arriving from the block files.
+                        //Saves in the final files the information arriving from the block files.
                         offsetDocIds += docIdsTextWriter.write(docId);
                         offsetFreq += freqTextWriter.write(freqTextScanners[i].read());
 
@@ -245,8 +281,7 @@ public class Merger {
                         }
                     }
                 } else {
-                    //if the current term of the lexicon pointer is not the min term the next time we do not need to read
-                    //from the scanner again
+                    //We not read from the scanner again if the current term of the lexicon pointer is not the min term
                     scannerToRead[i] = false;
                 }
             }
@@ -254,7 +289,7 @@ public class Merger {
             if (postingBlockCounter != postingListBlockLenght) {
                 offsetLastDocIds += lastDocIdsTextWriter.write(docId);
             }
-            //we conclude the lexicon merging adding the global posting list length and the term upper bound information.
+            //At the end we add the global posting list length and the term upper bound information.
             tf = (float) (1 + Math.log(maxTermFrequency));
             idf = (float) Math.log((double) statistics.getNDocs() / postingListLength);
             termUpperBound = tf * idf;
@@ -280,7 +315,13 @@ public class Merger {
     }
 
 
-    //function to check if we need to continue the merging phase.
+    /**
+     * Checks whether the merging phase needs to continue by examining the status of scanners.
+     *
+     * @param scannerFinished An array indicating if each scanner has finished its block.
+     * @param blockCounter    Number of blocks involved in the merge.
+     * @return True if merging should continue, false otherwise.
+     */
     public boolean continueMerging(boolean[] scannerFinished,int blockCounter) {
         boolean continueMerging;
         continueMerging = false;
@@ -293,7 +334,15 @@ public class Merger {
         return continueMerging;
     }
 
-    //function that advance the right pointers during the merge phase.
+    /**
+     * Advances the pointers of lexicon scanners during the merging phase.
+     *
+     * @param lexiconScanners   Array of lexicon scanners.
+     * @param scannerToRead     Array indicating which scanners need to read new information.
+     * @param terms             Array to store terms read from scanners.
+     * @param scannerFinished   Array indicating if each scanner has finished scanning its block.
+     * @param blockCounter      Number of blocks involved in the merge.
+     */
     public void advancePointers(TextReader[] lexiconScanners, boolean[] scannerToRead, String[][] terms,
                                 boolean[] scannerFinished,int blockCounter) {
         for (int i = 0; i < blockCounter; i++) {
@@ -307,7 +356,14 @@ public class Merger {
         }
     }
 
-    //function that given the terms currently pointed during the merging phase returns the minimum term.
+    /**
+     * Finds the minimum term among the terms currently pointed during the merging phase.
+     *
+     * @param terms           Array containing terms from various lexicon pointers.
+     * @param scannerFinished Array indicating if each scanner has finished scanning its block.
+     * @param blockCounter    Number of blocks involved in the merge.
+     * @return The minimum term among the current lexicon pointers.
+     */
     public String minTerm(String[][] terms, boolean[] scannerFinished,int blockCounter) {
         String minTerm = "}";
         for (int i = 0; i < blockCounter; i++) {
@@ -318,14 +374,19 @@ public class Merger {
         return minTerm;
     }
 
-    //function that opens the block scanners during the merging phase.
-    //depending on the encoding used it opens the right files.
+    /**
+     * Opens scanners for the merging phase, considering the encoding type.
+     *
+     * @param blockCounter Number of blocks involved in the merge.
+     * @param encodingType Encoding type, either "text" or "byte".
+     */
     public void openScanners(int blockCounter, String encodingType) {
         lexiconScanners = new TextReader[blockCounter];
         for (int i = 0; i < blockCounter; i++) {
             lexiconScanners[i] = new TextReader("Output/Lexicon/lexicon" + i + ".txt");
         }
         if (encodingType.equals("text")) {
+            // For text encoding, open additional scanners for document IDs, frequencies, and document index
             docIdsTextScanners = new TextReader[blockCounter];
             freqTextScanners = new TextReader[blockCounter];
             documentIndexTextScanners = new TextReader[blockCounter];
@@ -335,6 +396,7 @@ public class Merger {
                 documentIndexTextScanners[i] = new TextReader("Output/DocumentIndex/documentIndex" + i + ".txt");
             }
         } else {
+            // For byte encoding, open byte scanners for document IDs, frequencies, and document index
             Compressor compressor = new Compressor();
             docIdByteScanners = new ByteReader[blockCounter];
             freqByteScanners = new ByteReader[blockCounter];
@@ -347,23 +409,29 @@ public class Merger {
         }
     }
 
-    //function that opens the final files for the merge phase.
-    //Depending on the encoding it opens the right files.
+
+    /**
+     * Opens final files for the merging phase, considering the encoding type.
+     *
+     * @param encodingType Encoding type, either "text" or "byte".
+     */
     public void openMergeFiles(String encodingType) {
-        lexiconWriter = new TextWriter("Output/Lexicon/lexicon.txt");
+        lexiconWriter = new TextWriter(LEXICON_PATH);
         if (encodingType.equals("text")) {
-            docIdsTextWriter = new TextWriter("Output/DocIds/docIds.txt");
-            freqTextWriter = new TextWriter("Output/Frequencies/freq.txt");
-            docIndexTextWriter = new TextWriter("Output/DocumentIndex/documentIndex.txt");
-            lastDocIdsTextWriter= new TextWriter("Output/Skipping/lastDocIds.txt");
-            skipPointersTextWriter = new TextWriter("Output/Skipping/skipPointers.txt");
+            // For text encoding, open additional writers for document IDs, frequencies, document index, last doc IDs, and skip pointers
+            docIdsTextWriter = new TextWriter(DOCID_TEXTPATH);
+            freqTextWriter = new TextWriter(FREQ_TEXTPATH);
+            docIndexTextWriter = new TextWriter(DOCINDEX_TEXTPATH);
+            lastDocIdsTextWriter= new TextWriter(LASTDOCID_TEXTPATH);
+            skipPointersTextWriter = new TextWriter(SKIPPOINTERS_TEXTPATH);
         } else {
+            // For byte encoding, open byte writers for document IDs, frequencies, document index, last doc IDs, and skip pointers
             Compressor compressor = new Compressor();
-            docIdsByteWriter = new ByteWriter("Output/DocIds/docIds.dat", compressor);
-            freqByteWriter = new ByteWriter("Output/Frequencies/freq.dat", compressor);
-            docIndexByteWriter = new ByteWriter("Output/DocumentIndex/documentIndex.dat", compressor);
-            lastDocIdsByteWriter = new ByteWriter("Output/Skipping/lastDocIds.dat", compressor);
-            skipPointersByteWriter = new ByteWriter("Output/Skipping/skipPointers.dat", compressor);
+            docIdsByteWriter = new ByteWriter(DOCID_BYTEPATH, compressor);
+            freqByteWriter = new ByteWriter(FREQ_BYTEPATH, compressor);
+            docIndexByteWriter = new ByteWriter(DOCINDEX_BYTEPATH, compressor);
+            lastDocIdsByteWriter = new ByteWriter(LASTDOCID_BYTEPATH, compressor);
+            skipPointersByteWriter = new ByteWriter(SKIPPOINTERS_BYTEPATH, compressor);
         }
     }
 
