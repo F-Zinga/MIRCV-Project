@@ -63,7 +63,7 @@ public interface Parameters {
     double B = 0.75;
 
 
-    // merger text
+    // path merger text
     String LEXICON_PATH = "Output/Lexicon/lexicon.txt";
     String STATISTICS_TEXTPATH = "Output/CollectionStatistics/collectionStatistics.txt";
     String SKIPPOINTERS_TEXTPATH = "Output/Skipping/skipPointers.txt";
@@ -74,14 +74,15 @@ public interface Parameters {
 
 
 
-    // merger byte
+    // path merger byte
     String SKIPPOINTERS_BYTEPATH = "Output/Skipping/skipPointers.dat";
     String LASTDOCID_BYTEPATH = "Output/Skipping/lastDocIds.dat";
     String DOCID_BYTEPATH = "Output/DocIds/docIds.dat";
     String FREQ_BYTEPATH = "Output/Frequencies/freq.dat";
     String DOCINDEX_BYTEPATH = "Output/DocumentIndex/documentIndex.dat";
 
-
+    // path evaluation
+    String EVALUATION_RESULTS = "Output/queryResults.txt";
     //Test
     //Path of the dataset
     //String COLLECTION_PATH = "D://collection.tar.gz";

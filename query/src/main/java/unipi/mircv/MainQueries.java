@@ -5,22 +5,31 @@ import java.util.HashMap;
 import java.util.Scanner;
 
 /**
- * The main class for processing queries. It interacts with the user to enter queries,
- * change settings, and execute queries using an inverted index.
+ * The MainQueries class serves as the central hub for handling user queries. It facilitates user interactions
+ * for query input, and query execution using an inverted index.
  */
 
 public class MainQueries {
 
-    private int k;
+    private int k; // Number of top results to retrieve
     public QueryProcessor queryProcessor;
-    public String stringScore;
+    public String stringScore;  // string for the type of scoring documents
     public String documentProcessor;
     public Parser parser;
 
-    // Flag indicating whether the query type is disjunctive (true) or conjunctive (false)
+    // Flag indicating the query type:disjunctive (true) or conjunctive (false)
     private final String queryType;
 
-
+    /**
+     * Constructor for MainQueries class.
+     *
+     * @param k                Number of top results to retrieve
+     * @param stringScore      Type of document scoring
+     * @param documentProcessor How to process the posting list (daat, maxscore)
+     * @param queryType        Type of relation (conjunctive or disjunctive)
+     * @param stopwordStemming Flag for enabling or disabling stopwords removal and stemming
+     * @param encodingType     Encoding type for processing the query
+     */
     public MainQueries(int k, String stringScore, String documentProcessor, String queryType, boolean stopwordStemming, String encodingType) {
 
         this.k = k;
@@ -32,10 +41,13 @@ public class MainQueries {
 
     }
 
+
     /**
-     * processQuery method is used to process a query and return top-k results
+     * Processes the user query and returns the top-k results.
      *
-     * @param query the query to process
+     * @param query             The query to process
+     * @param stopwordStemming Flag for enabling or disabling stopwords removal and stemming
+     * @param encodingType     Encoding type for processing the query
      * @return BoundedPriorityQueue of top-k results
      */
     public PQueue processQuery(String query, boolean stopwordStemming, String encodingType) {
@@ -53,10 +65,11 @@ public class MainQueries {
 
 
     /**
-     * scoreDocuments method is used to score the documents using the specified scoring function
+     * Scores the documents using the specified score function.
      *
-     * @param queryTerms   terms of the query
-     * @param postingLists postinglists of the query terms
+     * @param queryTerms   Terms of the query
+     * @param postingLists Posting lists of the query terms
+     * @param encodingType type of encoding (byte or text)
      * @return BoundedPriorityQueue of top-k results
      */
     public PQueue scoreDocuments(String[] queryTerms, HashMap<String, ArrayList<Posting>> postingLists, String encodingType) {
@@ -80,14 +93,19 @@ public class MainQueries {
         return null;
     }
 
+    /**
+     * The main method to execute queries and display results.
+     *
+     * @param args Command line arguments for configuring query parameters
+     */
     public static void main(String[] args) {
 
         System.out.println("*** MAIN QUERIES ***");
         int nResults = Integer.parseInt(args[0]); //number of results
-        String scoreType = args[1]; //Which scoring function to use
-        String documentProcessor = args[2]; //How to process the postinglist (daat, maxscore)
-        String queryType = args[3]; //Type of relation (conjunctive or disjunctive)
-        Boolean stopwordStemming = Boolean.valueOf(args[4]); //Stopwords Removal
+        String scoreType = args[1]; //score function to use
+        String documentProcessor = args[2]; //How to process the postinglist: daat or maxscore
+        String queryType = args[3]; //Type of relation: conjunctive or disjunctive
+        Boolean stopwordStemming = Boolean.valueOf(args[4]); //Stopwords Removal and stemming
         String encodingType = args[5]; //encoding type
 
         MainQueries mainQueries = new MainQueries(nResults, scoreType, documentProcessor, queryType, stopwordStemming, encodingType);
@@ -95,7 +113,7 @@ public class MainQueries {
         Scanner sc = new Scanner(System.in);
 
         while (true) {
-            System.out.print("*** Insert a query: ");
+            System.out.print("*** INSERT A QUERY: ");
             String query = sc.nextLine();
 
             long start = System.currentTimeMillis();

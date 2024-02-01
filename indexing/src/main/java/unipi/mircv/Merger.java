@@ -32,7 +32,7 @@ public class Merger {
     public ByteWriter lastDocIdsByteWriter;
     public ByteWriter skipPointersByteWriter;
 
-    public int postingListBlockLenght = 500;
+    public int BlockLenght = 500;
 
 
 
@@ -138,7 +138,7 @@ public class Merger {
 
                         postingBlockCounter += 1;
                         //if we are at the end of the posting list block we save the current docId in the lastDocId file.
-                        if (postingBlockCounter == postingListBlockLenght) {
+                        if (postingBlockCounter == BlockLenght) {
                             offsetLastDocIds += lastDocIdsByteWriter.write(docId);
                             postingBlockCounter = 0;
                         }
@@ -149,7 +149,7 @@ public class Merger {
                 }
             }
             //at the end of the merging for a specific term we save the docId of the last posting of the posting list of that term.
-            if (postingBlockCounter != postingListBlockLenght) {
+            if (postingBlockCounter != BlockLenght) {
                 offsetLastDocIds += lastDocIdsByteWriter.write(docId);
             }
             //At the end of lexicon merging we add the global posting list length and the term upper bound information.
@@ -275,7 +275,7 @@ public class Merger {
 
                         postingBlockCounter += 1;
                         //if we are at the end of the posting list block we save the current docId in the lastDocId file.
-                        if (postingBlockCounter == postingListBlockLenght) {
+                        if (postingBlockCounter == BlockLenght) {
                             offsetLastDocIds += lastDocIdsTextWriter.write(docId);
                             postingBlockCounter = 0;
                         }
@@ -286,7 +286,7 @@ public class Merger {
                 }
             }
             //at the end of the merging for a specific term we save the docId of the last posting of the posting list of that term.
-            if (postingBlockCounter != postingListBlockLenght) {
+            if (postingBlockCounter != BlockLenght) {
                 offsetLastDocIds += lastDocIdsTextWriter.write(docId);
             }
             //At the end we add the global posting list length and the term upper bound information.
