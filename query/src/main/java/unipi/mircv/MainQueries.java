@@ -101,20 +101,35 @@ public class MainQueries {
     public static void main(String[] args) {
 
         System.out.println("*** MAIN QUERIES ***");
-        int nResults = Integer.parseInt(args[0]); //number of results
-        String scoreType = args[1]; //score function to use
-        String documentProcessor = args[2]; //How to process the postinglist: daat or maxscore
-        String queryType = args[3]; //Type of relation: conjunctive or disjunctive
-        Boolean stopwordStemming = Boolean.valueOf(args[4]); //Stopwords Removal and stemming
-        String encodingType = args[5]; //encoding type
 
+        Scanner scanner = new Scanner(System.in);
+
+        // Getting input for each parameter
+        System.out.print("Number of results: ");
+        int nResults = Integer.parseInt(scanner.nextLine());
+
+        System.out.print("Score function to use (tfidf/bm25): ");
+        String scoreType = scanner.nextLine(); // Use next() for reading a single word
+
+        System.out.print("How to process the postinglist (daat/maxscore): ");
+        String documentProcessor = scanner.nextLine();
+
+        System.out.print("Type of relation (conjunctive/disjunctive): ");
+        String queryType = scanner.nextLine();
+
+        System.out.print("Stopwords Removal and stemming (true/false): ");
+        boolean stopwordStemming = Boolean.parseBoolean(scanner.nextLine());
+
+        System.out.print("Encoding type (bytes/text): ");
+        String encodingType = scanner.nextLine();
+
+        System.out.println("\n*** LOADING STRUCTURES .... ***\n");
         MainQueries mainQueries = new MainQueries(nResults, scoreType, documentProcessor, queryType, stopwordStemming, encodingType);
 
-        Scanner sc = new Scanner(System.in);
 
         while (true) {
-            System.out.print("*** INSERT A QUERY: ");
-            String query = sc.nextLine();
+            System.out.print("*** INSERT A QUERY: \n");
+            String query=scanner.nextLine();
 
             long start = System.currentTimeMillis();
             PQueue results = mainQueries.processQuery(query, stopwordStemming, encodingType);
