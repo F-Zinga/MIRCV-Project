@@ -383,7 +383,7 @@ public class Merger {
     public void openScanners(int blockCounter, String encodingType) {
         lexiconScanners = new TextReader[blockCounter];
         for (int i = 0; i < blockCounter; i++) {
-            lexiconScanners[i] = new TextReader("Output/Lexicon/lexicon" + i + ".txt");
+            lexiconScanners[i] = new TextReader(LEXICON_BLOCK_PATH + i + ".txt");
         }
         if (encodingType.equals("text")) {
             // For text encoding, open additional scanners for document IDs, frequencies, and document index
@@ -391,9 +391,9 @@ public class Merger {
             freqTextScanners = new TextReader[blockCounter];
             documentIndexTextScanners = new TextReader[blockCounter];
             for (int i = 0; i < blockCounter; i++) {
-                docIdsTextScanners[i] = new TextReader("Output/DocIds/docIds" + i + ".txt");
-                freqTextScanners[i] = new TextReader("Output/Frequencies/freq" + i + ".txt");
-                documentIndexTextScanners[i] = new TextReader("Output/DocumentIndex/documentIndex" + i + ".txt");
+                docIdsTextScanners[i] = new TextReader(DOCIDS_BLOCK_PATH + i + ".txt");
+                freqTextScanners[i] = new TextReader(FREQ_BLOCK_PATH + i + ".txt");
+                documentIndexTextScanners[i] = new TextReader(DOCUMENT_INDEX_BLOCK_PATH + i + ".txt");
             }
         } else {
             // For byte encoding, open byte scanners for document IDs, frequencies, and document index
@@ -402,9 +402,9 @@ public class Merger {
             freqByteScanners = new ByteReader[blockCounter];
             documentIndexByteScanners = new ByteReader[blockCounter];
             for (int i = 0; i < blockCounter; i++) {
-                docIdByteScanners[i] = new ByteReader("Output/DocIds/docIds" + i + ".dat", compressor);
-                freqByteScanners[i] = new ByteReader("Output/Frequencies/freq" + i + ".dat", compressor);
-                documentIndexByteScanners[i] = new ByteReader("Output/DocumentIndex/documentIndex" + i + ".dat", compressor);
+                docIdByteScanners[i] = new ByteReader(DOCIDS_BLOCK_PATH + i + ".dat", compressor);
+                freqByteScanners[i] = new ByteReader(FREQ_BLOCK_PATH + i + ".dat", compressor);
+                documentIndexByteScanners[i] = new ByteReader(DOCUMENT_INDEX_BLOCK_PATH + i + ".dat", compressor);
             }
         }
     }
@@ -419,19 +419,19 @@ public class Merger {
         lexiconWriter = new TextWriter(LEXICON_PATH);
         if (encodingType.equals("text")) {
             // For text encoding, open additional writers for document IDs, frequencies, document index, last doc IDs, and skip pointers
-            docIdsTextWriter = new TextWriter(DOCID_TEXTPATH);
-            freqTextWriter = new TextWriter(FREQ_TEXTPATH);
-            docIndexTextWriter = new TextWriter(DOCINDEX_TEXTPATH);
-            lastDocIdsTextWriter= new TextWriter(LASTDOCID_TEXTPATH);
-            skipPointersTextWriter = new TextWriter(SKIPPOINTERS_TEXTPATH);
+            docIdsTextWriter = new TextWriter(DOCID_PATH + ".txt");
+            freqTextWriter = new TextWriter(FREQ_PATH + ".txt");
+            docIndexTextWriter = new TextWriter(DOCINDEX_PATH + ".txt");
+            lastDocIdsTextWriter= new TextWriter(LASTDOCID_PATH + ".txt");
+            skipPointersTextWriter = new TextWriter(SKIPPOINTERS_PATH + ".txt");
         } else {
             // For byte encoding, open byte writers for document IDs, frequencies, document index, last doc IDs, and skip pointers
             Compressor compressor = new Compressor();
-            docIdsByteWriter = new ByteWriter(DOCID_BYTEPATH, compressor);
-            freqByteWriter = new ByteWriter(FREQ_BYTEPATH, compressor);
-            docIndexByteWriter = new ByteWriter(DOCINDEX_BYTEPATH, compressor);
-            lastDocIdsByteWriter = new ByteWriter(LASTDOCID_BYTEPATH, compressor);
-            skipPointersByteWriter = new ByteWriter(SKIPPOINTERS_BYTEPATH, compressor);
+            docIdsByteWriter = new ByteWriter(DOCID_PATH + ".dat", compressor);
+            freqByteWriter = new ByteWriter(FREQ_PATH + ".dat", compressor);
+            docIndexByteWriter = new ByteWriter(DOCINDEX_PATH + ".dat", compressor);
+            lastDocIdsByteWriter = new ByteWriter(LASTDOCID_PATH + ".dat", compressor);
+            skipPointersByteWriter = new ByteWriter(SKIPPOINTERS_PATH + ".dat", compressor);
         }
     }
 

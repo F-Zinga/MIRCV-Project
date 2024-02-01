@@ -526,19 +526,19 @@ public class QueryProcessor {
 
     // Open text files for the lookup phase.
     public void openTextLookupFiles() {
-        docIdsTextRead = new TextReader(DOCID_TEXTPATH);
-        freqTextRead = new TextReader(FREQ_TEXTPATH);
-        lastDocIdTextRead = new TextReader(LASTDOCID_TEXTPATH);
-        skipPointersTextRead = new TextReader(SKIPPOINTERS_TEXTPATH);
+        docIdsTextRead = new TextReader(DOCID_PATH + ".txt");
+        freqTextRead = new TextReader(FREQ_PATH + ".txt");
+        lastDocIdTextRead = new TextReader(LASTDOCID_PATH + ".txt");
+        skipPointersTextRead = new TextReader(SKIPPOINTERS_PATH + ".txt");
     }
 
     // Open byte files for the lookup phase.
     public void openByteLookupFiles() {
         Compressor compressor = new Compressor();
-        docIdByteRead = new RandomByteReader(DOCID_BYTEPATH, compressor);
-        freqByteRead = new RandomByteReader(FREQ_BYTEPATH, compressor);
-        lastDocIdByteRead = new RandomByteReader(LASTDOCID_BYTEPATH, compressor);
-        skipPointersByteRead = new RandomByteReader(SKIPPOINTERS_BYTEPATH, compressor);
+        docIdByteRead = new RandomByteReader(DOCID_PATH + ".dat", compressor);
+        freqByteRead = new RandomByteReader(FREQ_PATH + ".dat", compressor);
+        lastDocIdByteRead = new RandomByteReader(LASTDOCID_PATH + ".dat", compressor);
+        skipPointersByteRead = new RandomByteReader(SKIPPOINTERS_PATH + ".dat", compressor);
     }
 
     // Close text files after lookup phase.
@@ -562,15 +562,15 @@ public class QueryProcessor {
 
     public void openTextObtainFiles() {
         lexiconRead = new TextReader(LEXICON_PATH);
-        statisticsRead = new TextReader(STATISTICS_TEXTPATH);
-        documentIndexTextRead = new TextReader(DOCINDEX_TEXTPATH);
+        statisticsRead = new TextReader(STATISTICS_PATH);
+        documentIndexTextRead = new TextReader(DOCINDEX_PATH + ".txt");
     }
 
     public void openByteObtainFiles() {
         Compressor compressor = new Compressor();
         lexiconRead = new TextReader(LEXICON_PATH);
-        statisticsRead = new TextReader(STATISTICS_TEXTPATH);
-        documentIndexByteRead = new ByteReader(DOCINDEX_BYTEPATH, compressor);
+        statisticsRead = new TextReader(STATISTICS_PATH);
+        documentIndexByteRead = new ByteReader(DOCINDEX_PATH + ".dat", compressor);
     }
 
     public void closeTextObtainFiles() {

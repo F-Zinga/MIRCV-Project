@@ -179,7 +179,7 @@ public class MainIndexing {
         // Calculate memory usage statistics
         float totalMemory = Runtime.getRuntime().totalMemory();
         float memoryUsage = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-        float percentageMemory= (memoryUsage / totalMemory) * 100;
+        float percentageMemory = (memoryUsage / totalMemory) * 100;
 
         // Check if available memory is below a threshold; if so, save the current block to disk
         if (percentageMemory >= 75 ){
@@ -232,11 +232,11 @@ public class MainIndexing {
     public void writeBytesBlock(Lexicon lexicon, ArrayList<String> sortedTerms, ArrayList<Integer> sortedDocIds){
 
         // Create writers for lexicon, document IDs, frequencies, and document index
-        TextWriter lexiconWriter = new TextWriter("Output/Lexicon/lexicon" + blockCounter + ".txt");
+        TextWriter lexiconWriter = new TextWriter(LEXICON_BLOCK_PATH + blockCounter + ".txt");
         Compressor compressor = new Compressor();
-        ByteWriter docIDWriter = new ByteWriter("Output/DocIds/docIds" + blockCounter + ".dat", compressor);
-        ByteWriter freqWriter = new ByteWriter("Output/Frequencies/freq" + blockCounter + ".dat", compressor);
-        ByteWriter docIndexWriter = new ByteWriter("Output/DocumentIndex/documentIndex" + blockCounter + ".dat", compressor);
+        ByteWriter docIDWriter = new ByteWriter(DOCIDS_BLOCK_PATH + blockCounter + ".dat", compressor);
+        ByteWriter freqWriter = new ByteWriter(FREQ_BLOCK_PATH + blockCounter + ".dat", compressor);
+        ByteWriter docIndexWriter = new ByteWriter(DOCUMENT_INDEX_BLOCK_PATH + blockCounter + ".dat", compressor);
 
         //saves the document index.
         for(Integer docId : sortedDocIds){
@@ -274,10 +274,10 @@ public class MainIndexing {
     public void writeTextBlock(Lexicon lexicon, ArrayList<String> sortedTerms, ArrayList<Integer> sortedDocIds){
 
         // Create writers for lexicon, document IDs, frequencies, and document index
-        TextWriter lexiconWriter = new TextWriter("Output/Lexicon/lexicon" + blockCounter + ".txt");
-        TextWriter docIDWriter = new TextWriter("Output/DocIds/docIds" + blockCounter + ".txt");
-        TextWriter freqWriter = new TextWriter("Output/Frequencies/freq" + blockCounter + ".txt");
-        TextWriter docIndexWriter = new TextWriter("Output/DocumentIndex/documentIndex" + blockCounter + ".txt");
+        TextWriter lexiconWriter = new TextWriter(LEXICON_BLOCK_PATH + blockCounter + ".txt");
+        TextWriter docIDWriter = new TextWriter(DOCIDS_BLOCK_PATH + blockCounter + ".txt");
+        TextWriter freqWriter = new TextWriter(FREQ_BLOCK_PATH + blockCounter + ".txt");
+        TextWriter docIndexWriter = new TextWriter(DOCUMENT_INDEX_BLOCK_PATH + blockCounter + ".txt");
 
         //saves the document index.
         for(Integer docId : sortedDocIds){
@@ -314,7 +314,7 @@ public class MainIndexing {
         statistics.setAvdl(statistics.getAvdl() / statistics.getNDocs());
         try{
             // Write collection statistics to a file
-            FileWriter writer = new FileWriter(STATISTICS_TEXTPATH);
+            FileWriter writer = new FileWriter(STATISTICS_PATH);
             writer.write(statistics.getNDocs() + " "
                     + statistics.getAvdl() + " " + statistics.getPostings());
             writer.close();
@@ -327,10 +327,10 @@ public class MainIndexing {
 
         System.out.println("*** MAIN INDEXING ***");
 
-        // Retrieve command line arguments for the input file, encoding type, and stop words and stemming flag
-        String file = args[0];
-        String type = args[1];
-        Boolean stopWordsStemming = Boolean.valueOf(args[2]); //Stopwords Removal
+        // Retrieve path for the input file, set the encoding type and stemming&stopwords removal
+        String file = COLLECTION_PATH;
+        String type = "bytes";  //bytes or text
+        Boolean stopWordsStemming = true;
 
         // Check if the provided encoding type is valid
         if(!type.equals("text") && !type.equals("bytes")){
