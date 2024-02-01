@@ -5,14 +5,14 @@ import java.util.*;
 import static unipi.mircv.Parameters.*;
 
 /**
- * The QueryProcessor class handles the processing of queries, interacting with various components,
- * such as the lexicon, document index, and collection statistics.
+ * The QueryProcessor class manages the processing of queries, coordinating with various components,
+ * including the lexicon, document index, and collection statistics.
  */
 public class QueryProcessor {
     public Lexicon lexicon;
     public Statistics statistics;
     public DocIndex docIndex;
-    public int postingListBlockLenght;
+    public int BlockLenght;
 
     public RandomByteReader docIdByteRead;
     public RandomByteReader freqByteRead;
@@ -47,25 +47,25 @@ public class QueryProcessor {
             openByteObtainFiles();
         }
 
-
         // Load data into memory
         obtainLexicon(lexicon);
         obtainStatistics();
         obtainDocumentIndex(encodingType);
 
+        // Close necessary files
         if (encodingType.equals("text"))
             closeTextObtainFiles();
         else
             closeByteObtainFiles();
 
-        postingListBlockLenght = 500;
+        BlockLenght = 500;
     }
 
 
     /**
-     * Given a query, retrieves the posting lists for each term in the query.
-     *
+     * Retrieves the posting lists for each term in the query.
      * @param queryTerms The terms in the query.
+     * @param encodingType type of encoding (byte or text)
      * @return A HashMap between each term and its respective posting list.
      */
     public HashMap<String, ArrayList<Posting>> lookup(String[] queryTerms, String encodingType) {
@@ -76,19 +76,18 @@ public class QueryProcessor {
         int freq;
 
 
-
         HashMap<String, ArrayList<Posting>> postingLists = new HashMap<>();
         Set<String> queryTermsSet = new HashSet<>(List.of(queryTerms));
 
         // Iterate through query terms
         for (String term : queryTermsSet) {
             try {
-                //Gets the offset information from the lexicon to read in the docIds and freq files.
+                // Retrieve offset information from the lexicon to read docIds and freq files.
                 offsetDocId = lexicon.getLexicon().get(term).getOffsetDocId();
                 offsetFreq = lexicon.getLexicon().get(term).getOffsetFreq();
                 postingListLength = lexicon.getLexicon().get(term).getPostingListLength();
 
-                // Go to the specified offsets in docIds and freq files
+                // Navigate to specified offsets in docIds and freq files
                 goToOffset(docIdByteRead, offsetDocId);
                 goToOffset(freqByteRead, offsetFreq);
 
@@ -119,10 +118,13 @@ public class QueryProcessor {
             return postingLists;
         }
 
+
         /**
-         * Lookup function that, given a query, retrieves the first block of each term's posting list.
-         * @param queryTerms The terms in the query.
-         * @return A HashMap between each term and the first block of its posting list.
+         * Retrieves the initial block of posting lists for each term in a given query.
+         *
+         * @param queryTerms The terms present in the query.
+         * @param encodingType type of the encoding (byte or text)
+         * @return A HashMap associating each term with its first posting block.
          */
         public HashMap<String, ArrayList<Posting>> initialLookUp (String[]queryTerms, String encodingType){
 
@@ -139,17 +141,17 @@ public class QueryProcessor {
             // Iterate through query terms
             for (String term : queryTermsSet) {
                 try {
-                    //Gets the offset information from the lexicon to read in the docIds and freq files.
+                    //Obtain the offset information from the lexicon to read in the docIds and freq files.
                     offsetDocId = lexicon.getLexicon().get(term).getOffsetDocId();
                     offsetFreq = lexicon.getLexicon().get(term).getOffsetFreq();
                     postingListLength = lexicon.getLexicon().get(term).getPostingListLength();
 
-                    // Go to the specified offsets in docIds and freq files
+                    // Navigate to the specified offsets in docIds and freq files
                     goToOffset(docIdByteRead, offsetDocId);
                     goToOffset(freqByteRead, offsetFreq);
 
-                    // Determine the number of postings to read
-                    postingToRead = Math.min(postingListLength, postingListBlockLenght);
+                    // Compute the number of postings to read
+                    postingToRead = Math.min(postingListLength, BlockLenght);
 
                 if (encodingType.equals("text")) {
                     // Iterate through the first block of the posting list and add postings to the list, reading docId and frequency from the relative files
@@ -177,10 +179,12 @@ public class QueryProcessor {
         }
 
         /**
-         * Given a term and a docId, retrieves the posting list block containing that docId.
-         * @param term The term for which to retrieve the posting list block.
-         * @param docId The docId for which to find the posting list block.
-         * @return A HashMap between the term and the posting list block containing the specified docId.
+         * Retrieves the posting list block containing a specified docId for a given term.
+         *
+         * @param term The term for which to obtain the posting list block.
+         * @param docId The docId used to identify the posting list block.
+         * @param encodingType The encoding type for reading files (text or byte).
+         * @return A HashMap associating the term with the posting list block containing the specified docId.
          */
         public HashMap<String, ArrayList<Posting>> lookupDocId (String term,int docId, String encodingType){
             HashMap<String, ArrayList<Posting>> postingLists = new HashMap<>();
@@ -193,21 +197,23 @@ public class QueryProcessor {
 
             searchBlock(skipPointers, term, docId, encodingType); // Find the block to read using skip pointers
 
-            // If no posting with a docId greater or equal to the provided one exists, return an empty HashMap
+            // If no posting with a docId greater or equal to the one exists, return an empty HashMap
             if (skipPointers[3] == 0) return postingLists;
 
-            // Go to the specified offsets in docIds and freq files
+            // Navigate to the specified offsets in docIds and freq files
             goToOffset(docIdByteRead, skipPointers[0]);
             goToOffset(freqByteRead, skipPointers[1]);
-            // Determine the number of posting to read
+
+            // Compute the number of posting to read
             postingListLength = lexicon.getLexicon().get(term).getPostingListLength();
+
             //skiPointers[2] == 0 if the docId is not contained in the last block of the posting list, 1 otherwise.
             if (skipPointers[2] == 0) {
-                postingToRead = Math.min(postingListLength, postingListBlockLenght);
+                postingToRead = Math.min(postingListLength, BlockLenght);
             } else {
                 // Compute the right length to read if the posting containing the docId is the last block
-                numberOfBlocks = (lexicon.getLexicon().get(term).getPostingListLength() / postingListBlockLenght) + 1;
-                postingToRead = postingListLength - (numberOfBlocks - 1) * postingListBlockLenght;
+                numberOfBlocks = (lexicon.getLexicon().get(term).getPostingListLength() / BlockLenght) + 1;
+                postingToRead = postingListLength - (numberOfBlocks - 1) * BlockLenght;
             }
 
             if (encodingType.equals("text")) {
@@ -222,19 +228,20 @@ public class QueryProcessor {
                 for (int i = 0; i < postingToRead; i++) {
                     newDocId = docIdByteRead.read();
                     newFreq = freqByteRead.read();
-                    //TODO
                     addPosting(postingLists, term, newDocId, newFreq);
                 }
             }
             return postingLists;
         }
 
-        /**
-         * Searches for the skip pointers to the relative block of a term's posting list containing a specified docId.
-         * @param skipPointers An array to store skip pointers.
-         * @param term The term for which to find skip pointers.
-         * @param docId The docId used to locate the block in the posting list.
-         */
+    /**
+     * Determines skip pointers for locating the block in a term's posting list that contains a specified docId.
+     *
+     * @param skipPointers An array to store skip pointers.
+     * @param term The term for which to find skip pointers.
+     * @param docId The docId used to identify the target block in the posting list.
+     * @param encodingType The encoding type for reading files (text or byte).
+     */
         public void searchBlock ( int[] skipPointers, String term,int docId, String encodingType){
             ArrayList<Integer> pointersDocIds = new ArrayList<>();
             ArrayList<Integer> pointerFreq = new ArrayList<>();
@@ -242,12 +249,12 @@ public class QueryProcessor {
             int offsetLastDocIds;
             int offsetSkipPointers;
 
-            //Gets the number of blocks of the term's posting list
-            int blockNumber = (lexicon.getLexicon().get(term).getPostingListLength() / postingListBlockLenght) + 1;
+            //Obtain the number of blocks of the term's posting list
+            int blockNumber = (lexicon.getLexicon().get(term).getPostingListLength() / BlockLenght) + 1;
             offsetLastDocIds = lexicon.getLexicon().get(term).getOffsetLastDocIds();
             offsetSkipPointers = lexicon.getLexicon().get(term).getOffsetSkipPointers();
 
-            // Go to the specified offsets in last docIds and skip pointers files
+            // Navigate to the specified offsets in last docIds and skip pointers files
             goToOffset(lastDocIdByteRead, offsetLastDocIds);
             goToOffset(skipPointersByteRead, offsetSkipPointers);
 
@@ -267,9 +274,9 @@ public class QueryProcessor {
                 }
             }
 
-            // Search for the block containing the posting with the specified docId grater or equal to the one passed as argument.
+            // Search for the block containing the posting with the specified docId grater or equal to the argument.
             for (int i = 0; i < docIds.size(); i++) {
-                //if a posting with a docId greater than the docId passed is not present in the posting list, skipPointers[3] is put equal 0.
+                //if a posting with a docId greater than the docId passed is not present in the posting list, skipPointers[3] is 0.
                 if (i == 0) {
                     if (docId < docIds.get(i)) {
                         skipPointers[0] = pointersDocIds.get(i);
@@ -284,14 +291,14 @@ public class QueryProcessor {
                         skipPointers[1] = pointerFreq.get(i);
                         skipPointers[2] = 0;
 
-                        // Check if this is the last block of the posting list
+                        // Check if we reach the last block of the posting list
                         if (i == (docIds.size() - 1)) {
                             skipPointers[2] = 1;
                         }
                         skipPointers[3] = 1;
                         return;
                     } else {
-                        //no posting with a docId greater or equal to the one passed is found.
+                        //no posting with a docId greater or equal to the argument is found.
                         skipPointers[3] = 0;
                     }
                 }
@@ -299,14 +306,15 @@ public class QueryProcessor {
         }
 
         /**
-         * Adds a posting to the posting list of a term.
-         * @param postingLists The HashMap containing posting lists for various terms.
-         * @param term The term for which to add the posting.
-         * @param docId The document ID of the posting.
+         * Appends a posting to the existing posting list for a specific term.
+         *
+         * @param postingLists The HashMap storing posting lists for different terms.
+         * @param term The term for which the posting is appended.
+         * @param docId The document ID associated with the posting.
          * @param freq The frequency of the term in the document.
          */
         public void addPosting (HashMap < String, ArrayList < Posting >> postingLists, String term,int docId, int freq){
-            // Check if the term is already present in the postingLists, if not, add a new entry.
+            // Check if the term already exist in the postingLists, otherwise, add a new entry.
             if (!postingLists.containsKey(term)) {
                 postingLists.put(term, new ArrayList<>());
             }
@@ -315,26 +323,29 @@ public class QueryProcessor {
         }
 
         /**
-         * Loads the lexicon from disk into main memory.
-         * @param lexicon The Lexicon object to store the loaded data..
+         * Reads and populates the lexicon data from the disk into the main memory.
+         *
+         * @param lexicon The Lexicon object to store the loaded data.
          */
         public void obtainLexicon (Lexicon lexicon){
             String line;
             String[] terms;
 
-            // Iterate through the lines of the lexicon file and add information to the lexicon.
+            // Process each line of the lexicon file and update the lexicon with parsed information.
             while (lexiconRead.hasNextLine()) {
                 line = lexiconRead.readLine();
                 terms = line.split(" ");
 
-                // Add lexicon information using parsed values from the line.
+                // Populate lexicon information using values parsed from the line.
                 lexicon.addInformation(terms[0], Integer.parseInt(terms[1]), Integer.parseInt(terms[2]),
                         Integer.parseInt(terms[3]), Integer.parseInt(terms[4]), Integer.parseInt(terms[5]), Float.parseFloat(terms[6]));
             }
         }
 
         /**
-         * Loads the document index from disk into main memory.
+         * Reads and loads the document index from the disk into the main memory.
+         *
+         * @param encodingType The encoding type for reading files (text or byte).
          */
         public void obtainDocumentIndex ( String encodingType) {
             int docId;
@@ -342,7 +353,7 @@ public class QueryProcessor {
             int size;
 
             if (encodingType.equals("text")) {
-                // Iterate through the document statistics and add new document information to the document index.
+                // Process document statistics and update the document index with new document information.
                 for (int i = 0; i < statistics.getNDocs(); i++) {
                     docId = documentIndexTextRead.read();
                     docNo = documentIndexTextRead.read();
@@ -361,7 +372,7 @@ public class QueryProcessor {
         }
 
         /**
-         * Loads the collection statistics from disk into main memory.
+         * Reads and transfers the collection statistics from the disk into the main memory.
          */
         public void obtainStatistics () {
             String[] terms;
@@ -384,10 +395,13 @@ public class QueryProcessor {
             return lexicon;
         }
 
+
         /**
-         * Loads the next block of a posting list for a specific term and document ID.
-         * @param term The term for which to load the next block.
-         * @param docId The document ID for which to load the next block.
+         * Load the subsequent block of a posting list associated with a specific term and document ID.
+         *
+         * @param term The term for which the next block is to be loaded.
+         * @param docId The document ID for which the next block is to be loaded.
+         * @param encodingType type of encoding (byte or text)
          * @return A HashMap containing posting lists for the specified term and document ID.
          */
         public HashMap<String, ArrayList<Posting>> loadNextBlock (String term,int docId, String encodingType){
@@ -399,25 +413,27 @@ public class QueryProcessor {
             int newFreq;
             int newDocId;
 
-            // Search for the skip pointers for the next posting list block.
+            // Identify the skip pointers for the subsequent posting list block.
             searchNextBlock(skipPointers, term, docId, encodingType);
 
             if (skipPointers[0] == 0)
-                return postingLists;  // If skip pointers are not found, return an empty postingLists.
+                return postingLists;  //Return an empty postingLists if skip pointers are not located.
 
-            // Go to the specified offsets for docIds and frequencies.
+            // Navigate to the specified offsets for docIds and frequencies.
             goToOffset(docIdByteRead, skipPointers[0]);
             goToOffset(freqByteRead, skipPointers[1]);
+
             postingListLength = lexicon.getLexicon().get(term).getPostingListLength();
-            // Calculate the number of postings to read in the next block.
+
+            // Compute the number of postings to read in the next block.
             //skiPointers[2] == 0 if the docId is not contained in the last block of the posting list, 1 otherwise.
             if (skipPointers[2] == 0) {
-                postingToRead = Math.min(postingListLength, postingListBlockLenght);
+                postingToRead = Math.min(postingListLength, BlockLenght);
             } else {
-                //if the posting containing the docId is the last block of the posting list it computes the right
+                //if the posting containing the docId is the last block of the posting list, computes the right
                 //length to read.
-                numberOfBlocks = (lexicon.getLexicon().get(term).getPostingListLength() / postingListBlockLenght) + 1;
-                postingToRead = postingListLength - (numberOfBlocks - 1) * postingListBlockLenght;
+                numberOfBlocks = (lexicon.getLexicon().get(term).getPostingListLength() / BlockLenght) + 1;
+                postingToRead = postingListLength - (numberOfBlocks - 1) * BlockLenght;
             }
 
             if (encodingType.equals("text")) {
@@ -432,7 +448,7 @@ public class QueryProcessor {
                 for (int i = 0; i < postingToRead; i++) {
                     newDocId = docIdByteRead.read();
                     newFreq = freqByteRead.read();
-                    //TODO check freq
+                    //TODO
                     addPosting(postingLists, term, newDocId, newFreq);
 
                 }
@@ -441,10 +457,12 @@ public class QueryProcessor {
         }
 
         /**
-         * Searches for the skip pointers for the next posting list block.
+         * Search the skip pointers for the subsequent posting list block.
+         *
          * @param skipPointers An array to store skip pointers.
          * @param term The term for which to search the skip pointers.
          * @param docId The document ID for which to search the skip pointers.
+         * @param encodingType type of encoding (byte or text)
          */
         public void searchNextBlock ( int[] skipPointers, String term,int docId, String encodingType){
             ArrayList<Integer> pointersDocIds = new ArrayList<>();
@@ -453,15 +471,16 @@ public class QueryProcessor {
             int offsetLastDocIds;
             int offsetSkipPointers;
 
-            // Calculate the number of blocks for the term's posting list.
-            int blockNumber = (lexicon.getLexicon().get(term).getPostingListLength() / postingListBlockLenght) + 1;
+            // Determine the number of blocks for the term's posting list.
+            int blockNumber = (lexicon.getLexicon().get(term).getPostingListLength() / BlockLenght) + 1;
 
             offsetLastDocIds = lexicon.getLexicon().get(term).getOffsetLastDocIds();
             offsetSkipPointers = lexicon.getLexicon().get(term).getOffsetSkipPointers();
 
-            // Go to the specified offsets for last docIds and skip pointers.
+            // Navigate to the specified offsets for last docIds and skip pointers.
             goToOffset(lastDocIdByteRead, offsetLastDocIds);
             goToOffset(skipPointersByteRead, offsetSkipPointers);
+
             if (encodingType.equals("text")) {
                 // Read information about each block.
                 for (int i = 0; i < blockNumber; i++) {
@@ -477,15 +496,15 @@ public class QueryProcessor {
                     pointerFreq.add(skipPointersByteRead.read());
                 }
             }
-            //System.out.println("Hola: " + (int) Math.floor(Math.sqrt(docIds.size())));
+
             // Iterate through docIds to find the block containing the specified docId.
             for (int i = 0; i < docIds.size(); i++) {
                 if (docId == docIds.get(i)) {
 
-                    // If the docId belongs to the last block, return without updating skipPointers.
+                    // return without updating skipPointers, if the docId belongs to the last block, .
                     if (i == (docIds.size() - 1)) return;
 
-                    // If the next block is the last block, set the flag to indicate the last block.
+                    //  set the flag to indicate the last block if the next block is the last block,.
                     if (i == (docIds.size() - 2)) skipPointers[2] = 1;
                     // Update skipPointers with the offsets for the next block.
                     skipPointers[0] = pointersDocIds.get(i + 1);
@@ -493,28 +512,36 @@ public class QueryProcessor {
                 }
             }
         }
+
+        /**
+         * Moves the file cursor to a specified offset for random access reads.
+         *
+         * @param file The RandomByteReader representing the file to navigate.
+         * @param offset The offset to move the cursor to.
+         */
         public void goToOffset (RandomByteReader file,int offset){
             file.goToOffset(offset);
         }
 
-    //function that opens the lookup files for the lookup phase.
+
+    // Open text files for the lookup phase.
     public void openTextLookupFiles() {
-        docIdsTextRead = new TextReader("Output/DocIds/docIds.txt");
-        freqTextRead = new TextReader("Output/Frequencies/freq.txt");
-        lastDocIdTextRead = new TextReader("Output/Skipping/lastDocIds.txt");
-        skipPointersTextRead = new TextReader("Output/Skipping/skipPointers.txt");
+        docIdsTextRead = new TextReader(DOCID_TEXTPATH);
+        freqTextRead = new TextReader(FREQ_TEXTPATH);
+        lastDocIdTextRead = new TextReader(LASTDOCID_TEXTPATH);
+        skipPointersTextRead = new TextReader(SKIPPOINTERS_TEXTPATH);
     }
 
-    //function that opens the lookup files for the lookup phase.
+    // Open byte files for the lookup phase.
     public void openByteLookupFiles() {
         Compressor compressor = new Compressor();
-        docIdByteRead = new RandomByteReader("Output/DocIds/docIds.dat", compressor);
-        freqByteRead = new RandomByteReader("Output/Frequencies/freq.dat", compressor);
-        lastDocIdByteRead = new RandomByteReader("Output/Skipping/lastDocIds.dat", compressor);
-        skipPointersByteRead = new RandomByteReader("Output/Skipping/skipPointers.dat", compressor);
+        docIdByteRead = new RandomByteReader(DOCID_BYTEPATH, compressor);
+        freqByteRead = new RandomByteReader(FREQ_BYTEPATH, compressor);
+        lastDocIdByteRead = new RandomByteReader(LASTDOCID_BYTEPATH, compressor);
+        skipPointersByteRead = new RandomByteReader(SKIPPOINTERS_BYTEPATH, compressor);
     }
 
-    //function that closes the lookup files.
+    // Close text files after lookup phase.
     public void closeTextLookupFiles() {
         docIdsTextRead.close();
         freqTextRead.close();
@@ -522,6 +549,8 @@ public class QueryProcessor {
         skipPointersTextRead.close();
 
     }
+
+    // Close byte files after lookup phase.
     public void closeByteLookupFiles() {
         docIdByteRead.close();
         freqByteRead.close();
@@ -532,16 +561,16 @@ public class QueryProcessor {
 
 
     public void openTextObtainFiles() {
-        lexiconRead = new TextReader("Output/Lexicon/lexicon.txt");
-        statisticsRead = new TextReader("Output/CollectionStatistics/collectionStatistics.txt");
-        documentIndexTextRead = new TextReader("Output/DocumentIndex/documentIndex.txt");
+        lexiconRead = new TextReader(LEXICON_PATH);
+        statisticsRead = new TextReader(STATISTICS_TEXTPATH);
+        documentIndexTextRead = new TextReader(DOCINDEX_TEXTPATH);
     }
 
     public void openByteObtainFiles() {
         Compressor compressor = new Compressor();
-        lexiconRead = new TextReader("Output/Lexicon/lexicon.txt");
-        statisticsRead = new TextReader("Output/CollectionStatistics/collectionStatistics.txt");
-        documentIndexByteRead = new ByteReader("Output/DocumentIndex/documentIndex.dat", compressor);
+        lexiconRead = new TextReader(LEXICON_PATH);
+        statisticsRead = new TextReader(STATISTICS_TEXTPATH);
+        documentIndexByteRead = new ByteReader(DOCINDEX_BYTEPATH, compressor);
     }
 
     public void closeTextObtainFiles() {

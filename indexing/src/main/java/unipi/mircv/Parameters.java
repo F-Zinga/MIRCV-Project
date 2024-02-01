@@ -63,7 +63,7 @@ public interface Parameters {
     double B = 0.75;
 
 
-    // path merger text
+    // path merger and query processor text
     String LEXICON_PATH = "Output/Lexicon/lexicon.txt";
     String STATISTICS_TEXTPATH = "Output/CollectionStatistics/collectionStatistics.txt";
     String SKIPPOINTERS_TEXTPATH = "Output/Skipping/skipPointers.txt";
