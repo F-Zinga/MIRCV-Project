@@ -2,6 +2,9 @@ package unipi.mircv;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import static unipi.mircv.Parameters.*;
+
 /**
  * Represents a scoring function for document ranking based on information retrieval metrics.
  */
@@ -50,7 +53,7 @@ public class ScoreFunction {
         if (scoreType.equals("bm25")) {
 
             double tf = posting.getTermFrequency();
-            double denominator = k1 * ((1 - b) + b * ((double) docInfo.get(posting.getDocID()).getDocLen() / avgDocumentLength)) + tf;
+            double denominator = K1 * ((1 - B) + B * ((double) docInfo.get(posting.getDocID()).getDocLen() / avgDocumentLength)) + tf;
             double idf = this.idf.get(term);
 
             result = (tf * idf) / denominator;

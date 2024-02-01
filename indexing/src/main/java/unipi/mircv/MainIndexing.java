@@ -7,6 +7,8 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import static unipi.mircv.Parameters.*;
+
 /**
  * This class handles the primary operations during the indexing phase.
 */
@@ -312,7 +314,7 @@ public class MainIndexing {
         statistics.setAvdl(statistics.getAvdl() / statistics.getNDocs());
         try{
             // Write collection statistics to a file
-            FileWriter writer = new FileWriter("Output/CollectionStatistics/collectionStatistics.txt");
+            FileWriter writer = new FileWriter(STATISTICS_TEXTPATH);
             writer.write(statistics.getNDocs() + " "
                     + statistics.getAvdl() + " " + statistics.getPostings());
             writer.close();
