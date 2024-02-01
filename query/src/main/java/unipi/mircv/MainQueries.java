@@ -73,23 +73,21 @@ public class MainQueries {
      * @return BoundedPriorityQueue of top-k results
      */
     public PQueue scoreDocuments(String[] queryTerms, HashMap<String, ArrayList<Posting>> postingLists, String encodingType) {
-        /*
+
         if (documentProcessor.equals("daat")) {
-            DAAT daat = new DAAT(relationType, handleIndex);
-            if (scoringFunction.equals("tfidf")) {
-                TFIDF tfidf = new TFIDF(postingLists, queryTerms, handleIndex);
-                return daat.scoreDocuments(queryTerms, postingLists, tfidf, k);
-            } else if (scoringFunction.equals("bm25")) {
-                BM25 bm25 = new BM25(postingLists, queryTerms, handleIndex, 1.2, 0.75);
-                return daat.scoreDocuments(queryTerms, postingLists, bm25, k);
+
+            DAAT daat = new DAAT(queryType, queryProcessor);
+            ScoreFunction x = new ScoreFunction(postingLists, queryTerms, queryProcessor, stringScore);
+            return daat.scoreDocuments(queryTerms, postingLists, x, k, encodingType, stringScore);
+        }
+        else {
+            if (documentProcessor.equals("maxscore")) {
+
+                MaxScore maxScore = new MaxScore(queryType, queryProcessor);
+                ScoreFunction x = new ScoreFunction(postingLists, queryTerms, queryProcessor, stringScore);
+                return maxScore.scoreDocuments(queryTerms, postingLists, x, k, encodingType, stringScore);
             }
-        } else
-        */
-        if (documentProcessor.equals("maxscore")) {
-            MaxScore maxScore = new MaxScore(queryType, queryProcessor);
-            ScoreFunction x = new ScoreFunction(postingLists, queryTerms, queryProcessor,stringScore);
-            return maxScore.scoreDocuments(queryTerms, postingLists, x, k, encodingType,stringScore);
-            }
+        }
         return null;
     }
 
