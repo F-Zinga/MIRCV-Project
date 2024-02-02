@@ -44,7 +44,7 @@ public class MainIndexing {
     /**
      *  Method that processes a compressed document collection, performing preprocessing and analysis on each document.
      */
-    public void processCollection(String file, String type,boolean stopWordsStemming){
+    public void processCollection(String file, String type,boolean stopWordsStemming,String scoreType){
         // Set the encoding type for the document collection
         setEncodingType(type);
 
@@ -113,7 +113,7 @@ public class MainIndexing {
         if(encodingType.equals("text"))
             merger.mergeTextBlocks(blockCounter,encodingType,statistics);
         else
-            merger.mergeByteBlocks(blockCounter,encodingType,statistics);
+            merger.mergeByteBlocks(blockCounter,encodingType,statistics,scoreType);
 
         saveStatistics(); // Save the final statistics
     }
@@ -280,6 +280,7 @@ public class MainIndexing {
         String file = COLLECTION_PATH;
         String type = "bytes";  //bytes or text
         Boolean stopWordsStemming = true;
+        String scoreType = "bm25";
 
         // Check if the provided encoding type is valid
         if(!type.equals("text") && !type.equals("bytes")){
@@ -288,7 +289,7 @@ public class MainIndexing {
         else{
             MainIndexing index = new MainIndexing();
             long start = System.currentTimeMillis(); // Record the start time for performance measurement
-            index.processCollection(file, type, stopWordsStemming); // Process the document collection with the specified parameters
+            index.processCollection(file, type, stopWordsStemming,scoreType); // Process the document collection with the specified parameters
             long end = System.currentTimeMillis(); // Record the end time and calculate the elapsed time
             System.out.println("*** Time in milliseconds: " + (end-start) + " ***");
         }

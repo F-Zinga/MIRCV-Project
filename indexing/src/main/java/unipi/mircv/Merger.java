@@ -47,7 +47,7 @@ public class Merger {
      * @param encodingType  The encoding type "byte".
      * @param statistics    Statistics object for indexing information.
      */
-    public void mergeByteBlocks(int blockCounter, String encodingType, Statistics statistics) {
+    public void mergeByteBlocks(int blockCounter, String encodingType, Statistics statistics,String scoreType) {
 
         int localPostingListLength;
         int postingListLength;
@@ -163,11 +163,14 @@ public class Merger {
             tf = (float) (1 + Math.log(maxTermFrequency));
             idf = (float) Math.log((double) statistics.getNDocs() / postingListLength);
 
-            //termUpperBound = tf * idf; TFIDS TERM UPPER BOUND
-
-            int doclen = docIndex.get(docId).getDocLen();
-            float denominator =(float) (K1 * ((1 - B) + B * ((double) doclen / statistics.getAvdl())) + tf);
-            termUpperBound = (tf * idf) / denominator;
+            if(scoreType.equals("tfidf")) {
+                termUpperBound = tf * idf;
+            }
+            else {
+                int doclen = docIndex.get(docId).getDocLen();
+                float denominator = (float) (K1 * ((1 - B) + B * ((double) doclen / statistics.getAvdl())) + tf);
+                termUpperBound = (tf * idf) / denominator;
+            }
 
             lexiconWriter.write(postingListLength + " "
                     + termUpperBound + "\n");
