@@ -44,8 +44,6 @@ public class ScoreFunction {
      */
     public double computeScore(String term,Posting posting, String scoreType) {
 
-        double k1 = 1.6;
-        double b = 0.75;
         double result= 0;
 
 
