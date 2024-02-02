@@ -52,7 +52,7 @@ public class MainIndexing {
             // Open the compressed file
             FileInputStream input = new FileInputStream(file);
 
-            // Create a zip input stream to read entries from the compressed file
+            // Create an input stream to read entries from the compressed file
             TarArchiveInputStream tarinput = new TarArchiveInputStream(input);
 
             // Read the first entry in the compressed  file
@@ -279,8 +279,8 @@ public class MainIndexing {
         // Retrieve path for the input file, set the encoding type and stemming&stopwords removal
         String file = COLLECTION_PATH;
         String type = "bytes";  //bytes or text
-        Boolean stopWordsStemming = true;
-        String scoreType = "bm25";
+        Boolean stopWordsStemming = false;
+        String scoreType = "bm25"; //tfidf
 
         // Check if the provided encoding type is valid
         if(!type.equals("text") && !type.equals("bytes")){
