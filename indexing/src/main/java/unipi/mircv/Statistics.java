@@ -6,13 +6,10 @@ package unipi.mircv;
  */
 public class Statistics {
 
-        // Path to the statistics file
-        //final static String PATH = "Files/statistics.txt";
         private int terms; // Number of terms
         private int nDocs; // Total number of documents
         private double avdl; // Average document length
         private int postings; //Number of posting
-        private long time;
 
 
     /**
@@ -27,7 +24,6 @@ public class Statistics {
                 ", nDocs=" + nDocs +
                 ", avdl=" + avdl +
                 ", postings" + postings +
-                ", time=" + time +
                 '}';
     }
 
@@ -41,20 +37,11 @@ public class Statistics {
         this.postings = postings;
     }
 
-
-
-
-    public int getTerms() {
-            return terms;
-        }
     public void setnDocs(int nDocs) { this.nDocs = nDocs; }
     public int getNDocs() { return nDocs; }
 
     public double getAvdl() { return  avdl; }
     public void setAvdl (double avdl) { this.avdl = avdl; }
-
-
-    public long getTime() { return time; }
 
     public int getPostings() {
         return postings;

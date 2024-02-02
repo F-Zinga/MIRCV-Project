@@ -11,7 +11,7 @@ public class Term {
     public int offsetLastDocIds;
     public int offsetSkipPointer;
     public int postingListLength;
-    public float termUpperBound;
+    public float upperBound;
 
     /**
      * Constructs a Term with the given metadata.
@@ -21,23 +21,23 @@ public class Term {
      * @param offsetLastDocIds   Offset of the last document identifiers.
      * @param offsetSkipPointer    Offset of the skip block.
      * @param postingListLength  Length of the posting list.
-     * @param termUpperBound     Upper bound for the term.
+     * @param upperBound     Upper bound for the term.
      */
-    public Term(int offsetDocId, int offsetFreq, int offsetLastDocIds, int offsetSkipPointer, int postingListLength, float termUpperBound) {
+    public Term(int offsetDocId, int offsetFreq, int offsetLastDocIds, int offsetSkipPointer, int postingListLength, float upperBound) {
         this.offsetDocId = offsetDocId;
         this.offsetFreq = offsetFreq;
         this.offsetLastDocIds = offsetLastDocIds;
         this.offsetSkipPointer = offsetSkipPointer;
         this.postingListLength = postingListLength;
-        this.termUpperBound = termUpperBound;
+        this.upperBound = upperBound;
     }
 
-    public float getTermUpperBound() {
-        return termUpperBound;
+    public float getUpperBound() {
+        return upperBound;
     }
 
-    public void setTermUpperBound(float termUpperBound) {
-        this.termUpperBound = termUpperBound;
+    public void setUpperBound(float upperBound) {
+        this.upperBound = upperBound;
     }
 
 
@@ -57,16 +57,11 @@ public class Term {
         return offsetFreq;
     }
 
-
     public int getOffsetLastDocIds() {
         return offsetLastDocIds;
     }
     public int getOffsetSkipPointers() {
         return offsetSkipPointer;
-    }
-
-    public void setOffsetLastDocIds(int offsetDocId) {
-        this.offsetLastDocIds = offsetLastDocIds;
     }
 
     /**
@@ -77,7 +72,7 @@ public class Term {
     @Override
     public String toString() {
         return offsetDocId + " " + offsetFreq + " " + offsetLastDocIds + " "
-                + offsetSkipPointer + " " + postingListLength + " " + termUpperBound;
+                + offsetSkipPointer + " " + postingListLength + " " + upperBound;
     }
 }
 

@@ -44,7 +44,7 @@ public class MaxScore {
 
         // Determine term upper bounds for each query term
         for(String term : queryTerms){
-            termUpperBounds.put(term,(double) queryProcessor.getLexicon().getLexicon().get(term).getTermUpperBound());
+            termUpperBounds.put(term,(double) queryProcessor.getLexicon().getLexicon().get(term).getUpperBound());
         }
 
         // Sort the posting lists based on the term upper bounds

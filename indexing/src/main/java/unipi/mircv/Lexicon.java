@@ -36,7 +36,7 @@ public class Lexicon {
             lexicon.put(term, new Term(offsetDocIds, offsetFreq, offsetLastDocIds, offsetSkipBlock, postingListLength, termUpperBound));
         }
         else{ //it computes the highest term frequency
-            lexicon.get(term).setTermUpperBound(Math.max(termUpperBound, lexicon.get(term).getTermUpperBound()));
+            lexicon.get(term).setUpperBound(Math.max(termUpperBound, lexicon.get(term).getUpperBound()));
         }
     }
 

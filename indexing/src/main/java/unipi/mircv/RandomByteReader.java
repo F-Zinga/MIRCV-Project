@@ -55,9 +55,6 @@ public class RandomByteReader {
         }
 
 
-        public Object getReader() {
-            return bufferedInputStream;
-        }
 
     /**
      * Moves the file pointer to the specified offset and updates the input streams accordingly.

@@ -37,57 +37,6 @@ public class MainIndexing {
 
     }
 
-    public int getDocId() {
-        return docId;
-    }
-
-    public void setDocId(int docId) {
-        this.docId = docId;
-    }
-
-    public int getBlockCounter() {
-        return blockCounter;
-    }
-
-    public void setBlockCounter(int blockCounter) {
-        this.blockCounter = blockCounter;
-    }
-
-    public IndexBuilder getIndexBuilder() {
-        return indexBuilder;
-    }
-
-    public void setInvertedIndex(IndexBuilder indexBuilder) {
-        this.indexBuilder = indexBuilder;
-    }
-
-    public Lexicon getLexicon() {
-        return lexicon;
-    }
-
-    public void setLexicon(Lexicon lexicon) {
-        this.lexicon = lexicon;
-    }
-
-    public DocIndex getDocIndex() {
-        return docIndex;
-    }
-
-    public void setDocIndex(DocIndex docIndex) {
-        this.docIndex = docIndex;
-    }
-    public Statistics getStatistics() {
-        return statistics;
-    }
-
-    public void setStatistics(Statistics Statistics) {
-        this.statistics = statistics;
-    }
-
-    public String getEncodingType() {
-        return encodingType;
-    }
-
     public void setEncodingType(String encodingType) {
         this.encodingType = encodingType;
     }
