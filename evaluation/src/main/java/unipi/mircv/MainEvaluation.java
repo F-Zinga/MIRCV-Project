@@ -57,13 +57,11 @@ public class MainEvaluation {
             myReader = new Scanner(myFile, StandardCharsets.UTF_8);
             Boolean stopwordStemming= Boolean.valueOf("true");
             String encodingType="byte";
-            MainQueries mainQueries = new MainQueries(10, "tfidf", "maxscore", "disjunctive", stopwordStemming, encodingType);
+            MainQueries mainQueries = new MainQueries(20, "bm25", "maxscore", "disjunctive", stopwordStemming, encodingType);
             int counter = 0;
             while (myReader.hasNextLine()) {
                 System.out.println("Processing Query number: " + counter);
                 String[] line = myReader.nextLine().split("\t", 2); // Reads and splits the line (formatted as docNo \t document)
-
-
                 int qid;
                 try {
                     qid = Integer.parseInt(line[0]); // Extracts docNo
@@ -121,7 +119,7 @@ public class MainEvaluation {
      */
     public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("*** MAIN EVALUATION ***");
-        String file = args[0];
+        String file = "resources/queries/msmarco-test2020-queries.tsv";
 
         MainEvaluation eval = new MainEvaluation();
         long start = System.currentTimeMillis();

@@ -1,5 +1,7 @@
 package unipi.mircv;
 
+import java.util.HashMap;
+
 import static unipi.mircv.Parameters.*;
 
 /**
@@ -79,18 +81,22 @@ public class Merger {
 
         openMergeFiles(encodingType); //open the final merge files
 
+        HashMap<Integer,DocInfo> docIndex = new HashMap<>();
 
         // Merging of the document index is performed first, reading three integers for each row.
         for (int i = 0; i < blockCounter; i++) {
-            int number = documentIndexByteScanners[i].read(); //read the first integer
+            int id = documentIndexByteScanners[i].read(); //read the first integer
 
-            while (number != -1) { //continue until the file is not ended
-                docIndexByteWriter.write(number); //write the read integer on the final file
-                for (int j = 0; j < 2; j++) // Read two more integers from the current block file and write them to the final file
-                {
-                    docIndexByteWriter.write(documentIndexByteScanners[i].read());
-                }
-                number = documentIndexByteScanners[i].read();
+            while (id != -1) { //continue until the file is not ended
+                docIndexByteWriter.write(id); //write the read integer on the final file
+                // Read two more integers from the current block file and write them to the final file
+                 int docno = documentIndexByteScanners[i].read();
+                 docIndexByteWriter.write(docno);
+                 int docLen = documentIndexByteScanners[i].read();
+                 docIndexByteWriter.write(docLen);
+                 DocInfo docinfo = new DocInfo(docno,docLen);
+                 docIndex.put(id,docinfo);
+                 id = documentIndexByteScanners[i].read();
             }
         }
         // Merging loop for lexicon, document IDs, and frequencies files
@@ -152,10 +158,17 @@ public class Merger {
             if (postingBlockCounter != BlockLenght) {
                 offsetLastDocIds += lastDocIdsByteWriter.write(docId);
             }
+
             //At the end of lexicon merging we add the global posting list length and the term upper bound information.
             tf = (float) (1 + Math.log(maxTermFrequency));
             idf = (float) Math.log((double) statistics.getNDocs() / postingListLength);
-            termUpperBound = tf * idf;
+
+            //termUpperBound = tf * idf; TFIDS TERM UPPER BOUND
+
+            int doclen = docIndex.get(docId).getDocLen();
+            float denominator =(float) (K1 * ((1 - B) + B * ((double) doclen / statistics.getAvdl())) + tf);
+            termUpperBound = (tf * idf) / denominator;
+
             lexiconWriter.write(postingListLength + " "
                     + termUpperBound + "\n");
         }
