@@ -2,9 +2,8 @@ package unipi.mircv;
 
 
 /**
- This class extends the PriorityQueue class, designed to manage pairs (docId, score),
+ This class is designed to manage pairs (docId, score),
  * The elements are ordered in decreasing order of score (where the score determines the priority of the docId)
- * It also handles a threshold score used for pruning in the MaxScore.
  */
 
 public class DocsRanked  implements Comparable<DocsRanked>{

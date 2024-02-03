@@ -7,7 +7,7 @@ import java.util.Iterator;
 
 /**
  * Represents a collection of postings in the inverted index, providing functionality to iterate through and manage
- * posting with the use of skip blocks.
+ * posting, in fact implements the interface Iterator.
  */
 public class PLI implements Iterator<Posting> {
 
