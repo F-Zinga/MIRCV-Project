@@ -57,8 +57,8 @@ public class Merger {
         int offsetSkipPointers = 0;
         int docId = 0;
         float termUpperBound;
-        float maxTermFrequency;
-        float localTermFrequency;
+        float maxTermFreq;
+        float localTermFreq;
         float tf;
         float idf;
         String minTerm;
@@ -111,7 +111,7 @@ public class Merger {
             minTerm = minTerm(terms, scannerFinished,blockCounter);
             postingListLength = 0;
             postingBlockCounter = 0;
-            maxTermFrequency = 0;
+            maxTermFreq = 0;
 
             // Write term information to the lexicon in text format
             lexiconWriter.write(minTerm + " "
@@ -126,9 +126,9 @@ public class Merger {
                     localPostingListLength = Integer.parseInt(terms[i][5]);
                     //Update the global posting list length
                     postingListLength += localPostingListLength;
-                    localTermFrequency = Float.parseFloat(terms[i][6]);
+                    localTermFreq = Float.parseFloat(terms[i][6]);
 
-                    if (localTermFrequency > maxTermFrequency) maxTermFrequency = localTermFrequency;
+                    if (localTermFreq > maxTermFreq) maxTermFreq = localTermFreq;
                     for (int j = 0; j < localPostingListLength; j++) {
                         // If at the start of the posting list block, save skip pointers for the block
                         if (postingBlockCounter == 0) {
@@ -160,7 +160,7 @@ public class Merger {
             }
 
             //At the end of lexicon merging we add the global posting list length and the term upper bound information.
-            tf = (float) (1 + Math.log(maxTermFrequency));
+            tf = (float) (1 + Math.log(maxTermFreq));
             idf = (float) Math.log((double) statistics.getNDocs() / postingListLength);
 
             if(scoreType.equals("tfidf")) {
@@ -212,8 +212,8 @@ public class Merger {
         int offsetSkipPointers = 0;
         int docId = 0;
         float termUpperBound;
-        float maxTermFrequency;
-        float localTermFrequency;
+        float maxTermFreq;
+        float localTermFreq;
         float tf;
         float idf;
         String minTerm;
@@ -259,7 +259,7 @@ public class Merger {
             minTerm = minTerm(terms, scannerFinished,blockCounter);
             postingListLength = 0;
             postingBlockCounter = 0;
-            maxTermFrequency = 0;
+            maxTermFreq = 0;
             // Write term information to the lexicon in text format
             lexiconWriter.write(minTerm + " "
                     + offsetDocIds + " " + offsetFreq + " " + offsetLastDocIds + " " + offsetSkipPointers + " ");
@@ -273,9 +273,9 @@ public class Merger {
                     localPostingListLength = Integer.parseInt(terms[i][5]);
                     //Update the global posting list length
                     postingListLength += localPostingListLength;
-                    localTermFrequency = Float.parseFloat(terms[i][6]);
+                    localTermFreq = Float.parseFloat(terms[i][6]);
 
-                    if (localTermFrequency > maxTermFrequency) maxTermFrequency = localTermFrequency;
+                    if (localTermFreq > maxTermFreq) maxTermFreq = localTermFreq;
                     for (int j = 0; j < localPostingListLength; j++) {
                         // If at the start of the posting list block, save skip pointers for the block
                         if (postingBlockCounter == 0) {
@@ -306,7 +306,7 @@ public class Merger {
                 offsetLastDocIds += lastDocIdsTextWriter.write(docId);
             }
             //At the end we add the global posting list length and the term upper bound information.
-            tf = (float) (1 + Math.log(maxTermFrequency));
+            tf = (float) (1 + Math.log(maxTermFreq));
             idf = (float) Math.log((double) statistics.getNDocs() / postingListLength);
             termUpperBound = tf * idf;
             lexiconWriter.write(postingListLength + " "
@@ -339,15 +339,14 @@ public class Merger {
      * @return True if merging should continue, false otherwise.
      */
     public boolean continueMerging(boolean[] scannerFinished,int blockCounter) {
-        boolean continueMerging;
-        continueMerging = false;
+        boolean mergeContinue = false;
         for (int i = 0; i < blockCounter; i++) {
             if (!scannerFinished[i]) {
-                continueMerging = true;
+                mergeContinue = true;
                 break;
             }
         }
-        return continueMerging;
+        return mergeContinue;
     }
 
     /**

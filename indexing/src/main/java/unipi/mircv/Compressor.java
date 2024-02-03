@@ -20,7 +20,7 @@ public class Compressor {
      */
         public ArrayList<Integer> encode(int number){
             ArrayList<Integer> numbers = new ArrayList<>();
-            ArrayList<Integer> reversed = new ArrayList<>();
+            ArrayList<Integer> encoded = new ArrayList<>();
 
             // Continue encoding until the entire number is represented
             while(true){
@@ -35,9 +35,9 @@ public class Compressor {
 
             // Reverse the list for the final encoded form
             for(int i = 0; i<numbers.size(); i++){
-                reversed.add(numbers.get(numbers.size() - i - 1));
+                encoded.add(numbers.get(numbers.size() - i - 1));
             }
-            return reversed;
+            return encoded;
         }
 
     /**
@@ -47,16 +47,16 @@ public class Compressor {
      * @return The decoded integer.
      */
         public int decode(ArrayList<Integer> bytes){
-            int n = 0;
+            int decoded = 0;
             for(Integer number : bytes){
                 if (number < 128){
-                    n = 128 * n + number;
+                    decoded = 128 * decoded + number;
                 }
                 else{
-                    n = 128 * n + number - 128;
+                    decoded = 128 * decoded + number - 128;
                 }
             }
-            return n;
+            return decoded;
         }
 
     /**
@@ -68,7 +68,7 @@ public class Compressor {
         public int readBytes(BufferedInputStream file){
             ArrayList<Integer> bytes = new ArrayList<>();
             int byteRead;
-            int n = 0;
+            int decoded = 0;
             try{
                 // Continue reading until the end of the file or the end of the encoded integer
                 while(true){
@@ -79,12 +79,12 @@ public class Compressor {
                         break;
                     }
                 }
-                if (byteRead != -1) n = decode(bytes);
-                else n = -1;
+                if (byteRead != -1) decoded = decode(bytes);
+                else decoded = -1;
             }catch (IOException e){
                 e.printStackTrace();
             }
-            return n;
+            return decoded;
         }
 
     /**
@@ -124,17 +124,17 @@ public class Compressor {
         public int writeBytes(BufferedOutputStream file, int number){
             ArrayList<Integer> bytes;
             bytes = encode(number);
-            int numberOfBytesWritten = 0;
+            int nBytesWrite = 0;
             try{
                 // Write each byte of the codification to the file
                 for(Integer value : bytes){
                     file.write(value);
-                    numberOfBytesWritten ++;
+                    nBytesWrite ++;
                 }
             }catch (IOException e){
                 e.printStackTrace();
             }
-            return  numberOfBytesWritten;
+            return  nBytesWrite;
         }
     }
 

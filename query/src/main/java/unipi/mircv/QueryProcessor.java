@@ -48,9 +48,9 @@ public class QueryProcessor {
         }
 
         // Load data into memory
-        obtainLexicon(lexicon);
-        obtainStatistics();
-        obtainDocumentIndex(encodingType);
+        loadLexicon(lexicon);
+        loadStatistics();
+        loadDocumentIndex(encodingType);
 
         // Close necessary files
         if (encodingType.equals("text"))
@@ -193,7 +193,7 @@ public class QueryProcessor {
             int newFreq;
             int postingToRead;
             int postingListLength;
-            int numberOfBlocks;
+            int blockNumber;
 
             searchBlock(skipPointers, term, docId, encodingType); // Find the block to read using skip pointers
 
@@ -212,8 +212,8 @@ public class QueryProcessor {
                 postingToRead = Math.min(postingListLength, BlockLenght);
             } else {
                 // Compute the right length to read if the posting containing the docId is the last block
-                numberOfBlocks = (lexicon.getLexicon().get(term).getPostingListLength() / BlockLenght) + 1;
-                postingToRead = postingListLength - (numberOfBlocks - 1) * BlockLenght;
+                blockNumber = (lexicon.getLexicon().get(term).getPostingListLength() / BlockLenght) + 1;
+                postingToRead = postingListLength - (blockNumber - 1) * BlockLenght;
             }
 
             if (encodingType.equals("text")) {
@@ -327,7 +327,7 @@ public class QueryProcessor {
          *
          * @param lexicon The Lexicon object to store the loaded data.
          */
-        public void obtainLexicon (Lexicon lexicon){
+        public void loadLexicon (Lexicon lexicon){
             String line;
             String[] terms;
 
@@ -347,7 +347,7 @@ public class QueryProcessor {
          *
          * @param encodingType The encoding type for reading files (text or byte).
          */
-        public void obtainDocumentIndex ( String encodingType) {
+        public void loadDocumentIndex ( String encodingType) {
             int docId;
             int docNo;
             int size;
@@ -374,7 +374,7 @@ public class QueryProcessor {
         /**
          * Reads and transfers the collection statistics from the disk into the main memory.
          */
-        public void obtainStatistics () {
+        public void loadStatistics () {
             String[] terms;
 
             // Read a line from the collection statistics file and initialize the Statistics object.
@@ -409,7 +409,7 @@ public class QueryProcessor {
             int[] skipPointers = new int[3];
             int postingListLength;
             int postingToRead;
-            int numberOfBlocks;
+            int blockNumber;
             int newFreq;
             int newDocId;
 
@@ -432,8 +432,8 @@ public class QueryProcessor {
             } else {
                 //if the posting containing the docId is the last block of the posting list, computes the right
                 //length to read.
-                numberOfBlocks = (lexicon.getLexicon().get(term).getPostingListLength() / BlockLenght) + 1;
-                postingToRead = postingListLength - (numberOfBlocks - 1) * BlockLenght;
+                blockNumber = (lexicon.getLexicon().get(term).getPostingListLength() / BlockLenght) + 1;
+                postingToRead = postingListLength - (blockNumber - 1) * BlockLenght;
             }
 
             if (encodingType.equals("text")) {
@@ -448,7 +448,6 @@ public class QueryProcessor {
                 for (int i = 0; i < postingToRead; i++) {
                     newDocId = docIdByteRead.read();
                     newFreq = freqByteRead.read();
-                    //TODO
                     addPosting(postingLists, term, newDocId, newFreq);
 
                 }

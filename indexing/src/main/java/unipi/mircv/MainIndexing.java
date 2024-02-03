@@ -128,10 +128,10 @@ public class MainIndexing {
         // Calculate memory usage statistics
         float totalMemory = Runtime.getRuntime().totalMemory();
         float memoryUsage = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-        float percentageMemory = (memoryUsage / totalMemory) * 100;
+        float availableMemory = (memoryUsage / totalMemory) * 100;
 
         // Check if available memory is below a threshold; if so, save the current block to disk
-        if (percentageMemory >= 75 ){
+        if (availableMemory >= 75 ){
 
             // Write the current block to disk based on the encoding type
             if(encodingType.equals("text")) {

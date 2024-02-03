@@ -20,7 +20,7 @@ public class DocsRanked  implements Comparable<DocsRanked>{
 
     public int getKey() {return key;}
 
-    public void setValue(double value) {this.value = value;}
+   /* public void setValue(double value) {this.value = value;} */
 
     public double getValue() {return value;}
 

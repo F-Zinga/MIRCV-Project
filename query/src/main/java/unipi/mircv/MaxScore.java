@@ -39,33 +39,33 @@ public class MaxScore {
      */
     public PQueue scoreDocuments(String[] queryTerms, HashMap<String, ArrayList<Posting>> postingLists, ScoreFunction scoreFunction, int k,String encodingType,String scoreType){
         PQueue scores = new PQueue(k); //Initialize a new PriorityQueue with a capacity of k
-        HashMap<String, Double> termUpperBounds = new HashMap<>(); //Create a HashMap of term upper bounds
+        HashMap<String, Double> UpperBounds = new HashMap<>(); //Create a HashMap of term upper bounds
         double threshold = 0;
 
         // Determine term upper bounds for each query term
         for(String term : queryTerms){
-            termUpperBounds.put(term,(double) queryProcessor.getLexicon().getLexicon().get(term).getUpperBound());
+            UpperBounds.put(term,(double) queryProcessor.getLexicon().getLexicon().get(term).getUpperBound());
         }
 
         // Sort the posting lists based on the term upper bounds
         postingLists = postingLists.entrySet().stream()
-                .sorted(Comparator.comparingDouble(e -> termUpperBounds.get(e.getKey())))
+                .sorted(Comparator.comparingDouble(e -> UpperBounds.get(e.getKey())))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
 
         // Create an array of terms in the order they appear in the posting lists
-        String[] termsOrder = postingLists.keySet().toArray(new String[0]);
+        String[] orderedTerms = postingLists.keySet().toArray(new String[0]);
 
         // Create an array of booleans to keep track of essential posting lists and mark them accordingly
-        boolean[] essentialPostingList = new boolean[termsOrder.length];
+        boolean[] essentialPostingList = new boolean[orderedTerms.length];
         double counter = 0;
-        for(int i = 0; i < termsOrder.length; i++){
-            counter += termUpperBounds.get(termsOrder[i]);
+        for(int i = 0; i < orderedTerms.length; i++){
+            counter += UpperBounds.get(orderedTerms[i]);
             essentialPostingList[i] = counter >= threshold;
         }
 
         //Create an array list of PostingListIterators, one for each query term
         ArrayList<PLI> Iterators = new ArrayList<>();
-        for(String term : termsOrder){
+        for(String term : orderedTerms){
             Iterators.add(new PLI(term, postingLists.get(term), scoreFunction, queryProcessor, "maxscore"));
         }
 
@@ -82,26 +82,26 @@ public class MaxScore {
             boolean checkDocUpperBound = false;
 
             // Loop through the posting lists in reverse order
-            for(int i = termsOrder.length-1; i >= 0; i--){ //Foreach posting list check if the current posting corresponds to the minimum docID
-                PLI term_iterator = Iterators.get(i);
-                if (term_iterator.getPostingList().isEmpty()) continue;
+            for(int i = orderedTerms.length-1; i >= 0; i--){ //Foreach posting list check if the current posting corresponds to the minimum docID
+                PLI termIterator = Iterators.get(i);
+                if (termIterator.getPostingList().isEmpty()) continue;
 
                 // If the current posting list is not essential
                 if (!essentialPostingList[i]) {
                     if(!checkDocUpperBound) { // Check if the document upper bound has been reached
-                        if(!checkDocumentUpperBound(score, termUpperBounds, termsOrder,  i, threshold)){
+                        if(!checkDocumentUpperBound(score, UpperBounds, orderedTerms,  i, threshold)){
                             break; // If it has reached, break out of the loop
                         }else{
                             checkDocUpperBound = true;
                         }
                     }
-                    term_iterator.nextGEQ(minDocid,encodingType); // Move the iterator to the next element with a docID greater or equal to the minimum docID
+                    termIterator.nextGEQ(minDocid,encodingType); // Move the iterator to the next element with a docID greater or equal to the minimum docID
                 }
                 // If the iterator has not reached the end of the posting list
-                if (term_iterator.hasNext()) {
-                    if (term_iterator.docid() == minDocid) {  // If the current posting has the same docID as the minimum docID
-                        score += term_iterator.score(termsOrder[i],scoreType); // Add the score for the posting to the total score for the document
-                        term_iterator.next(); // Move the iterator to the next element
+                if (termIterator.hasNext()) {
+                    if (termIterator.docid() == minDocid) {  // If the current posting has the same docID as the minimum docID
+                        score += termIterator.score(orderedTerms[i],scoreType); // Add the score for the posting to the total score for the document
+                        termIterator.next(); // Move the iterator to the next element
                     }
                 }
             }
@@ -114,8 +114,8 @@ public class MaxScore {
             }
 
             counter = 0;
-            for(int i = 0; i < termsOrder.length; i++){
-                counter += termUpperBounds.get(termsOrder[i]);
+            for(int i = 0; i < orderedTerms.length; i++){
+                counter += UpperBounds.get(orderedTerms[i]);
                 essentialPostingList[i] = counter >= threshold;
             }
         }
@@ -145,13 +145,13 @@ public class MaxScore {
             }
         }
 
-        PLI minPostingListIterator = Iterators.get(minPostingListIndex);
-        while(!minPostingListIterator.isFinished(encodingType)){//While there are posting to be processed
+        PLI minPLI = Iterators.get(minPostingListIndex);
+        while(!minPLI.isFinished(encodingType)){//While there are posting to be processed
         // Set the iterator to the posting list with the smallest length and process its entries
             boolean toAdd = true;
-            int docId = minPostingListIterator.docid();
-            double score = minPostingListIterator.score(minPostingListIterator.getTerm(),scoreType);
-            minPostingListIterator.next();
+            int docId = minPLI.docid();
+            double score = minPLI.score(minPLI.getTerm(),scoreType);
+            minPLI.next();
 
             // Iterate over other posting lists and synchronize on the document ID
             for(int i=0;i<Iterators.size();i++){ //foreach other posting list call the nextGEQ on the docID of the smallest postingList
@@ -174,9 +174,9 @@ public class MaxScore {
     }
 
     // Check if the remaining upper bound score of the terms exceeds the threshold
-    public boolean checkDocumentUpperBound(double score, HashMap<String, Double> termUpperBounds, String[] termsOrder, int i, double threshold){
+    public boolean checkDocumentUpperBound(double score, HashMap<String, Double> UpperBounds, String[] orderedTerms, int i, double threshold){
         for(int j=i; j>=0; j--){
-            score += termUpperBounds.get(termsOrder[j]);
+            score += UpperBounds.get(orderedTerms[j]);
         }
         return score >= threshold;
     }

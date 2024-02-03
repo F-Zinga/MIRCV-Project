@@ -52,7 +52,7 @@ public class TextReader {
             scanner.close();
         }
 
-        public Object getReader() {
+       public Object getReader() {
             return scanner;
         }
 

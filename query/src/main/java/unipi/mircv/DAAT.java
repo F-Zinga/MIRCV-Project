@@ -56,12 +56,12 @@ public class DAAT {
 
             //For each posting list check if the current posting correspond to the minimum docID
             for(int i = 0; i < queryTerms.length; i++){
-                PLI term_iterator = Iterators.get(i);
-                if (!term_iterator.isFinished(encodingType)) {
+                PLI termIterator = Iterators.get(i);
+                if (!termIterator.isFinished(encodingType)) {
                     //If the current posting has the docID equal to the minimum docID
-                    if (term_iterator.docid() == minDocid) {
-                        score += term_iterator.score(queryTerms[i], scoreType); //Compute the score using the posting score function
-                        term_iterator.next(); //Navigate to the next element of the posting list
+                    if (termIterator.docid() == minDocid) {
+                        score += termIterator.score(queryTerms[i], scoreType); //Compute the score using the posting score function
+                        termIterator.next(); //Navigate to the next element of the posting list
                     }
                 }
             }
@@ -90,13 +90,13 @@ public class DAAT {
             }
         }
 
-        PLI minPostingListIterator = Iterators.get(minPostingListIndex);
+        PLI minPLI = Iterators.get(minPostingListIndex);
         //Continue while there are posting to be processed
-        while(!minPostingListIterator.isFinished(encodingType)){
+        while(!minPLI.isFinished(encodingType)){
             boolean toAdd = true;
-            int docId = minPostingListIterator.docid();
-            double score = minPostingListIterator.score(minPostingListIterator.getTerm(), scoreType);
-            minPostingListIterator.next();
+            int docId = minPLI.docid();
+            double score = minPLI.score(minPLI.getTerm(), scoreType);
+            minPLI.next();
 
             //for each other posting list call the nextGEQ on the docID of the smallest postingList
             for(int i=0;i<Iterators.size();i++){

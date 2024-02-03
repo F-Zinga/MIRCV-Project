@@ -29,14 +29,14 @@ public class Lexicon {
      * @param offsetLastDocIds   Offset for the last document IDs in the posting list.
      * @param offsetSkipBlock    Offset for skip block information in the posting list.
      * @param postingListLength  Length of the posting list for the term.
-     * @param termUpperBound     Upper bound for term frequency.
+     * @param UpperBound     Upper bound for term frequency.
      */
-    public void addInformation(String term, int offsetDocIds, int offsetFreq, int offsetLastDocIds, int offsetSkipBlock, int postingListLength, float termUpperBound){
+    public void addInformation(String term, int offsetDocIds, int offsetFreq, int offsetLastDocIds, int offsetSkipBlock, int postingListLength, float UpperBound){
         if(!lexicon.containsKey(term)){
-            lexicon.put(term, new Term(offsetDocIds, offsetFreq, offsetLastDocIds, offsetSkipBlock, postingListLength, termUpperBound));
+            lexicon.put(term, new Term(offsetDocIds, offsetFreq, offsetLastDocIds, offsetSkipBlock, postingListLength, UpperBound));
         }
         else{ //it computes the highest term frequency
-            lexicon.get(term).setUpperBound(Math.max(termUpperBound, lexicon.get(term).getUpperBound()));
+            lexicon.get(term).setUpperBound(Math.max(UpperBound, lexicon.get(term).getUpperBound()));
         }
     }
 
@@ -46,9 +46,9 @@ public class Lexicon {
      * @return A sorted list of terms.
      */
     public ArrayList<String> sortLexicon(){
-        ArrayList<String> sortedTerms = new ArrayList<>(lexicon.keySet());
-        Collections.sort(sortedTerms);
-        return sortedTerms;
+        ArrayList<String> termSorted = new ArrayList<>(lexicon.keySet());
+        Collections.sort(termSorted);
+        return termSorted;
     }
 
 }
