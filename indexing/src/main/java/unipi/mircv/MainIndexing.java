@@ -22,7 +22,6 @@ public class MainIndexing {
     public DocIndex docIndex;
     public Statistics statistics;
     public String encodingType;
-    public int postingListLength;
 
     public Parser parser;
 
@@ -128,10 +127,10 @@ public class MainIndexing {
         // Calculate memory usage statistics
         float totalMemory = Runtime.getRuntime().totalMemory();
         float memoryUsage = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-        float availableMemory = (memoryUsage / totalMemory) * 100;
+        float usedMemory = (memoryUsage / totalMemory) * 100;
 
         // Check if available memory is below a threshold; if so, save the current block to disk
-        if (availableMemory >= 75 ){
+        if (usedMemory >= 75 ){
 
             // Write the current block to disk based on the encoding type
             if(encodingType.equals("text")) {

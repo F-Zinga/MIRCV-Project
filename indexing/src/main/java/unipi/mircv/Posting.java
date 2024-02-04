@@ -28,16 +28,6 @@ public class Posting {
         return termFrequency;
     }
 
-
-    public void setDocID(int docID) {
-        this.docID = docID;
-    }
-
-    public void setTermFrequency(int termFrequency) {
-        this.termFrequency = termFrequency;
-    }
-
-
     /**
      * Returns a string representation of the Posting object.
      * @return A string containing the document ID and term frequency.

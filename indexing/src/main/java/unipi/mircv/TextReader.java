@@ -52,9 +52,6 @@ public class TextReader {
             scanner.close();
         }
 
-       public Object getReader() {
-            return scanner;
-        }
 
         /**
          * Checks if there is another line of text available for reading.

@@ -113,9 +113,6 @@ public class MainEvaluation {
     /**
      * The main method for running the evaluation process.
      *
-     * @param args Command line arguments specifying the file with queries
-     * @throws IOException          If an IO error occurs during file processing
-     * @throws InterruptedException If the execution is interrupted
      */
     public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("*** MAIN EVALUATION ***");

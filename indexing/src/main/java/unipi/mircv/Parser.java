@@ -48,9 +48,6 @@ public class Parser {
         splittedText = getStems(splittedText);
         }
 
-
-        //DocParsed doc = new DocParsed(docno, splittedText);
-
         return String.join(" ",splittedText);
 
     }
