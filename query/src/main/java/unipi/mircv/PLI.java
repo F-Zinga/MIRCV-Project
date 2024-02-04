@@ -41,11 +41,24 @@ public PLI(String term, ArrayList<Posting> postingList, ScoreFunction scoreFunct
         return postingList.get(position).getDocID();
     }
 
+    /**
+     * Computes the score for the current posting based on the specified score type.
+     *
+     * @param term      The term for which to compute the score.
+     * @param scoreType The type of score computation.
+     * @return The computed score.
+     */
     public double score(String term,String scoreType){
 
         return scoreFunction.computeScore(term, postingList.get(position),scoreType);
     }
 
+    /**
+     * Checks if the iterator is finished processing postings.
+     *
+     * @param encodingType The encoding type for processing postings.
+     * @return True if the iterator is finished, false otherwise.
+     */
     public boolean isFinished(String encodingType){
         if (this.postingList.size() == 0) {
             return true;
@@ -78,6 +91,12 @@ public PLI(String term, ArrayList<Posting> postingList, ScoreFunction scoreFunct
         return postingList.get(position++);
     }
 
+    /**
+     * Moves the iterator to the next posting with a document ID greater than or equal to the specified docID.
+     *
+     * @param docId        The document ID to search for.
+     * @param encodingType The encoding type for processing postings.
+     */
     public void nextGEQ(int docId,String encodingType) {
 
         //Load another block if the docID searched is not in the currentBlock
