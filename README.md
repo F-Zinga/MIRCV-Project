@@ -20,10 +20,13 @@ Our project is divided into three main modules:
  - MainQueries: Main class for processing user queries, interacting with the inverted index.
  - MaxScore: Implements the scoring process based on the DAAT algorithm for conjunctive and disjunctive queries.
  - MainEvaluation: Main class for query evaluation, loading queries from a file, generating query result files, and evaluating them using trec_eval.
+ - Parameters: Interface that contains all constants and paths.
 
 ## Usage
 To build the inverted index and write it to disk: mainIndexing.java
 
 To process a user query and retrieve relevant documents: mainQueries.java
 
-To evaluate query performance: mainEvaluation.java
+To evaluate query performance: mainEvaluation.java.
+
+
