@@ -3,7 +3,6 @@ package unipi.mircv;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
 /**
@@ -87,31 +86,6 @@ public class Compressor {
             return decoded;
         }
 
-    /**
-     * Reads bytes from a RandomAccessFile and returns the decoded integer.
-     *
-     * @param file The RandomAccessFile to read bytes from.
-     * @return The decoded integer.
-     */
-        public int readBytes(RandomAccessFile file){
-            ArrayList<Integer> bytes = new ArrayList<>();
-            int byteRead;
-            int n = 0;
-            try{
-                // Continue reading until the end of the file
-                while(true){
-                    byteRead = file.read();
-                    bytes.add(byteRead);
-                    if(byteRead >= 128){
-                        break;
-                    }
-                }
-                n = decode(bytes);
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-            return n;
-        }
 
     /**
      * Writes the codification of an integer to a BufferedOutputStream and returns the number of bytes written.
